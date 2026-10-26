@@ -11,6 +11,7 @@ agent tidak pernah melewatinya sendiri.
 | mandi-malam | Mandi malam bikin rematik? | mitos-fakta | video | gaya panel lama |
 | alpukat | 5 fakta unik alpukat | fakta-unik | video | gaya panel lama |
 | burung-listrik | Kenapa burung tidak tersetrum di kabel listrik? | mitos-fakta | video | contoh acuan gaya paper |
+| kaktus-air | Kaktus bisa hidup di gurun tanpa air? | mitos-fakta | video | diminta langsung lewat chat (lewat gerbang ide & naskah); tunggu ditonton → siap-upload |
 
 ## Usulan
 

@@ -1,0 +1,17 @@
+{
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Kaktus bisa hidup di gurun *tanpa air*?"},
+    {"vo": "Faktanya, itu *mitos*! Kaktus tetap butuh air.", "hold": 0.3},
+    {"vo": "Bedanya, kaktus jago *menabung* air."},
+    {"vo": "Akarnya dangkal, cuma sekitar tujuh sentimeter, tapi menyebar *sejauh tinggi* kaktusnya.", "hold": 0.3},
+    {"vo": "Begitu hujan turun, akarnya langsung menyedot air, dan lipatan batangnya *mengembang*.", "hold": 0.4},
+    {"vo": "Kaktus saguaro bisa menyerap sampai *750 liter* sekali hujan. Cukup untuk setahun!", "hold": 0.8},
+    {"vo": "Durinya adalah daun yang berubah bentuk, untuk meneduhkan batang dan menahan *angin kering*.", "hold": 0.3},
+    {"vo": "Pori-porinya baru terbuka di *malam hari*, saat udara lebih sejuk.", "hold": 0.3},
+    {"vo": "Jadi kaktus bukan kebal kering, tapi jago *hemat air*.", "hold": 0.4},
+    {"vo": "Makanya, kaktus di rumah jangan *kebanyakan disiram*, ya. Akarnya bisa busuk!"}
+  ]
+}
