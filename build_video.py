@@ -1,0 +1,357 @@
+"""YouTube Shorts motion-graphic builder.
+
+Usage:
+  python build_video.py <topic>            render output/<topic>.mp4
+  python build_video.py <topic> preview    render only still frames to build/<topic>/preview.png
+  python build_video.py <topic> preview 3.5,12   ...at chosen seconds
+  python build_video.py <topic> thumb            render output/<topic>-thumbnail.jpg from drawThumbnail()
+  python build_video.py <topic> workers=4       choose how many browsers render in parallel
+                                                 (default: half the CPU cores, at most 6)
+
+Needs: requirements.txt (pip), ffmpeg on PATH, and a browser: Edge on Windows, otherwise
+`playwright install chromium` (or set BROWSER_CHANNEL). See README.md / AGENTS.md.
+
+A topic lives in topics/<topic>/:
+  script.json  one voice-over line per scene ("hold": extra seconds after the line; *word* marks a
+               caption keyword). "style": "panel" (card layout: header label, "cont": true keeps the
+               previous picture) or "paper" (full-screen world with a moving camera); optional
+               "captions": {"words", "line"}, "watermark", "tail", "voice" (see tts.py).
+  scenes.js    panel style: one draw(t, S)/cues(S) object per scene.
+               paper style: drawWorld(t, cam), setup(D) for camera/headlines/chapters, cues(D),
+               optional drawOverlay(t, cam). Helpers come from engine/lib.js and engine/cicak.js.
+Voice-over comes from tts.py (cached in build/<topic>/tts). engine/index.html draws any
+moment with renderAt(t); this script screenshots every frame in parallel browsers, mixes
+voice + sound effects, and encodes the MP4.
+"""
+import base64
+import io
+import json
+import math
+import multiprocessing
+import os
+import re
+import subprocess
+import sys
+import wave
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+from playwright.sync_api import sync_playwright
+
+import tts
+
+ROOT = Path(__file__).parent
+ENGINE = ROOT / "engine" / "index.html"
+BUILD = ROOT / "build"  # set to build/<topic> in main()
+
+W, H, FPS = 1080, 1920, 30
+SR = 48000
+
+LEAD_IN = 0.3   # silence before the first line
+GAP = 0.35      # silence between scenes
+TAIL = 1.5      # hold on the last scene
+CAPTION_LINE = 18  # max characters per caption line
+CAPTION_WORDS = 4  # max words per caption
+
+
+# ---------- voice-over ----------
+
+def decode(path, words):
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "1",
+                          "-ar", str(SR), "-"], capture_output=True, check=True).stdout
+    a = np.frombuffer(raw, np.float32).copy()
+    # edge-tts pads ~0.8s of silence after the last word; cut it so GAP controls pacing
+    a = a[: int((words[-1]["t"] + words[-1]["d"] + 0.2) * SR)]
+    fade = min(len(a), int(0.03 * SR))
+    a[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
+    return a
+
+
+def caption_chunks(sc, max_words=CAPTION_WORDS, max_line=CAPTION_LINE):
+    """Split a scene's words into short captions: per sentence, evenly sized groups
+    of at most max_words words (no orphan words), wrapped at max_line chars.
+    Words wrapped in *stars* in the script are flagged as keywords (kw)."""
+    tokens = sc["vo"].split()
+    words = sc["words"]
+    kws, inside = [], False
+    for tok in tokens:
+        opens = tok.startswith("*")
+        kws.append(inside or opens)
+        if opens:
+            inside = True
+        if re.search(r"\*[,.:;?!]*$", tok):
+            inside = False
+    tokens = [tok.replace("*", "") for tok in tokens]
+    aligned = len(tokens) == len(words)
+    shown = [re.sub(r"[,.:;]+$", "", tok) for tok in tokens] if aligned else [w["w"] for w in words]
+    items = [{"w": shown[k], "t": w["t"], "d": w["d"], "kw": aligned and kws[k]} for k, w in enumerate(words)]
+    sentences, cur = [], []
+    for k, it in enumerate(items):
+        cur.append(it)
+        if k < len(tokens) and re.search(r"[.?!]$", tokens[k]):
+            sentences.append(cur)
+            cur = []
+    if cur:
+        sentences.append(cur)
+    chunks = []
+    for sent in sentences:
+        n = math.ceil(len(sent) / max_words)
+        base, extra = divmod(len(sent), n)
+        i = 0
+        for g in range(n):
+            group = sent[i: i + base + (1 if g < extra else 0)]
+            i += len(group)
+            lines = [[]]
+            for it in group:
+                length = sum(len(x["w"]) for x in lines[-1]) + len(lines[-1])
+                if lines[-1] and length + len(it["w"]) > max_line:
+                    lines.append([])
+                lines[-1].append(it)
+            chunks.append(lines)
+    out = []
+    for j, lines in enumerate(chunks):
+        first, last = lines[0][0], lines[-1][-1]
+        end = (chunks[j + 1][0][0]["t"] - 0.08 if j + 1 < len(chunks)
+               else min(last["t"] + last["d"] + 0.5, sc["end"]))
+        out.append({"start": first["t"] - 0.08, "end": end, "lines": lines})
+    return out
+
+
+# ---------- sound effects ----------
+
+def sfx(kind):
+    rng = np.random.default_rng(sum(map(ord, kind)))
+
+    def env(n, k):
+        return np.exp(-np.arange(n) / SR * k)
+
+    if kind == "pop":
+        n = int(0.09 * SR); t = np.arange(n) / SR
+        return 0.16 * np.sin(2 * np.pi * np.cumsum(600 + 700 * t / 0.09) / SR) * env(n, 45)
+    if kind == "tick":
+        n = int(0.05 * SR); t = np.arange(n) / SR
+        return 0.09 * np.sin(2 * np.pi * 1700 * t) * env(n, 90)
+    if kind == "thud":
+        n = int(0.3 * SR); t = np.arange(n) / SR
+        body = np.sin(2 * np.pi * np.cumsum(120 - 60 * t / 0.3) / SR) * env(n, 16)
+        return 0.45 * (body + rng.standard_normal(n) * env(n, 60) * 0.3)
+    if kind == "whoosh":
+        n = int(0.35 * SR); t = np.arange(n) / SR
+        smooth = np.convolve(rng.standard_normal(n), np.ones(40) / 40, mode="same")
+        return 0.5 * smooth * np.sin(np.pi * t / 0.35) ** 2
+    if kind == "ding":
+        n = int(0.7 * SR); t = np.arange(n) / SR
+        return 0.11 * (np.sin(2 * np.pi * 1320 * t) + 0.6 * np.sin(2 * np.pi * 1980 * t)) * env(n, 6)
+    if kind == "click":
+        n = int(0.03 * SR)
+        return 0.25 * np.diff(rng.standard_normal(n + 1)) * env(n, 200)
+    if kind == "sparkle":
+        out = np.zeros(int(0.35 * SR))
+        for j, fr in enumerate((2400, 3000, 3600)):
+            n = int(0.12 * SR); t = np.arange(n) / SR; s = int(j * 0.06 * SR)
+            out[s: s + n] += 0.05 * np.sin(2 * np.pi * fr * t) * env(n, 30)
+        return out
+    if kind == "zap":  # electric crackle: buzzing square wave chopped by random bursts
+        n = int(0.5 * SR); t = np.arange(n) / SR
+        buzz = np.sign(np.sin(2 * np.pi * 100 * t)) * 0.5 + rng.standard_normal(n)
+        gate = np.repeat(rng.random(n // 400 + 1) > 0.35, 400)[:n]
+        return 0.22 * buzz * gate * env(n, 5)
+    if kind == "chirp":  # two quick bird tweets
+        out = np.zeros(int(0.3 * SR))
+        for j in range(2):
+            n = int(0.07 * SR); t = np.arange(n) / SR; s = int(j * 0.13 * SR)
+            out[s: s + n] += 0.07 * np.sin(2 * np.pi * np.cumsum(2800 + 1600 * t / 0.07) / SR) * np.sin(np.pi * t / 0.07)
+        return out
+    raise ValueError(kind)
+
+
+# ---------- build ----------
+
+def timeline(script, topic_dir):
+    SCENES = script["scenes"]
+    voice = tts.voice_config(script)
+    t = LEAD_IN
+    clips = []
+    for i, sc in enumerate(SCENES):
+        audio, words = tts.voice_for(i, sc["vo"].replace("*", ""), voice, BUILD / "tts", topic_dir)
+        clip = decode(audio, words)
+        sc["audio"] = t
+        sc["start"] = 0.0 if i == 0 else t - 0.25
+        sc["words"] = [{**w, "t": t + w["t"]} for w in words]
+        clips.append((t, clip))
+        t += len(clip) / SR + GAP + sc.get("hold", 0)  # "hold": extra seconds for the picture to finish
+    total = clips[-1][0] + len(clips[-1][1]) / SR + script.get("tail", TAIL)
+    for i, sc in enumerate(SCENES):
+        sc["end"] = SCENES[i + 1]["start"] if i + 1 < len(SCENES) else total
+    cap = script.get("captions", {})
+    data = {
+        "header": script.get("header", ""),
+        "style": script.get("style", "panel"),
+        "watermark": script.get("watermark", ""),
+        "total": total,
+        "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
+        "captions": [c for sc in SCENES for c in caption_chunks(
+            sc, cap.get("words", CAPTION_WORDS), cap.get("line", CAPTION_LINE))],
+    }
+    return data, clips
+
+
+def mix_audio(total, clips, cues):
+    mix = np.zeros(int(total * SR) + SR, np.float32)
+    for start, clip in clips:
+        s = int(start * SR)
+        mix[s: s + len(clip)] += clip
+    for when, kind in cues:
+        fx = sfx(kind).astype(np.float32)
+        s = max(0, int(when * SR))
+        mix[s: s + len(fx)] += fx[: len(mix) - s]
+    mix = mix[: int(total * SR)]
+    mix *= min(1.0, 0.95 / max(1e-6, np.abs(mix).max()))
+    wav = BUILD / "audio.wav"
+    with wave.open(str(wav), "wb") as wf:
+        wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
+        wf.writeframes((mix * 32767).astype(np.int16).tobytes())
+    return wav
+
+
+def preview_times(data):
+    times = []
+    for sc in data["scenes"]:
+        times += [sc["start"] + (sc["end"] - sc["start"]) * 0.55, sc["end"] - 0.12]
+    return times
+
+
+def save_sheet(frames, path):
+    thumbs = [Image.open(io.BytesIO(png)).convert("RGB").resize((270, 480), Image.LANCZOS) for png in frames]
+    cols = 7
+    rows = (len(thumbs) + cols - 1) // cols
+    sheet = Image.new("RGB", (270 * cols, 480 * rows), (200, 200, 200))
+    for i, im in enumerate(thumbs):
+        sheet.paste(im, ((i % cols) * 270, (i // cols) * 480))
+    sheet.save(path)
+
+
+def launch_browser(p):
+    """Edge on Windows (always installed there); Playwright's bundled Chromium elsewhere.
+    Override with BROWSER_CHANNEL=chromium|msedge|chrome."""
+    channel = os.environ.get("BROWSER_CHANNEL") or ("msedge" if sys.platform == "win32" else "chromium")
+    args = ["--disable-dev-shm-usage"]  # small /dev/shm in Docker and some VPS images
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        args.append("--no-sandbox")  # Chromium refuses to sandbox when running as root
+    if channel == "chromium":
+        return p.chromium.launch(args=args)
+    return p.chromium.launch(channel=channel, args=args)
+
+
+def open_page(p, topic_dir, data):
+    browser = launch_browser(p)
+    page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+    page.goto(ENGINE.as_uri())
+    page.add_script_tag(path=str(topic_dir / "scenes.js"))
+    if not page.evaluate("d => init(d)", data):
+        raise SystemExit("fonts did not load (check engine/fonts/)")
+    # DevTools capture in "fast" PNG mode: lossless and about twice as quick as page.screenshot
+    cdp = page.context.new_cdp_session(page)
+    page._cdp = cdp
+
+    def shot(t):
+        page.evaluate("t => renderAt(t)", t)
+        return shot_page(page)
+    return browser, page, shot
+
+
+def shot_page(page):
+    res = page._cdp.send("Page.captureScreenshot", {"format": "png", "optimizeForSpeed": True})
+    return base64.b64decode(res["data"])
+
+
+def render_segment(job):
+    """Worker process: render frames [a, b) with its own browser into a video-only segment."""
+    topic_dir, data, a, b, seg, k = job
+    with sync_playwright() as p:
+        browser, _, shot = open_page(p, topic_dir, data)
+        ff = subprocess.Popen(
+            ["ffmpeg", "-y", "-v", "error", "-f", "image2pipe", "-framerate", str(FPS), "-c:v", "png", "-i", "-",
+             "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", str(seg)],
+            stdin=subprocess.PIPE)
+        for f in range(a, b):
+            ff.stdin.write(shot(f / FPS))
+            if (f - a) % 100 == 0:
+                print(f"  worker {k}: frame {f - a}/{b - a}", flush=True)
+        ff.stdin.close()
+        browser.close()
+        if ff.wait() != 0:
+            raise RuntimeError(f"ffmpeg failed on segment {k}")
+    return str(seg)
+
+
+def main():
+    global BUILD
+    args = sys.argv[1:]
+    if not args:
+        raise SystemExit(__doc__)
+    topic = args[0]
+    preview_only = "preview" in args[1:]
+    workers = next((int(a.split("=")[1]) for a in args if a.startswith("workers=")), min(6, max(1, os.cpu_count() // 2)))
+    topic_dir = ROOT / "topics" / topic
+    script = json.loads((topic_dir / "script.json").read_text(encoding="utf-8"))
+    BUILD = ROOT / "build" / topic
+    BUILD.mkdir(parents=True, exist_ok=True)
+    OUT = ROOT / "output" / f"{topic}.mp4"
+    OUT.parent.mkdir(exist_ok=True)
+    data, clips = timeline(script, topic_dir)
+    total = data["total"]
+    n_frames = int(round(total * FPS))
+
+    with sync_playwright() as p:
+        browser, page, shot = open_page(p, topic_dir, data)
+        cues = page.evaluate("getCues()")
+
+        if "thumb" in args[1:]:
+            page.evaluate("renderThumbnail()")
+            png = shot_page(page)
+            thumb = ROOT / "output" / f"{topic}-thumbnail.jpg"
+            # JPEG keeps it under YouTube's 2 MB thumbnail limit; the PNG is kept for editing
+            Image.open(io.BytesIO(png)).convert("RGB").save(thumb, quality=92)
+            (BUILD / "thumbnail.png").write_bytes(png)
+            print(f"thumbnail: {thumb} ({thumb.stat().st_size // 1024} KB)")
+            return
+
+        if preview_only:
+            # optional third argument: comma-separated seconds to render instead of the defaults
+            times = [float(x) for x in args[2].split(",")] if len(args) > 2 else preview_times(data)
+            frames = [shot(t) for t in times]
+            save_sheet(frames, BUILD / "preview.png")
+            for t, png in zip(times, frames):
+                (BUILD / "stills").mkdir(exist_ok=True)
+                (BUILD / "stills" / f"t{t:05.2f}.png").write_bytes(png)
+            print(f"preview: {BUILD / 'preview.png'}")
+            return
+        browser.close()
+
+    wav = mix_audio(total, clips, cues)
+    # split the frames into contiguous slices, one browser per worker, then join the slices
+    seg_dir = BUILD / "segments"
+    seg_dir.mkdir(exist_ok=True)
+    bounds = [round(n_frames * k / workers) for k in range(workers + 1)]
+    jobs = [(topic_dir, data, bounds[k], bounds[k + 1], seg_dir / f"seg{k:02d}.mp4", k) for k in range(workers)]
+    print(f"  rendering {n_frames} frames with {workers} workers", flush=True)
+    # "spawn" on every OS: each worker starts clean (fork after Playwright use is unsafe on Linux)
+    with multiprocessing.get_context("spawn").Pool(workers) as pool:
+        segs = pool.map(render_segment, jobs)
+    concat = seg_dir / "list.txt"
+    concat.write_text("".join(f"file '{Path(s).as_posix()}'\n" for s in segs), encoding="utf-8")
+    subprocess.run(
+        ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(concat), "-i", str(wav),
+         "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+         "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+         "-movflags", "+faststart", "-shortest", str(OUT)], check=True)
+    for s in segs:
+        Path(s).unlink()
+
+    print(f"done: {OUT}  ({total:.1f}s, {n_frames} frames)")
+
+
+if __name__ == "__main__":
+    main()

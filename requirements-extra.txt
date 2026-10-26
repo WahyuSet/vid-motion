@@ -1,0 +1,3 @@
+# optional voice-over providers (see tts.py)
+azure-cognitiveservices-speech>=1.40   # provider "azure"
+faster-whisper>=1.0                    # provider "file" (own recordings), and any provider without word timings

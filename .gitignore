@@ -1,0 +1,8 @@
+# generated: voice cache, frames, previews, segments
+build/
+# rendered videos and thumbnails (large; keep them out of git)
+output/
+.venv/
+__pycache__/
+*.pyc
+.env

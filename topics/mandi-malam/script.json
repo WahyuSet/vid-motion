@@ -1,0 +1,28 @@
+{
+  "header": "MITOS ATAU FAKTA?",
+  "scenes": [
+    {
+      "vo": "Mandi malam bikin rematik?"
+    },
+    {
+      "vo": "Faktanya, itu mitos!",
+      "cont": true
+    },
+    {
+      "vo": "Rematik adalah penyakit autoimun. Imun tubuh menyerang sendi sendiri."
+    },
+    {
+      "vo": "Pemicunya genetik, usia, merokok, dan obesitas. Bukan jam mandi."
+    },
+    {
+      "vo": "Tapi air dingin bisa bikin otot tegang dan sendi terasa kaku."
+    },
+    {
+      "vo": "Tipsnya: pakai air hangat, lalu segera keringkan badan.",
+      "cont": true
+    },
+    {
+      "vo": "Sendi sering nyeri dan bengkak? Periksa ke dokter. Follow untuk fakta lainnya!"
+    }
+  ]
+}

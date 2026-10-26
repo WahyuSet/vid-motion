@@ -1,0 +1,17 @@
+{
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Kabel listrik ini bertegangan *20.000 volt*."},
+    {"vo": "Tapi burung ini santai saja. Kok bisa?"},
+    {"vo": "Banyak yang mengira kaki burung *kebal* listrik. Faktanya, itu *mitos*!", "hold": 0.3},
+    {"vo": "Listrik hanya mengalir kalau ada *beda tegangan*.", "hold": 0.9},
+    {"vo": "Kedua kaki burung menempel di kabel yang *sama*. Jadi beda tegangannya *nol*.", "hold": 0.3},
+    {"vo": "Arus pun tetap lewat kabel, bukan lewat tubuh burung."},
+    {"vo": "Tapi kalau sayapnya menyentuh *dua kabel* sekaligus, arus langsung menembus tubuhnya.", "hold": 0.6},
+    {"vo": "Karena itu, burung besar seperti *elang* sering tersengat listrik.", "hold": 0.3},
+    {"vo": "Jadi kuncinya bukan kebal, tapi hanya menyentuh *satu kabel*.", "hold": 0.4},
+    {"vo": "Makanya, jangan main *layangan* dekat kabel listrik, ya!"}
+  ]
+}

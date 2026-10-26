@@ -1,0 +1,5 @@
+# core: needed for every render
+pillow>=12.0,<13
+numpy>=2.0,<3
+playwright>=1.55,<2
+edge-tts>=7.3,<8

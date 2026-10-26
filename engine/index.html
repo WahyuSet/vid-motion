@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  /* bundled fonts (SIL Open Font License, see the OFL.txt next to each font), so rendering works offline */
+  @font-face { font-family: 'Nunito'; src: url('fonts/nunito/Nunito-Variable.ttf') format('truetype'); font-weight: 200 1000; font-display: block; }
+  @font-face { font-family: 'Lilita One'; src: url('fonts/lilita-one/LilitaOne-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+  @font-face { font-family: 'Caveat'; src: url('fonts/caveat/Caveat-Variable.ttf') format('truetype'); font-weight: 400 700; font-display: block; }
+  html, body { margin: 0; background: #F5F2EC; overflow: hidden; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+<svg id="v" width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <!-- static layers: set up once by init(), only #world and #ui are redrawn per frame -->
+  <defs>
+    <radialGradient id="vigG" cx="50%" cy="46%" r="72%">
+      <stop offset="0.55" stop-color="#5A3C14" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5A3C14" stop-opacity="0.26"/>
+    </radialGradient>
+    <radialGradient id="glowG" cx="20%" cy="8%" r="60%">
+      <stop offset="0" stop-color="#FFF6D8" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect id="bg" width="1080" height="1920" fill="#F5F2EC"/>
+  <g id="world"></g>
+  <image id="tex" x="0" y="0" width="1080" height="1920" style="mix-blend-mode:multiply" display="none"/>
+  <rect id="glow" width="1080" height="1920" fill="url(#glowG)" display="none"/>
+  <rect id="vig" width="1080" height="1920" fill="url(#vigG)" display="none"/>
+  <g id="ui"></g>
+</svg>
+<script src="lib.js"></script>
+<script src="cicak.js"></script>
+<!-- build_video.py injects topics/<topic>/scenes.js here -->
+</body>
+</html>

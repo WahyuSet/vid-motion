@@ -1,0 +1,12 @@
+{
+  "header": "FAKTA UNIK",
+  "scenes": [
+    {"vo": "Lima fakta unik alpukat yang jarang orang tahu!"},
+    {"vo": "Satu. Secara botani, alpukat termasuk buah beri berbiji satu."},
+    {"vo": "Dua. Alpukat tidak matang di pohon. Ia baru matang setelah dipetik.", "hold": 0.6},
+    {"vo": "Tiga. Kaliumnya lebih tinggi daripada pisang!", "hold": 0.7},
+    {"vo": "Empat. Semua alpukat Hass di dunia berasal dari satu pohon di California.", "hold": 0.5},
+    {"vo": "Lima. Alpukat beracun bagi burung peliharaan.", "hold": 0.4},
+    {"vo": "Fakta nomor berapa yang bikin kamu kaget? Tulis di komentar, dan follow ya!"}
+  ]
+}
