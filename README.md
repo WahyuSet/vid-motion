@@ -1,7 +1,8 @@
-# vid-motion
+# vid-motion · Cicak Tahu
 
-Pembuat video motion graphic **YouTube Shorts** (1080×1920) bertema **fakta unik** dan **mitos atau fakta**,
-dengan maskot channel **Si Cicak**. Semua visual digambar lewat kode (SVG), suara dari TTS, dirender dengan
+Pembuat video motion graphic **YouTube Shorts** (1080×1920) untuk channel **Cicak Tahu** (`@cicaktahu`),
+bertema **fakta unik** dan **mitos atau fakta**, dengan maskot **Si Cicak**.
+Identitas channel (nama, handle, tagline, watermark) ada di [channel.json](channel.json). Semua visual digambar lewat kode (SVG), suara dari TTS, dirender dengan
 browser headless + ffmpeg.
 
 Panduan lengkap untuk agent AI (alur kerja, aturan konten, API engine): **[AGENTS.md](AGENTS.md)**.

@@ -15,7 +15,8 @@ A topic lives in topics/<topic>/:
   script.json  one voice-over line per scene ("hold": extra seconds after the line; *word* marks a
                caption keyword). "style": "panel" (card layout: header label, "cont": true keeps the
                previous picture) or "paper" (full-screen world with a moving camera); optional
-               "captions": {"words", "line"}, "watermark", "tail", "voice" (see tts.py).
+               "captions": {"words", "line"}, "watermark" (default from channel.json), "tail",
+               "voice" (see tts.py).
   scenes.js    panel style: one draw(t, S)/cues(S) object per scene.
                paper style: drawWorld(t, cam), setup(D) for camera/headlines/chapters, cues(D),
                optional drawOverlay(t, cam). Helpers come from engine/lib.js and engine/cicak.js.
@@ -44,6 +45,7 @@ import tts
 ROOT = Path(__file__).parent
 ENGINE = ROOT / "engine" / "index.html"
 BUILD = ROOT / "build"  # set to build/<topic> in main()
+CHANNEL = json.loads((ROOT / "channel.json").read_text(encoding="utf-8")) if (ROOT / "channel.json").exists() else {}
 
 W, H, FPS = 1080, 1920, 30
 SR = 48000
@@ -188,7 +190,8 @@ def timeline(script, topic_dir):
     data = {
         "header": script.get("header", ""),
         "style": script.get("style", "panel"),
-        "watermark": script.get("watermark", ""),
+        # channel handle from channel.json unless the topic overrides it ("" switches it off)
+        "watermark": script.get("watermark", CHANNEL.get("watermark", "")),
         "total": total,
         "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
         "captions": [c for sc in SCENES for c in caption_chunks(

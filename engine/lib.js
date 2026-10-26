@@ -371,7 +371,8 @@ function renderAt(t) {
     world = `<g transform="translate(540 ${VIEW_CY}) scale(${f(cam.z)}) translate(${f(-cam.x)} ${f(-cam.y)})">${drawWorld(t, cam)}</g>`;
     if (typeof drawOverlay === 'function') ui += drawOverlay(t, cam);
     ui += headlines(t) + chapterBadges(t) + smallCaptions(t);
-    if (D.watermark) ui += txt(D.watermark, 540, 1660, 24, C.ink, 800, 'middle', 'opacity="0.3"');
+    // channel handle top-left: the bottom of a Short is covered by YouTube's title and buttons
+    if (D.watermark) ui += txt(D.watermark, 64, 190, 32, C.ink, 900, 'start', `stroke="#fff" stroke-width="7" paint-order="stroke" opacity="0.55"`);
   } else {
     world = panelFrame(t);
   }
