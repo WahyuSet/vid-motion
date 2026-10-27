@@ -124,6 +124,8 @@ need it, and re-check old topics with `preview` afterwards.
 - `tail`: seconds after the last line (use ~1.6 for the loop back to the opening view).
 - `voice`: see `tts.py`. Default is fine. `TTS_PROVIDER` / `TTS_VOICE` env vars override it.
 - `channel`: `cicaktahu` (default), `tikus` or `stickman`; it sets the theme, mascot and watermark.
+- `captions`: `"words": 5` recommended. `"size": N` overrides theme caption size. `"line"` is mostly irrelevant now that captions re-wrap automatically in JS.
+- `progress`: `false` disables the top progress bar (`true` by default).
 - `watermark`: leave it out; the handle from the channel's `channel.json` is used (top-left).
   Set `"watermark": ""` only to switch it off for one topic. `"theme"` overrides the channel's theme (rarely needed).
 - `style: "panel"` is the older card layout (`topics/alpukat`, `topics/mandi-malam`); use `paper` for new videos.
@@ -173,6 +175,16 @@ Use `whoosh` on camera moves, `pop` on things appearing, `thud` on stamps, `ding
 | `stamp(label, t, ts, x, y, col, rot, size)` | rubber stamp that slams down at `ts` ("MITOS!", "FAKTA!") |
 | `cite(text, t, t0, t1, y)` | small source pill (screen space) |
 | `pill(label, x, y, size, fill, color, s, o)` | rounded label |
+| `layer(d, cam, inner, anchor)` | parallax layer in world space (`d = 1` normal, `d < 1` farther) |
+| `shadow(x, y, w, o)` | contact shadow adapting to the theme style (soft gradient, doodle hatching, ink) |
+| `burst(t, t0, x, y, opts)` | radial rays and dots flying out (`{n, r, col, dur, size}`) |
+| `confetti(t, t0, x, y, opts)` | celebratory confetti pieces with gravity and spin (`{n, spread, dur}`) |
+| `dustPuff(t, t0, x, y, opts)` | drifting dust puffs (`{n, size, dur}`) |
+| `impactRing(t, t0, x, y, opts)` | expanding shockwave rings (`{r0, r1, col, dur}`) |
+| `speedLines(t, t0, t1, cx, cy, opts)` | anime focus speed lines in screen space (`{r, n, col}`) |
+| `spotlight(t, t0, t1, x, y, r, dim)` | darkened vignette around a circle in screen space |
+| `toScreen(cam, x, y)` | convert world point `(x, y)` to screen coordinates for screen-space FX |
+| `impact(t, ts, k)` | camera shake and zoom punch (called automatically by `stamp`) |
 | `sparkle`, `snowflake`, `mix(hexA, hexB, p)`, `rnd(i)`, `lerp`, `clamp`, `measure` | small utilities |
 | `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (top-down view, crawls any direction with `rot`; `walk = t * 11` animates legs). See "Mascots" below |
 | `face(kind, geometry, t)`, `eye`, `eyePair`, `magnifier` | shared expressions and props (`engine/faces.js`) for drawing new characters |
@@ -213,7 +225,8 @@ Colours: use `C.*` (`ink`, `muted`, `yellow`, `accent`, `cool`, `leaf`, `line`, 
 
 ## Layout rules (screen space, 1080×1920)
 
-- Headline ~y 280–480. Chapter badge (950, 190). Captions centred at y 1500. `cite` at y 1395.
+- Progress bar at the top (y ≈ 28, x 40–1040, 10 px).
+- Headline ~y 280–480 (keep ≥ y 280). Chapter badge (950, 190). Captions centred at y 1500. `cite` at y 1395.
 - Keep the subject between y 550 and y 1400. Below ~1600 and the right edge (x > 960, y 1000–1700) are covered
   by the YouTube Shorts UI.
 - World strokes scale with zoom: at `z = 3` a 7-unit outline is 21 px. Draw close-up props a bit thinner.

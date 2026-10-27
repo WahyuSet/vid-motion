@@ -204,6 +204,8 @@ def timeline(script, topic_dir):
         "theme": script.get("theme", channel.get("theme", "paper")),
         "watermark": script.get("watermark", channel.get("watermark", "")),
         "total": total,
+        "progress": script.get("progress", True),
+        "captionSize": cap.get("size"),
         "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
         "captions": [c for sc in SCENES for c in caption_chunks(
             sc, cap.get("words", CAPTION_WORDS), cap.get("line", CAPTION_LINE))],
@@ -270,7 +272,10 @@ def open_page(p, topic_dir, data):
     page._cdp = cdp
 
     def shot(t):
+        # renderAt only mutates innerHTML: the screenshot must wait until Chromium has
+        # painted, otherwise capture races the paint and previous-frame pixels leak in
         page.evaluate("t => renderAt(t)", t)
+        page.wait_for_timeout(100)
         return shot_page(page)
     return browser, page, shot
 

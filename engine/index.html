@@ -24,6 +24,27 @@
       <stop offset="0" stop-color="#FFF6D8" stop-opacity="0.75"/>
       <stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/>
     </radialGradient>
+    <radialGradient id="fxShade" cx="50%" cy="50%" r="50%">
+      <stop id="fxShadeStop" offset="0" stop-color="#14141E" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#14141E" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="wGrade" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1280" height="2120">
+      <feColorMatrix id="wGradeSat" type="saturate" values="1"/>
+      <feComponentTransfer id="wGradeCt">
+        <feFuncR id="wGradeR" type="linear" slope="1" intercept="0"/>
+        <feFuncG id="wGradeG" type="linear" slope="1" intercept="0"/>
+        <feFuncB id="wGradeB" type="linear" slope="1" intercept="0"/>
+      </feComponentTransfer>
+    </filter>
+    <filter id="wGradeBlur" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1280" height="2120">
+      <feGaussianBlur id="wBlur" stdDeviation="0 0" result="b"/>
+      <feColorMatrix id="wBlurSat" in="b" type="saturate" values="1" result="s"/>
+      <feComponentTransfer id="wBlurCt" in="s">
+        <feFuncR id="wBlurR" type="linear" slope="1" intercept="0"/>
+        <feFuncG id="wBlurG" type="linear" slope="1" intercept="0"/>
+        <feFuncB id="wBlurB" type="linear" slope="1" intercept="0"/>
+      </feComponentTransfer>
+    </filter>
   </defs>
   <rect id="bg" width="1080" height="1920" fill="#F5F2EC"/>
   <g id="world"></g>

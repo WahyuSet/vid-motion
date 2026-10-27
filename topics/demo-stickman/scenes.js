@@ -61,6 +61,7 @@ function drawWorld(t) {
   if (t > K.n) {
     const v = Math.round(100000 * P(t, K.n, 1.2, E.outCubic));
     s += hand(`${v.toLocaleString('id-ID')}× / hari`, 0, -10, 76, PEN);
+    s += burst(t, K.n, 0, -10, { n: 10, r: 120, col: C.accent, dur: 0.5, size: 9 });
   }
   // asleep: moon and Zz, the heart keeps going
   if (t > K.s2 - 0.3 && t < K.s3 + 0.6) {

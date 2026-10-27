@@ -252,17 +252,18 @@ function cues(D) {
     [K.s4, 'whoosh'], [K.beda, 'tick'],
     [K.s5, 'whoosh'], [K.sama, 'pop'], [K.sama + 0.15, 'pop'], [K.nol, 'ding'],
     [K.s6, 'whoosh'], [K.arus, 'tick'],
-    [K.s7 - 0.4, 'whoosh'], [K.dua, 'pop'], [K.tembus, 'zap'], [K.tembus, 'thud'],
+    [K.s7 - 0.4, 'whoosh'], [K.dua, 'pop'], [K.tembus, 'zap'], [K.tembus, 'thud'], [K.tembus, 'sparkle'],
     [K.elang, 'pop'], [K.s8e - 0.25, 'whoosh'],
     [K.s9, 'whoosh'], ...[0, 1, 2, 3].map(i => [K.s9 + i * 0.12, 'pop']), [K.s9 + 0.63, 'ding'], [K.satu, 'tick'],
+    [K.satu, 'pop'], [K.satu + 0.1, 'sparkle'],
     [K.s10, 'whoosh'], [K.layang, 'pop'], [K.loop, 'whoosh'],
   ];
 }
 
 // ---------- drawing ----------
-function drawWorld(t) {
+function drawWorld(t, cam) {
   const bY = wireY(BIRD_X, W1);
-  let s = sky(t) + town();
+  let s = layer(0.4, cam, sky(t)) + layer(0.7, cam, town());
   POLES.forEach(x => s += pole(x));
   s += wire(W1) + wire(W2);
   const I = P(t, K.volt, 0.5) * (1 - P(t, K.loop, 0.8));
@@ -308,6 +309,7 @@ function drawWorld(t) {
   if (t > K.satu && t < K.s9e + 0.3) {
     const p = pop(t, K.satu, 0.45), o = 1 - P(t, K.s9e - 0.1, 0.3);
     s += G(`translate(${BIRD_X} ${bY - 175}) scale(${f(p.s)}) translate(${-BIRD_X} ${-(bY - 175)})`, p.o * o, tagW('✓ AMAN', BIRD_X, bY - 175, 22, C.leaf, '#fff'));
+    s += confetti(t, K.satu, BIRD_X, bY - 175, { n: 20, spread: 220, dur: 1.2 });
   }
 
   s += eagleLayer(t);
@@ -341,8 +343,11 @@ function eagleLayer(t) {
     fl = fr = -10 + 34 * Math.sin(t * 16);
     shock = true;
   }
+  s += shadow(x, y + 4, 40, 0.22);
   s += eagle(x, y, EAGLE_S, { flapL: fl, flapR: fr, shock });
   if (t > K.tembus && t < K.tembus + 0.9) {
+    s += burst(t, K.tembus, ex, ey - 50, { n: 12, r: 140, col: C.yellow, dur: 0.45, size: 10 });
+    s += impactRing(t, K.tembus, ex, ey - 50, { r0: 25, r1: 180, col: C.accent, dur: 0.4 });
     const tl = wingTip(ex, ey, EAGLE_S, FLAP_L, 1), tr = wingTip(ex, ey, EAGLE_S, FLAP_R, -1);
     const chest = [ex, ey - 70 * EAGLE_S], feet = [ex, ey];
     s += lightning([tl, chest, feet], t) + lightning([tr, chest], t + 0.37, 0.8);
@@ -373,8 +378,14 @@ function cicakLayer(t, bY) {
   return cicak(x, y, 0.42, pose, t, rot, walk);
 }
 
-function drawOverlay(t) {
+function drawOverlay(t, cam) {
   let s = '';
+  if (cam) {
+    const ptBird = toScreen(cam, BIRD_X, wireY(BIRD_X, W1) - 40);
+    s += spotlight(t, K.santai - 0.1, K.santai + 1.2, ptBird.x, ptBird.y, 220, 0.4);
+    const ptEagle = toScreen(cam, EAGLE_X, wireY(EAGLE_X, W2) - 50);
+    s += speedLines(t, K.tembus - 0.05, K.tembus + 0.55, ptEagle.x, ptEagle.y, { r: 240, n: 24, col: C.ink });
+  }
   if (t > K.mitos - 0.2 && t < K.s3e + 0.1) s += G('', 1 - P(t, K.s3e - 0.25, 0.25), stamp('MITOS!', t, K.mitos, 540, 620));
 
   // field-notes card: water flows only where there is a height difference

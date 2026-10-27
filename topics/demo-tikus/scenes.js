@@ -54,6 +54,8 @@ function drawWorld(t) {
   const steps = ['Rp1.000', 'Rp1.500', 'Rp2.000'];
   const k = Math.min(2, Math.floor(clamp((t - K.naik) / 0.7) * 2.99));
   const bump = t > K.naik ? 1 + 0.12 * Math.exp(-6 * ((t - K.naik) % 0.7)) : 1;
+  s += shadow(170, -80, 80, 0.2);
+  s += burst(t, K.naik, 170, -160, { n: 8, r: 90, col: C.accent, dur: 0.35, size: 7 });
   s += priceTag(170, -160, t < K.naik ? steps[0] : steps[k], bump);
   s += newsText('ILUSTRASI', 170, -60, 26, C.muted, 500);
 

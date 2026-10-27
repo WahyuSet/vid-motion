@@ -29,6 +29,7 @@ Write `scenes.js` in this order; after every pass run `preview` at the relevant 
 2. **Characters and motion**: the stars of the story, Si Cicak (at least hook, verdict, ending), entrances on words.
 3. **Text**: headlines (2–4 words, `*yellow*` keyword), chapter icons, `stamp`, `cite` for any number or claim.
 4. **Overlays and polish**: explanation cards, flashes, handwritten notes, sound cues.
+5. **FX and depth**: add FX at key beats (`burst`, `confetti`, `speedLines`, `spotlight`) and parallax with `layer(d, cam, ...)` for background layers.
 
 Anchor every timing to spoken words via `D.scenes[i].at(word)`. Draw from `t` only (no state, no `Math.random`).
 
@@ -36,7 +37,8 @@ Anchor every timing to spoken words via `D.scenes[i].at(word)`. Draw from `t` on
 
 Render stills at: 0, every headline start, every stamp, every camera move midpoint, every card, the last 0.1 s.
 For each still check:
-- [ ] headline, chapter badge and captions do not overlap each other or the subject
+- [ ] headline, chapter badge, captions and progress bar do not overlap each other or the subject
+- [ ] impact frames (stamp landing, burst, flash) look punchy without obscuring text
 - [ ] nothing important below y 1600 or under the right-side Shorts buttons (x > 960, y 1000–1700)
 - [ ] text is readable at phone size (try a 270 px wide copy of the still)
 - [ ] no empty or "dead" frame: something always moves (camera drift, idle animation, current, particles)
