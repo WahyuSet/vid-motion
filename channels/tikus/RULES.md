@@ -20,6 +20,12 @@ These topics carry legal and reputational risk. The rules below are stricter tha
   "diduga" claims need a named, reputable source. No insults, nicknames or mockery of real people.
 - Do **not** use the mascot or the word "tikus" as a joke about corruption or about any real person or office
   (in Indonesia "tikus" is slang for a corrupt official); Si Tikus is a friendly explainer.
+- Si Tikus wears the **eksekutif** outfit by default (glasses, blazer, necktie: `tikus(..., outfit)`, default
+  in `MOUSE.outfit`). Because a mouse in a suit and tie echoes the "tikus berdasi" (koruptor) meme, keep it
+  reading as a friendly analyst: never draw it with money bags, cash under the table, a mask, bars or a prison,
+  sneaking or grabbing poses, or next to officials, parliament or party symbols; keep its faces friendly
+  (`smile`, `skeptical`, `smug`, `wow`), never sly or greedy. For `cek fakta` videos the `reporter` outfit
+  (glasses + ID card) fits better; `profesor` works for long explainers.
 - No content that could mislead about elections (dates, places, how to vote); during campaign periods prefer
   procedural explainers from KPU/Bawaslu sources.
 - No SARA framing.

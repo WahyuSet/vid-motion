@@ -120,6 +120,25 @@ async function renderSheet(name) {
   put(s, ui);
 }
 
+// Si Tikus outfit options side by side (build/brand/tikus-outfit.jpg), on the newsprint channel's page
+async function renderOutfits() {
+  const W = 2600, H = 1400;
+  await setupCanvas(W, H, { light: false, texture: false });
+  let s = `<rect width="${W}" height="${H}" fill="#E9E5DC"/>`, ui = '';
+  ui += titleText('PILIHAN *PAKAIAN* SI TIKUS', 1300, 100, 84, 1600, 14);
+  const opts = [['none', 'polos', ''], ['kacamata', 'kacamata', ''], ['profesor', 'profesor', 'dasi kupu-kupu + rompi rajut'],
+    ['reporter', 'reporter', 'kartu identitas + tali'], ['eksekutif', 'eksekutif', 'jas + dasi: mirip "tikus berdasi"']];
+  opts.forEach(([key, label, note], i) => {
+    const cx = 290 + i * 505;
+    s += `<rect x="${cx - 230}" y="200" width="460" height="1120" rx="34" fill="#fff" opacity="0.6"/>`;
+    s += tikus(cx, 520, 0.95, 'point', 1.3, 0, null, 'smile', key);
+    s += tikus(cx, 1010, 0.95, 'verdict', 1.3, 0, null, 'smug', key);
+    ui += pill(label.toUpperCase(), cx, 1230, 34, key === 'eksekutif' ? C.accent : '#34416A');
+    if (note) ui += hand(note, cx, 1290, 34, key === 'eksekutif' ? C.accent : C.muted);
+  });
+  put(s, ui);
+}
+
 async function renderAvatar() {
   await setupCanvas(800, 800);
   let s = `<rect width="800" height="800" fill="#F5B83D"/>` + rays(400, 430, 900, 24, '#FAD27A', 0.75);
