@@ -1,0 +1,43 @@
+{
+  "channel": "stickman",
+  "style": "paper",
+  "captions": {
+    "words": 6,
+    "line": 34
+  },
+  "tail": 1.3,
+  "scenes": [
+    {
+      "vo": "Golongan darahmu apa? *A, B, AB*, atau O?"
+    },
+    {
+      "vo": "Padahal warnanya sama-sama merah. Terus, *bedanya* apa?"
+    },
+    {
+      "vo": "Bedanya ada di *antigen*, penanda kecil di permukaan sel darah merah."
+    },
+    {
+      "vo": "Golongan A punya penanda A, golongan B punya *penanda B*."
+    },
+    {
+      "vo": "AB punya dua-duanya, sedangkan O *tidak punya* sama sekali."
+    },
+    {
+      "vo": "Ada juga *rhesus*, positif atau negatif. Jadi totalnya *delapan* golongan.",
+      "hold": 0.5
+    },
+    {
+      "vo": "Salah transfusi itu bahaya: antibodi akan menyerang sel darah *asing*.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Makanya, O negatif bisa diberikan ke hampir *semua orang* saat darurat."
+    },
+    {
+      "vo": "Di Indonesia, rhesus negatif kurang dari *satu persen*, jadi termasuk langka."
+    },
+    {
+      "vo": "Golongan darah diturunkan dari *orang tua*. Kamu golongan apa? Tulis di komentar!"
+    }
+  ]
+}

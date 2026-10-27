@@ -1,0 +1,18 @@
+{
+  "channel": "stickman",
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.5,
+  "scenes": [
+    {"vo": "Lagi enak tidur, tiba-tiba betismu *kram* luar biasa!"},
+    {"vo": "Otot mendadak keras seperti batu dan sakit banget. *Kok bisa*?"},
+    {"vo": "Di dalam tubuh, otot bekerja lewat ribuan *serabut kecil*."},
+    {"vo": "Saat ada sinyal saraf, serabut ini saling menarik dan *mengunci*."},
+    {"vo": "Untuk rileks lagi, sel otot butuh energi dan cairan *elektrolit*.", "hold": 0.4},
+    {"vo": "Tapi saat tubuhmu dehidrasi atau *kelelahan*, pasokan mineral jadi kacau."},
+    {"vo": "Akibatnya, saklar otot macet dan terus menegang tanpa mau *lepas*.", "hold": 0.5},
+    {"vo": "Pertolongan pertamanya: perlahan *tarik jari kaki* ke arah lutut.", "hold": 0.4},
+    {"vo": "Cukup air dan peregangan bikin ototmu *aman* dan rileks.", "hold": 0.3},
+    {"vo": "Kamu paling sering kena kram pas olahraga atau pas lagi *tidur*?"}
+  ]
+}

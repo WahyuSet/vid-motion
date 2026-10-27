@@ -1,0 +1,19 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Kulit jeruk ini tiap hari kamu *buang* begitu aja."},
+    {"vo": "Padahal di situ ada *serat* buat tubuhmu."},
+    {"vo": "Faktanya, orang dewasa butuh *25 gram* serat sehari.", "hold": 0.4},
+    {"vo": "Tiap 100 gram, jeruk cuma *2,4 gram* serat."},
+    {"vo": "Tapi jangan anggap remeh — *pektin* itu serat larut."},
+    {"vo": "Di perut, dia jadi *gel*: gula diserap pelan.", "hold": 0.6},
+    {"vo": "Dan kamu *kenyang* lebih lama."},
+    {"vo": "Yang tak larut bikin semuanya *lancar* di usus."},
+    {"vo": "Buktinya? Tiap 100 gram, jus jeruk cuma *0,2 gram*.", "hold": 0.7},
+    {"vo": "Makan jeruknya *utuh*, jangan cuma dijus."},
+    {"vo": "Satu jeruk sehari udah nambah. Ada keluhan? *Tanya dokter*.", "hold": 0.5}
+  ]
+}

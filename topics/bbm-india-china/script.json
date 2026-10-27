@@ -1,0 +1,18 @@
+{
+  "channel": "tikus",
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.3,
+  "scenes": [
+    {"vo": "Pertalite yang kamu isi, sebagian ternyata *impor* dari Singapura."},
+    {"vo": "Tanggal 26 Oktober 2026, Menteri ESDM Bahlil Lahadalia mau cari pemasok lain."},
+    {"vo": "Targetnya *India* dan *China*, untuk kontrak jangka panjang.", "hold": 0.3},
+    {"vo": "Kenapa? Menurut Bahlil, kita butuh sekitar *1,6 juta barel* minyak sehari."},
+    {"vo": "Produksi dalam negeri cuma sekitar *600 ribu* barel. Sisanya impor.", "hold": 0.3},
+    {"vo": "Selama ini lewat *tender* Pertamina, yang menurut Bahlil lama."},
+    {"vo": "Lewat Perpres 107 Tahun 2026, kini jalurnya *antarpemerintah*.", "hold": 0.3},
+    {"vo": "BLU milik pemerintah beli langsung ke negara pemasok, lalu *Pertamina* beli dari BLU.", "hold": 0.3},
+    {"vo": "Bahlil juga menyatakan harga BBM *subsidi* tidak akan naik."},
+    {"vo": "Hasil kunjungannya masih *ditunggu*. Kita pantau bareng, ya!"}
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "channel": "stickman",
+  "style": "paper",
+  "captions": {
+    "words": 5,
+    "line": 34
+  },
+  "tail": 1.4,
+  "scenes": [
+    {
+      "vo": "Nyamuk yang *menggigitmu* semalam itu pasti *betina*."
+    },
+    {
+      "vo": "Emangnya nyamuk *jantan* nggak minum darah? Kok bisa?"
+    },
+    {
+      "vo": "Banyak yang kira semua nyamuk itu pengisap darah. Faktanya, nyamuk jantan *tidak pernah* menggigit!",
+      "hold": 0.4
+    },
+    {
+      "vo": "Sehari-hari, nyamuk jantan cuma mengisap *nektar bunga* dan sari buah buat energi terbang."
+    },
+    {
+      "vo": "Jarum mulut atau *proboscis* jantan itu lemas, tidak cukup kuat menembus *kulit manusia*.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Sebaliknya, nyamuk betina punya *enam jarum* tajam buat menyedot *protein* darah."
+    },
+    {
+      "vo": "Tanpa protein darah itu, betina tidak bisa mematangkan sekitar *100 sampai 200* telurnya.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Ciri fisiknya kelihatan di *antena*: jantan lebat berbulu, sedangkan betina tipis dan bisa menularkan *DBD*.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Singkatnya: jantan makan *nektar*, betina cari darah demi *bertelur*."
+    },
+    {
+      "vo": "Makanya, kuras bak mandi biar betina gagal bertelur. Kalau demam tinggi, segera ke *dokter* ya!"
+    }
+  ]
+}

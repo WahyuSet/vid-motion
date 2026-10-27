@@ -12,6 +12,11 @@ agent tidak pernah melewatinya sendiri.
 | alpukat | cicaktahu | 5 fakta unik alpukat | fakta-unik | video | gaya panel lama |
 | burung-listrik | cicaktahu | Kenapa burung tidak tersetrum di kabel listrik? | mitos-fakta | video | contoh acuan gaya paper |
 | kaktus-air | cicaktahu | Kaktus bisa hidup di gurun tanpa air? | mitos-fakta | video | diminta langsung lewat chat (lewat gerbang ide & naskah); tunggu ditonton → siap-upload |
+| bbm-india-china | tikus | Pertalite yang kamu isi, sebagian ternyata impor? | jelasin | video | durasi 58.3s, info per 26 Okt 2026; siap ditinjau pengguna |
+| kram-otot | stickman | Lagi enak tidur, tiba-tiba betismu kram? | kok-bisa | video | topik kesehatan stickman (doodle & notebook), durasi 50.6s |
+| golongan-darah | stickman | Golongan darahmu apa? A, B, AB, atau O? | catatan-belajar | video | diminta langsung lewat chat sebagai tes (lewat gerbang ide & naskah); ~58.6s; tunggu ditonton → siap-upload |
+| serat-jeruk | cicaktahu | Kulit jerukmu dibuang, serat 25 gram ikut hilang? | fakta-unik | video | diminta langsung lewat chat (lewat gerbang ide & naskah); 49.6s; tunggu ditonton → siap-upload |
+| nyamuk-jantan | stickman | Nyamuk yang menggigitmu semalam itu pasti betina? | mitos-kesehatan | video | durasi 64.2s (1927 frame); siap ditonton pengguna → siap-upload |
 
 ## Usulan
 
