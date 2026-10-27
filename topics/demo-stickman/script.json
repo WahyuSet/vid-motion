@@ -1,0 +1,11 @@
+{
+  "channel": "stickman",
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.2,
+  "scenes": [
+    {"vo": "Jantungmu berdetak sekitar *100.000 kali* sehari."},
+    {"vo": "Tanpa disuruh, bahkan saat kamu *tidur*.", "hold": 0.3},
+    {"vo": "Setiap detak memompa darah ke *seluruh tubuh*."}
+  ]
+}

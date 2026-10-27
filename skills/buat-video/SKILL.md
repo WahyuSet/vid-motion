@@ -12,7 +12,9 @@ Output: `topics/<id>/scenes.js`, `output/<id>.mp4`, `topics/<id>/meta.md`, statu
 
 ## 1. Prepare
 
-- Read `AGENTS.md` (API, layout rules) and `topics/burung-listrik/scenes.js` — the reference implementation.
+- Read `AGENTS.md` (API, layout rules), the channel's `RULES.md`, and a reference implementation in the
+  channel's style: `topics/burung-listrik/scenes.js` (cicaktahu), `topics/demo-tikus/scenes.js` (tikus),
+  `topics/demo-stickman/scenes.js` (stickman). Use only the channel's mascot; draw props in its art style.
   Reuse its patterns: the `K` table of word times, `setCamera`, `setHeadlines`, `setChapters`, `cues`,
   `drawWorld` built from small drawing functions, `drawOverlay` for cards/stamps/flashes, Si Cicak.
 - Run `python build_video.py <id> preview` once if `build/<id>/tts/` is missing, then read the word timings.
@@ -53,8 +55,9 @@ If you cannot view images with your tools, stop after this step and ask the huma
 ## 5. Metadata (`topics/<id>/meta.md`)
 
 - **Judul:** 3 options, ≤ 60 characters, curiosity without lying, Indonesian. e.g. "Kenapa Burung Gak Kesetrum di Kabel Listrik?"
-- **Deskripsi:** 2–3 sentences of summary, then "Sumber:" with the URLs from `sources.md`, then a one-line
-  disclaimer for health topics ("Informasi umum, bukan pengganti saran dokter").
+- **Deskripsi:** 2–3 sentences of summary, then "Sumber:" with the URLs from `sources.md`, then every
+  disclaimer the channel's `RULES.md` requires (finance: "Konten edukasi, bukan ajakan investasi…";
+  health: "Informasi umum, bukan pengganti saran dokter.").
 - **Hashtag:** `#shorts` plus 3–4 specific ones (`#faktaunik`, `#mitosataufakta`, topic tags).
 
 ## 6. Hand over

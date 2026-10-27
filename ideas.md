@@ -6,12 +6,12 @@ agent tidak pernah melewatinya sendiri.
 `usulan` → 👤 `disetujui` → `naskah` → 👤 `naskah-ok` → `video` → 👤 `siap-upload` → `diupload`
 (atau 👤 `ditolak`, dengan alasan singkat supaya agent belajar)
 
-| id | judul (hook) | format | status | catatan |
-|---|---|---|---|---|
-| mandi-malam | Mandi malam bikin rematik? | mitos-fakta | video | gaya panel lama |
-| alpukat | 5 fakta unik alpukat | fakta-unik | video | gaya panel lama |
-| burung-listrik | Kenapa burung tidak tersetrum di kabel listrik? | mitos-fakta | video | contoh acuan gaya paper |
-| kaktus-air | Kaktus bisa hidup di gurun tanpa air? | mitos-fakta | video | diminta langsung lewat chat (lewat gerbang ide & naskah); tunggu ditonton → siap-upload |
+| id | channel | judul (hook) | format | status | catatan |
+|---|---|---|---|---|---|
+| mandi-malam | cicaktahu | Mandi malam bikin rematik? | mitos-fakta | video | gaya panel lama |
+| alpukat | cicaktahu | 5 fakta unik alpukat | fakta-unik | video | gaya panel lama |
+| burung-listrik | cicaktahu | Kenapa burung tidak tersetrum di kabel listrik? | mitos-fakta | video | contoh acuan gaya paper |
+| kaktus-air | cicaktahu | Kaktus bisa hidup di gurun tanpa air? | mitos-fakta | video | diminta langsung lewat chat (lewat gerbang ide & naskah); tunggu ditonton → siap-upload |
 
 ## Usulan
 
@@ -19,7 +19,8 @@ agent tidak pernah melewatinya sendiri.
 
 ### <id>
 - **Judul:** ...
-- **Format:** mitos-fakta | fakta-unik
+- **Channel:** cicaktahu | tikus | stickman
+- **Format:** lihat channels/<channel>/RULES.md
 - **Jawaban singkat:** satu kalimat inti fakta
 - **Sumber awal:** URL, URL
 - **Ide visual:** 3 momen utama

@@ -16,7 +16,8 @@ Reference: `drawThumbnail()` at the end of `topics/burung-listrik/scenes.js`.
 2. **2–4 words of title**, in `ui` (above the paper texture), with `titleText(text, 540, ~420, 160–180, 980, 24–26)`.
    One `*yellow*` part. It asks or teases; it does **not** give away the answer.
    Good: "20.000 VOLT / KOK SANTAI?", "MANDI MALAM / BIKIN REMATIK?". Bad: "Burung tidak tersetrum karena beda tegangan".
-3. **Emotion.** Si Cicak reacts (`shock`, or `verdict` for myth topics), placed beside the subject, not covering it.
+3. **Emotion.** The channel's mascot reacts (`shock`, or `verdict` for myth/fact-check topics), placed beside the
+   subject, not covering it. Titles follow the channel theme automatically (`titleText`).
    Characters may get a fun prop (sunglasses on the calm sparrow).
 4. **Point at the mystery.** A red circle (`C.accent`, stroke ~12) or arrow on the key detail.
 5. **Contrast.** A bold background behind the subject (sunburst rays, a strong colour block); dark ink outlines;

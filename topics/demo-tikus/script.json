@@ -1,0 +1,11 @@
+{
+  "channel": "tikus",
+  "style": "paper",
+  "captions": {"words": 6, "line": 34},
+  "tail": 1.2,
+  "scenes": [
+    {"vo": "Harga gorengan kok *naik* terus?"},
+    {"vo": "Itu namanya *inflasi*: harga barang dan jasa naik secara umum dan terus-menerus.", "hold": 0.4},
+    {"vo": "Uangmu sama, tapi barang yang bisa dibeli makin *sedikit*."}
+  ]
+}

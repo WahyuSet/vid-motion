@@ -1,8 +1,15 @@
-# vid-motion · Cicak Tahu
+# vid-motion
 
-Pembuat video motion graphic **YouTube Shorts** (1080×1920) untuk channel **Cicak Tahu** (`@cicaktahu`),
-bertema **fakta unik** dan **mitos atau fakta**, dengan maskot **Si Cicak**.
-Identitas channel (nama, handle, tagline, watermark) ada di [channel.json](channel.json). Semua visual digambar lewat kode (SVG), suara dari TTS, dirender dengan
+Pembuat video motion graphic **YouTube Shorts** (1080×1920) untuk tiga channel, masing-masing dengan maskot,
+tema visual, dan aturan kontennya sendiri (di `channels/<id>/`):
+
+| Channel | Maskot | Tema | Topik |
+|---|---|---|---|
+| **Cicak Tahu** (`@cicaktahu`) | Si Cicak (flat ink) | kertas hangat | fakta unik, mitos atau fakta |
+| *(nama belum ada)* `tikus` | Si Tikus (soft plush) | koran | politik, pemerintahan, keuangan, investasi |
+| *(nama belum ada)* `stickman` | Stickman (doodle) | buku tulis | kesehatan, tubuh manusia, edukasi |
+
+Topik memilih channel lewat `"channel"` di `script.json` (default `cicaktahu`). Semua visual digambar lewat kode (SVG), suara dari TTS, dirender dengan
 browser headless + ffmpeg.
 
 Panduan lengkap untuk agent AI (alur kerja, aturan konten, API engine): **[AGENTS.md](AGENTS.md)**.
@@ -73,10 +80,12 @@ Untuk channel yang dimonetisasi, pakai `azure`, `elevenlabs`, atau `file`, bukan
 build_video.py   pipeline render
 tts.py           provider suara
 engine/          mesin gambar (lib.js), Si Cicak (cicak.js), font (OFL)
+channels/<id>/   channel.json (nama, handle, maskot, tema) + RULES.md (aturan konten channel)
 topics/<topik>/  script.json (naskah) + scenes.js (ilustrasi) + sources.md, plan.md, meta.md
 skills/          instruksi per tugas untuk agent (cari-ide, tulis-naskah, buat-video, buat-thumbnail)
 ideas.md         backlog ide dan status persetujuan
-docs/            sketsa karakter
+docs/            sketsa karakter; docs/mascots/ berisi lembar semua pose & ekspresi maskot
+                 (Si Cicak, Si Tikus, Stickman), dibuat ulang dengan python make_brand.py
 build/, output/  hasil render (tidak masuk git)
 ```
 

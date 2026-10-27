@@ -170,10 +170,67 @@ function cameraAt(t) {
   return { x: c.x + 5 * Math.sin(t * 0.7) / c.z, y: c.y + 4 * Math.cos(t * 0.9) / c.z, z: c.z * (1 + 0.006 * Math.sin(t * 0.5)) };
 }
 
+// ---------- themes: one look per channel ----------
+// paper = Cicak Tahu (warm paper, outlined titles), newsprint = Si Tikus (newspaper grey, condensed news
+// titles on white strips, lower-third captions), notebook = Stickman (lined page, handwriting, highlighter).
+// A paper-style topic gets its channel's theme through D.theme (channels/<id>/channel.json "theme").
+const THEMES = {
+  paper: { texture: 'paper', glow: true, vignette: true,
+    head: { mode: 'outline' }, cap: { mode: 'marker', font: 'Nunito', weight: 900, size: 46 },
+    stamp: 'rubber', badge: 'round' },
+  newsprint: { texture: 'newsprint', glow: false, vignette: true,
+    palette: { bg: '#E9E5DC', ink: '#18223A', muted: '#5F6676', line: '#C9C3B6', yellow: '#F2C14E', accent: '#C8312B', cool: '#1F4E8C', leaf: '#2E8B57' },
+    head: { mode: 'news', font: 'Oswald', weight: 700 }, cap: { mode: 'bar', font: 'Oswald', weight: 500, size: 44 },
+    stamp: 'label', badge: 'square' },
+  notebook: { texture: 'notebook', glow: false, vignette: false,
+    palette: { bg: '#FCFCF7', ink: '#26262E', muted: '#7A7A84', line: '#BFD6EA', yellow: '#E4F05C', accent: '#E0522F', cool: '#2F6FB5', leaf: '#5DA544' },
+    head: { mode: 'marker', font: 'Caveat', weight: 700 }, cap: { mode: 'hand', font: 'Caveat', weight: 700, size: 60 },
+    stamp: 'circle', badge: 'sketch' },
+};
+let TH = THEMES.paper;
+
+// a line of text drawn in pieces, so *highlighted* pieces can get their own colour or marker
+function segments(line, size, weight, font) {
+  const parts = line.split(/(\*[^*]+\*)/).filter(Boolean)
+    .map(p => ({ s: p.startsWith('*') ? p.slice(1, -1) : p, hi: p.startsWith('*') }));
+  parts.forEach(p => p.w = measure(p.s, size, weight, font));
+  return { parts, width: parts.reduce((a, p) => a + p.w, 0) };
+}
+
 // {at, end, text, y?, size?}; words wrapped in *stars* are highlighted, "\n" breaks lines
-// big outlined title (headlines, thumbnails): *word* turns yellow, "\n" breaks lines,
+// big title (headlines, thumbnails) in the theme's style: *word* is highlighted, "\n" breaks lines,
 // shrinks to fit maxW, lines centred on (cx, cy)
 function titleText(text, cx, cy, size, maxW = 780, outline = 15) {
+  const mode = TH.head.mode;
+  if (mode === 'news' || mode === 'marker') {
+    const font = TH.head.font, weight = TH.head.weight;
+    if (mode === 'news') text = text.toUpperCase(); else size *= 1.3;
+    const lines = text.split('\n');
+    const widest = Math.max(...lines.map(l => segments(l, size, weight, font).width));
+    if (widest > maxW) size *= maxW / widest;
+    const lh = size * (mode === 'news' ? 1.22 : 1.0), y0 = cy - (lines.length - 1) * lh / 2;
+    let body = '';
+    lines.forEach((l, li) => {
+      const { parts, width } = segments(l, size, weight, font), y = y0 + li * lh;
+      let x = cx - width / 2;
+      if (mode === 'news') {
+        const pad = size * 0.28, hh = size * 1.12;
+        body += `<rect x="${f(x - pad + 8)}" y="${f(y - hh / 2 + 8)}" width="${f(width + 2 * pad)}" height="${f(hh)}" fill="${C.ink}" opacity="0.2"/>` +
+          `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(width + 2 * pad)}" height="${f(hh)}" fill="#fff"/>` +
+          `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(size * 0.12)}" height="${f(hh)}" fill="${C.accent}"/>`;
+      }
+      parts.forEach(p => {
+        if (mode === 'marker' && p.hi)
+          body += `<rect x="${f(x - 6)}" y="${f(y - size * 0.18)}" width="${f(p.w + 12)}" height="${f(size * 0.5)}" rx="${f(size * 0.12)}" fill="${C.yellow}" opacity="0.9" transform="rotate(-2 ${f(x)} ${f(y)})"/>`;
+        const fill = mode === 'news' && p.hi ? C.accent : C.ink;
+        // white outline keeps marker text readable over drawings, but not where the highlighter is
+        const extra = mode === 'marker' && !p.hi ? `stroke="#fff" stroke-width="${f(size * 0.08)}" stroke-linejoin="round" paint-order="stroke"` : '';
+        body += `<text x="${f(x)}" y="${f(y + (mode === 'news' ? size * 0.04 : 0))}" font-family="${font}" font-weight="${weight}" font-size="${f(size)}" fill="${fill}" text-anchor="start" dominant-baseline="central" style="white-space:pre" ${extra}>${esc(p.s)}</text>`;
+        x += p.w;
+      });
+    });
+    return body;
+  }
   const lines = text.split('\n');
   const plain = l => l.replace(/\*/g, '');
   const widest = Math.max(...lines.map(l => measure(plain(l), size, 400, HEAD_FONT)));
@@ -218,8 +275,10 @@ function headlines(t) {
 // list: [{at, icon: (size) => svg}], recap: {at, end}
 function setChapters(list, recap = null) { CHAP = { list, recap }; }
 function chapterBadges(t) {
-  const badge = (x, y, inner, s, o, fill = '#fff') => G(T(x, y, s), o,
-    `<circle r="46" fill="${fill}" ${stroke(6)}/>` + inner);
+  const frame = fill => TH.badge === 'square' ? `<rect x="-44" y="-44" width="88" height="88" rx="12" fill="${fill}" ${stroke(5)}/>`
+    : TH.badge === 'sketch' ? `<circle r="46" fill="${fill}" ${stroke(4)}/><circle cx="2" cy="1" r="44" fill="none" ${stroke(1.6)} opacity="0.5"/>`
+    : `<circle r="46" fill="${fill}" ${stroke(6)}/>`;
+  const badge = (x, y, inner, s, o, fill = '#fff') => G(T(x, y, s), o, frame(fill) + inner);
   const r = CHAP.recap;
   if (r && t >= r.at && t < r.end) {
     const done = CHAP.list.filter(c => c.at < r.at);
@@ -241,24 +300,32 @@ function smallCaptions(t) {
   const ch = D.captions.find(c => t >= c.start && t < c.end);
   if (!ch) return '';
   const p = P(t, ch.start, 0.18);
-  let size = 46;
-  const gapW = 14;
-  const lineW = l => l.reduce((w, x) => w + measure(x.w, size) + gapW, -gapW);
+  const cap = TH.cap, bar = cap.mode === 'bar';
+  let size = cap.size;
+  const gapW = size * 0.3;
+  const lineW = l => l.reduce((w, x) => w + measure(x.w, size, cap.weight, cap.font) + gapW, -gapW);
   const maxW = Math.max(...ch.lines.map(lineW));
   if (maxW > 860) size *= 860 / maxW;
   const lh = size * 1.3, y0 = 1500 - (ch.lines.length - 1) * lh / 2;
   let s = '';
+  if (bar) {  // news lower third: a dark bar with a red edge
+    const bw = Math.max(...ch.lines.map(lineW)) * (size / cap.size) + 70, bh = ch.lines.length * lh + 26;
+    s += `<rect x="${f(540 - bw / 2)}" y="${f(y0 - lh / 2 - 13)}" width="${f(bw)}" height="${f(bh)}" rx="8" fill="${C.ink}" opacity="0.93"/>` +
+      `<rect x="${f(540 - bw / 2)}" y="${f(y0 - lh / 2 - 13)}" width="12" height="${f(bh)}" rx="4" fill="${C.accent}"/>`;
+  }
   ch.lines.forEach((line, li) => {
-    const widths = line.map(x => measure(x.w, size));
+    const widths = line.map(x => measure(x.w, size, cap.weight, cap.font));
     let x = 540 - (widths.reduce((a, b) => a + b, 0) + gapW * (line.length - 1)) / 2;
     line.forEach((wd, wi) => {
       const w = widths[wi], y = y0 + li * lh, spoken = t >= wd.t - 0.05;
-      if (wd.kw && spoken) {
-        const m = P(t, wd.t - 0.05, 0.2);
-        s += `<rect x="${f(x - 8)}" y="${f(y - size * 0.32)}" width="${f((w + 16) * m)}" height="${f(size * 0.78)}" rx="8" fill="${C.yellow}" transform="rotate(-1.5 ${f(x)} ${f(y)})"/>`;
+      if (wd.kw && spoken && !bar) {
+        const m = P(t, wd.t - 0.05, 0.2), hh = cap.mode === 'hand' ? size * 0.5 : size * 0.78;
+        s += `<rect x="${f(x - 8)}" y="${f(y - hh * 0.4)}" width="${f((w + 16) * m)}" height="${f(hh)}" rx="8" fill="${C.yellow}" transform="rotate(-1.5 ${f(x)} ${f(y)})"/>`;
       }
-      s += txt(wd.w, x + w / 2, y + 2, size, C.ink, 900, 'middle',
-        `stroke="#fff" stroke-width="10" stroke-linejoin="round" paint-order="stroke"${spoken ? '' : ' opacity="0.5"'}`);
+      const fill = bar ? (wd.kw && spoken ? C.yellow : '#fff') : C.ink;
+      const marked = wd.kw && spoken && !bar;
+      const outline = bar ? '' : `stroke="${marked && cap.mode === 'hand' ? C.yellow : '#fff'}" stroke-width="${f(size * (cap.mode === 'hand' ? 0.12 : 0.2))}" stroke-linejoin="round" paint-order="stroke"`;
+      s += `<text x="${f(x + w / 2)}" y="${f(y + 2)}" font-family="${cap.font}" font-weight="${cap.weight}" font-size="${f(size)}" fill="${fill}" text-anchor="middle" dominant-baseline="central" ${outline}${spoken ? '' : ' opacity="0.5"'}>${esc(wd.w)}</text>`;
       x += w + gapW;
     });
   });
@@ -281,6 +348,22 @@ function stamp(label, t, ts, x, y, col = C.accent, rot = -8, size = 130) {
       out += `<line x1="${f(x + r1 * Math.cos(a))}" y1="${f(y + r1 * Math.sin(a) * 0.7)}" x2="${f(x + r2 * Math.cos(a))}" y2="${f(y + r2 * Math.sin(a) * 0.7)}" ${stroke(9, col)} opacity="${f(1 - b)}"/>`;
     }
   }
+  if (TH.stamp === 'label') {  // news: a solid red label, e.g. "HOAKS" / "FAKTA"
+    const fw = measure(label.toUpperCase(), size * 0.9, 700, 'Oswald') + 90;
+    return out + G(T(x, y, s, rot * 0.5), o,
+      `<rect x="${f(-fw / 2 + 10)}" y="${f(-h / 2 + 10)}" width="${f(fw)}" height="${f(h)}" fill="${C.ink}" opacity="0.25"/>` +
+      `<rect x="${f(-fw / 2)}" y="${f(-h / 2)}" width="${f(fw)}" height="${f(h)}" fill="${col}"/>` +
+      `<rect x="${f(-fw / 2 + 10)}" y="${f(-h / 2 + 10)}" width="${f(fw - 20)}" height="${f(h - 20)}" fill="none" stroke="#fff" stroke-width="4"/>` +
+      `<text x="0" y="4" font-family="Oswald" font-weight="700" font-size="${f(size * 0.9)}" fill="#fff" text-anchor="middle" dominant-baseline="central" letter-spacing="6">${esc(label.toUpperCase())}</text>`);
+  }
+  if (TH.stamp === 'circle') {  // notebook: the word written in red marker and circled twice
+    const cw = measure(label, size * 1.2, 700, 'Caveat') * 0.62 + 70;
+    return out + G(T(x, y, s, rot), o,
+      `<ellipse rx="${f(cw)}" ry="${f(size * 0.82)}" fill="#fff" opacity="0.85"/>` +
+      `<ellipse rx="${f(cw)}" ry="${f(size * 0.8)}" fill="none" ${stroke(8, col)} transform="rotate(-4)"/>` +
+      `<ellipse rx="${f(cw * 1.04)}" ry="${f(size * 0.74)}" fill="none" ${stroke(4, col)} opacity="0.7" transform="rotate(5)"/>` +
+      `<text x="0" y="0" font-family="Caveat" font-weight="700" font-size="${f(size * 1.2)}" fill="${col}" text-anchor="middle" dominant-baseline="central">${esc(label)}</text>`);
+  }
   return out + G(T(x, y, s, rot), o,
     `<rect x="${f(-w / 2)}" y="${f(-h / 2)}" width="${f(w)}" height="${f(h)}" rx="26" fill="#fff" opacity="0.95"/>` +
     `<rect x="${f(-w / 2 + 12)}" y="${f(-h / 2 + 12)}" width="${f(w - 24)}" height="${f(h - 24)}" rx="18" fill="none" stroke="${col}" stroke-width="11"/>` +
@@ -291,6 +374,13 @@ function stamp(label, t, ts, x, y, col = C.accent, rot = -8, size = 130) {
 function cite(text, t, t0, t1, y = 1395) {
   const o = P(t, t0, 0.3) * (1 - P(t, t1, 0.3));
   if (o <= 0) return '';
+  if (TH.cap.mode === 'bar') {
+    const w = measure(text, 26, 500, 'Oswald') + 44;
+    return G('', o, `<rect x="${f(540 - w / 2)}" y="${y - 22}" width="${f(w)}" height="44" fill="#fff" opacity="0.92"/>` +
+      `<rect x="${f(540 - w / 2)}" y="${y - 22}" width="8" height="44" fill="${C.accent}"/>` +
+      `<text x="544" y="${y + 1}" font-family="Oswald" font-weight="500" font-size="26" fill="${C.ink}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`);
+  }
+  if (TH.cap.mode === 'hand') return G('', o, hand(text, 540, y, 38, C.muted));
   const size = 26, w = measure(text, size, 800) + 40;
   return G('', o, `<rect x="${f(540 - w / 2)}" y="${y - 22}" width="${f(w)}" height="44" rx="22" fill="#fff" opacity="0.85" ${stroke(3, C.line)}/>` +
     txt(text, 540, y + 1, size, C.muted, 800));
@@ -300,26 +390,38 @@ function cite(text, t, t0, t1, y = 1395) {
 const hand = (s, x, y, size, fill = C.ink, anchor = 'middle', extra = '') =>
   `<text x="${f(x)}" y="${f(y)}" font-family="Caveat" font-weight="700" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
 
-// seeded paper texture (grain, mottling, fibres), multiplied over the world
-function paperTexture(w, h, seed = 7) {
+// seeded paper texture (grain, mottling, fibres), multiplied over the world.
+// kind: 'paper' (warm), 'newsprint' (cool grey, coarser grain), 'notebook' (clean page with ruled lines)
+function paperTexture(w, h, seed = 7, kind = 'paper') {
   let a = seed;
   const rand = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; };
+  const look = {
+    paper: { blot: [140, 110, 70, 0.06], blots: 70, fibre: 'rgba(120,95,60,0.07)', fibres: 500, grain: 24 },
+    newsprint: { blot: [70, 76, 90, 0.07], blots: 90, fibre: 'rgba(60,66,82,0.08)', fibres: 900, grain: 34 },
+    notebook: { blot: [120, 130, 150, 0.025], blots: 20, fibre: 'rgba(90,100,120,0.03)', fibres: 150, grain: 10 },
+  }[kind] || {};
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const g = cv.getContext('2d');
   g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 70; i++) {
-    const x = rand() * w, y = rand() * h, r = 80 + rand() * 300;
+  for (let i = 0; i < look.blots; i++) {
+    const x = rand() * w, y = rand() * h, r = 80 + rand() * 300, [cr, cg, cb, ca] = look.blot;
     const gr = g.createRadialGradient(x, y, 0, x, y, r);
-    gr.addColorStop(0, 'rgba(140,110,70,0.06)'); gr.addColorStop(1, 'rgba(140,110,70,0)');
+    gr.addColorStop(0, `rgba(${cr},${cg},${cb},${ca})`); gr.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
     g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r);
   }
-  g.strokeStyle = 'rgba(120,95,60,0.07)'; g.lineWidth = 1;
-  for (let i = 0; i < 500; i++) {
+  g.strokeStyle = look.fibre; g.lineWidth = 1;
+  for (let i = 0; i < look.fibres; i++) {
     const x = rand() * w, y = rand() * h, l = 6 + rand() * 18, an = rand() * Math.PI;
     g.beginPath(); g.moveTo(x, y); g.lineTo(x + l * Math.cos(an), y + l * Math.sin(an)); g.stroke();
   }
+  if (kind === 'notebook') {  // ruled lines and a red margin, printed on the page
+    g.strokeStyle = '#C6DAEC'; g.lineWidth = 3;
+    for (let y = 118; y < h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+    g.strokeStyle = '#F2A7A7'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(96, 0); g.lineTo(96, h); g.stroke();
+  }
   const img = g.getImageData(0, 0, w, h), d = img.data;
-  for (let i = 0; i < d.length; i += 4) { const n = (rand() - 0.5) * 24; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  for (let i = 0; i < d.length; i += 4) { const n = (rand() - 0.5) * look.grain; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
   g.putImageData(img, 0, 0);
   return cv.toDataURL('image/png');
 }
@@ -372,7 +474,10 @@ function renderAt(t) {
     if (typeof drawOverlay === 'function') ui += drawOverlay(t, cam);
     ui += headlines(t) + chapterBadges(t) + smallCaptions(t);
     // channel handle top-left: the bottom of a Short is covered by YouTube's title and buttons
-    if (D.watermark) ui += txt(D.watermark, 64, 190, 32, C.ink, 900, 'start', `stroke="#fff" stroke-width="7" paint-order="stroke" opacity="0.55"`);
+    if (D.watermark) {
+      const [wf, ww] = TH.cap.mode === 'bar' ? ['Oswald', 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
+      ui += `<text x="64" y="190" font-family="${wf}" font-weight="${ww}" font-size="${TH.cap.mode === 'hand' ? 40 : 32}" fill="${C.ink}" dominant-baseline="central" stroke="#fff" stroke-width="7" paint-order="stroke" opacity="0.55">${esc(D.watermark)}</text>`;
+    }
   } else {
     world = panelFrame(t);
   }
@@ -387,6 +492,17 @@ function renderThumbnail() {
   const r = drawThumbnail();
   document.getElementById('world').innerHTML = typeof r === 'string' ? r : r.world;
   document.getElementById('ui').innerHTML = typeof r === 'string' ? '' : r.ui || '';
+}
+
+// set the palette, background and page texture of a theme (THEMES) on the static layers
+function applyTheme(name, w, h) {
+  if (!THEMES[name]) throw new Error(`unknown theme "${name}" (${Object.keys(THEMES).join(', ')})`);
+  TH = THEMES[name];
+  Object.assign(C, PAPER, TH.palette || {});
+  document.getElementById('bg').setAttribute('fill', C.bg);
+  document.getElementById('tex').setAttribute('href', paperTexture(w, h, 7, TH.texture));
+  const show = (id, on) => on ? document.getElementById(id).removeAttribute('display') : document.getElementById(id).setAttribute('display', 'none');
+  show('tex', true); show('glow', TH.glow); show('vig', TH.vignette);
 }
 
 async function init(data) {
@@ -405,17 +521,11 @@ async function init(data) {
     flat.forEach((w, k) => w.next = k + 1 < flat.length ? flat[k + 1].t - 0.05 : c.end);
   });
   // each query must match a bundled face (fonts.check() is also true when nothing matches at all)
-  const faces = await Promise.all([`900 72px ${FONT}`, `800 30px ${FONT}`, `72px "${HEAD_FONT}"`, '700 40px Caveat']
+  const faces = await Promise.all([`900 72px ${FONT}`, `800 30px ${FONT}`, `72px "${HEAD_FONT}"`, '700 40px Caveat', '700 40px Oswald']
     .map(q => document.fonts.load(q)));
   await document.fonts.ready;
   const fontsOk = faces.every(list => list.length > 0);
-  if (D.style === 'paper') {
-    Object.assign(C, PAPER);
-    document.getElementById('bg').setAttribute('fill', C.bg);
-    const tex = document.getElementById('tex');
-    tex.setAttribute('href', paperTexture(1080, 1920));
-    ['tex', 'glow', 'vig'].forEach(id => document.getElementById(id).removeAttribute('display'));
-  }
+  if (D.style === 'paper') applyTheme(D.theme || 'paper', 1080, 1920);
   if (typeof setup === 'function') setup(D);
   return fontsOk;
 }

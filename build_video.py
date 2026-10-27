@@ -15,8 +15,8 @@ A topic lives in topics/<topic>/:
   script.json  one voice-over line per scene ("hold": extra seconds after the line; *word* marks a
                caption keyword). "style": "panel" (card layout: header label, "cont": true keeps the
                previous picture) or "paper" (full-screen world with a moving camera); optional
-               "captions": {"words", "line"}, "watermark" (default from channel.json), "tail",
-               "voice" (see tts.py).
+               "channel" (channels/<id>, default cicaktahu: gives the theme, mascot and watermark),
+               "captions": {"words", "line"}, "theme"/"watermark" overrides, "tail", "voice" (see tts.py).
   scenes.js    panel style: one draw(t, S)/cues(S) object per scene.
                paper style: drawWorld(t, cam), setup(D) for camera/headlines/chapters, cues(D),
                optional drawOverlay(t, cam). Helpers come from engine/lib.js and engine/cicak.js.
@@ -45,7 +45,15 @@ import tts
 ROOT = Path(__file__).parent
 ENGINE = ROOT / "engine" / "index.html"
 BUILD = ROOT / "build"  # set to build/<topic> in main()
-CHANNEL = json.loads((ROOT / "channel.json").read_text(encoding="utf-8")) if (ROOT / "channel.json").exists() else {}
+DEFAULT_CHANNEL = "cicaktahu"
+
+
+def load_channel(cid):
+    """channels/<id>/channel.json: name, handle, mascot, theme, watermark (see channels/<id>/RULES.md)."""
+    path = ROOT / "channels" / cid / "channel.json"
+    if not path.exists():
+        raise SystemExit(f"unknown channel {cid!r}: {path} not found")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 W, H, FPS = 1080, 1920, 30
 SR = 48000
@@ -173,6 +181,7 @@ def sfx(kind):
 def timeline(script, topic_dir):
     SCENES = script["scenes"]
     voice = tts.voice_config(script)
+    channel = load_channel(script.get("channel", DEFAULT_CHANNEL))
     t = LEAD_IN
     clips = []
     for i, sc in enumerate(SCENES):
@@ -190,8 +199,10 @@ def timeline(script, topic_dir):
     data = {
         "header": script.get("header", ""),
         "style": script.get("style", "panel"),
-        # channel handle from channel.json unless the topic overrides it ("" switches it off)
-        "watermark": script.get("watermark", CHANNEL.get("watermark", "")),
+        # look and handle come from the topic's channel unless the topic overrides them ("" switches the handle off)
+        "channel": channel["id"],
+        "theme": script.get("theme", channel.get("theme", "paper")),
+        "watermark": script.get("watermark", channel.get("watermark", "")),
         "total": total,
         "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
         "captions": [c for sc in SCENES for c in caption_chunks(

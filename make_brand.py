@@ -3,6 +3,7 @@
 Usage:  python make_brand.py
 Writes output/brand/avatar.png (800x800), output/brand/banner.jpg (2560x1440) and review copies in
 build/brand/: the avatar at the size YouTube shows it, and the banner with its safe areas marked.
+Also writes the mascot model sheets (every pose and face) to docs/mascots/<name>.jpg.
 Drawing code: brand/brand.js.
 """
 import io
@@ -18,12 +19,12 @@ OUT = ROOT / "output" / "brand"
 REVIEW = ROOT / "build" / "brand"
 
 
-def render(p, fn, w, h):
+def render(p, call, w, h):
     browser = launch_browser(p)
     page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=1)
     page.goto(ENGINE.as_uri())
     page.add_script_tag(path=str(ROOT / "brand" / "brand.js"))
-    page.evaluate(f"{fn}()")
+    page.evaluate(call)
     png = page.screenshot(type="png")
     browser.close()
     return Image.open(io.BytesIO(png)).convert("RGB")
@@ -32,9 +33,13 @@ def render(p, fn, w, h):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     REVIEW.mkdir(parents=True, exist_ok=True)
+    sheets = ROOT / "docs" / "mascots"
+    sheets.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
-        avatar = render(p, "renderAvatar", 800, 800)
-        banner = render(p, "renderBanner", 2560, 1440)
+        avatar = render(p, "renderAvatar()", 800, 800)
+        banner = render(p, "renderBanner()", 2560, 1440)
+        for name in ("cicak", "tikus", "stickman"):
+            render(p, f"renderSheet('{name}')", 2600, 1760).save(sheets / f"{name}.jpg", quality=88)
     avatar.save(OUT / "avatar.png")
     banner.save(OUT / "banner.jpg", quality=92)
 

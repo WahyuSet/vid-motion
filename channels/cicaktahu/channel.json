@@ -1,7 +1,10 @@
 {
+  "id": "cicaktahu",
   "name": "Cicak Tahu",
   "handle": "@cicaktahu",
   "tagline": "Cicak di dinding tahu semuanya. Sekarang kamu juga.",
-  "mascot": "Si Cicak",
+  "mascot": "cicak",
+  "theme": "paper",
+  "topics": ["fakta unik", "mitos atau fakta", "sains sehari-hari", "alam dan hewan"],
   "watermark": "@cicaktahu"
 }

@@ -10,7 +10,8 @@ Output: `topics/<id>/sources.md`, `topics/<id>/script.json`, `topics/<id>/plan.m
 
 ## 1. Research
 
-- Read `AGENTS.md` (content rules, script schema) and the idea block in `ideas.md`.
+- Read `AGENTS.md` (content rules, script schema), the idea block in `ideas.md`, and the channel's
+  `channels/<channel>/RULES.md` (allowed sources, neutrality, required disclaimers). Its rules win.
 - Read the sources fully with `web_fetch`; search for more until **every claim** you will say is backed by
   two independent credible sources, or one authoritative primary source.
 - Write `topics/<id>/sources.md`: one bullet per claim — the claim in Indonesian, the exact supporting
@@ -19,7 +20,7 @@ Output: `topics/<id>/sources.md`, `topics/<id>/script.json`, `topics/<id>/plan.m
 
 ## 2. Write the script (`topics/<id>/script.json`)
 
-Follow the schema in `AGENTS.md`, `"style": "paper"`. One entry per beat, 9–11 entries, ~80–100 words total.
+Follow the schema in `AGENTS.md`: `"style": "paper"` and `"channel": "<channel>"`. One entry per beat, 9–11 entries, ~80–100 words total.
 
 Story formula:
 1. **Hook (line 1, < 2 s):** a concrete, visual claim or question. "Kabel ini bertegangan 20.000 volt."
