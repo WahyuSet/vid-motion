@@ -1,0 +1,18 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Madu nggak pernah *kedaluwarsa*? Masa sih?"},
+    {"vo": "Menurut Dewan Madu Amerika, madu tertutup rapat bisa awet *puluhan tahun*."},
+    {"vo": "Jadi, ini *fakta*, asal disimpan dengan benar!", "hold": 0.4},
+    {"vo": "Rahasia pertama: madu cuma berisi sekitar *17 persen* air."},
+    {"vo": "Gulanya yang super pekat *menyedot* air dari kuman, sampai kuman nggak bisa berkembang.", "hold": 0.3},
+    {"vo": "Kedua, madu itu *asam*, kuman makin susah hidup."},
+    {"vo": "Ketiga, enzim di madu menghasilkan *hidrogen peroksida*, zat antikuman.", "hold": 0.3},
+    {"vo": "Tapi tutup rapat, ya! Madu yang kemasukan *air* bisa berfermentasi.", "hold": 0.3},
+    {"vo": "Madu yang *mengkristal* bukan basi. Hangatkan saja pelan-pelan.", "hold": 0.3},
+    {"vo": "Satu lagi: jangan beri madu ke *bayi* di bawah satu tahun, ya!"}
+  ]
+}
