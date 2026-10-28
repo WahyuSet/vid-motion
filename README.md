@@ -56,7 +56,7 @@ python build_video.py burung-listrik                  # render penuh -> output/b
 python build_video.py burung-listrik thumb            # thumbnail -> output/burung-listrik-thumbnail.jpg
 python build_video.py burung-listrik workers=2        # jumlah browser paralel (default: setengah core, maks 6)
 python build_video.py burung-listrik check            # peringatan retensi: hook, jeda, bagian statis
-python build_video.py burung-listrik narasi           # narasi bersih (JSON) untuk direkam di luar -> output/<topik>-narasi.json
+python build_video.py burung-listrik narasi           # narasi bersih untuk direkam di luar -> output/<topik>-narasi.txt (+ .json)
 ```
 
 Topik yang ada: `burung-listrik` (gaya baru, layar penuh), `alpukat`, `mandi-malam` (gaya kartu lama).

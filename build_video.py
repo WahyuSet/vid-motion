@@ -6,7 +6,7 @@ Usage:
   python build_video.py <topic> preview 3.5,12   ...at chosen seconds
   python build_video.py <topic> thumb            render output/<topic>-thumbnail.jpg from drawThumbnail()
   python build_video.py <topic> check            list retention problems (hook, pauses, static stretches)
-  python build_video.py <topic> narasi           output/<topic>-narasi.json: the clean narration to voice outside
+  python build_video.py <topic> narasi           output/<topic>-narasi.txt (+ .json): the clean narration to voice outside
   python build_video.py <topic> workers=4       choose how many browsers render in parallel
                                                  (default: half the CPU cores, at most 6)
 
@@ -388,8 +388,9 @@ def mix_audio(total, clips, cues, music=None):
 
 
 def export_narration(topic, script):
-    """output/<topic>-narasi.json: the clean narration (no *keyword* marks) to voice outside, as one take
-    (save it as topics/<topic>/voice/full.mp3) or line by line (voice/scene1.wav ...)."""
+    """The clean narration (no *keyword* marks) to voice outside: output/<topic>-narasi.txt, one line per
+    script line, ready to paste into a TTS tool; output/<topic>-narasi.json, the same with metadata. Record it
+    as one take (topics/<topic>/voice/full.mp3) or line by line (voice/scene1.wav ...)."""
     lines = [re.sub(r"\s+", " ", sc["vo"].replace("*", "")).strip() for sc in script["scenes"]]
     out = ROOT / "output" / f"{topic}-narasi.json"
     out.parent.mkdir(exist_ok=True)
@@ -402,7 +403,10 @@ def export_narration(topic, script):
         "save_as": f"topics/{topic}/voice/full.mp3",
     }
     out.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"narasi: {out} ({len(lines)} lines, {data['words']} words)")
+    txt = out.with_suffix(".txt")
+    txt.write_text(data["text"] + "\n", encoding="utf-8")
+    print(f"narasi: {txt} ({len(lines)} lines, {data['words']} words)\n")
+    print(data["text"])
 
 
 def check_report(data, qa):

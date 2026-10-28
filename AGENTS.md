@@ -32,7 +32,7 @@ python build_video.py <topic> preview 3.5,12.8     # stills at chosen seconds
 python build_video.py <topic>                      # full render -> output/<topic>.mp4
 python build_video.py <topic> thumb                # output/<topic>-thumbnail.jpg (needs drawThumbnail)
 python build_video.py <topic> check                # retention warnings: hook, pauses, silences, static stretches
-python build_video.py <topic> narasi               # output/<topic>-narasi.json: clean narration to voice outside
+python build_video.py <topic> narasi               # output/<topic>-narasi.txt (+ .json): clean narration to voice outside
 python build_video.py <topic> workers=2            # fewer parallel browsers on small machines
 ```
 
