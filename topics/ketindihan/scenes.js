@@ -164,12 +164,16 @@ function wallThings(t) {
   return s;
 }
 
+// a shaft of moonlight from the window onto the bed: keeps the night readable on a phone
+const moonlight = (n, k = 1) => `<path d="M-412,-258 L-148,-258 L140,300 L-600,300 Z" fill="#EEF3FF" opacity="${f(0.2 * n * k)}"/>` +
+  `<ellipse cx="-220" cy="190" rx="400" ry="150" fill="#EEF3FF" opacity="${f(0.18 * n * k)}"/>`;
+
 function drawWorld(t) {
   let s = room(t) + wallThings(t) + bed(t);
   const n = night(t);
   if (n > 0.01) {  // night: the room in shadow, moonlight on the bed
-    s += `<rect x="-2000" y="-2000" width="4000" height="4000" fill="${C.night}" opacity="${f(0.48 * n)}"/>`;
-    s += `<ellipse cx="-200" cy="180" rx="380" ry="170" fill="#DCE6FF" opacity="${f(0.12 * n)}"/>`;
+    s += `<rect x="-2000" y="-2000" width="4000" height="4000" fill="${C.night}" opacity="${f(0.3 * n)}"/>`;
+    s += moonlight(n);
   }
   s += presence(t);
   // voices in the dark: sound rings near the gecko's head
@@ -232,9 +236,10 @@ function drawOverlay(t) {
 function drawThumbnail() {
   const t = 1.2;
   K = { ...K, bangun: 0, s3: 99, s4: 99, sadar: 99, s7: 99, s8: 99, s10: 99, loop: 99, sosok: -1, lumpuh: 99, sosok2: 99, s6e: 0, dada: 99, mimpi: 99, tembok: 99, jemuran: 99, pareidolia: 99, noda: 99, wajah: 99, muka: 99 };
-  const z = 1.5, cx = -90, cy = 150, sx = x => 540 + (x - cx) * z, sy = y => 1050 + (y - cy) * z;
-  let w = `<g transform="translate(540 1050) scale(${z}) translate(${-cx} ${-cy})">${room(t) + bed(t)}` +
-    `<rect x="-2000" y="-2000" width="4000" height="4000" fill="${C.night}" opacity="0.6"/>${presence(t, 130)}</g>`;
-  w += `<circle cx="${f(sx(-275))}" cy="${f(sy(150))}" r="105" fill="none" stroke="${C.accent}" stroke-width="12"/>`;
+  // close on the frozen gecko's wide-open eyes, the shadow looming right behind the bed
+  const z = 2.1, cx = -190, cy = 110, sx = x => 540 + (x - cx) * z, sy = y => 1060 + (y - cy) * z;
+  let w = `<g transform="translate(540 1060) scale(${z}) translate(${-cx} ${-cy})">${room(t) + bed(t)}` +
+    `<rect x="-2000" y="-2000" width="4000" height="4000" fill="${C.night}" opacity="0.42"/>${moonlight(1, 1.4)}${presence(t, 20)}</g>`;
+  w += `<circle cx="${f(sx(-300))}" cy="${f(sy(150))}" r="140" fill="none" stroke="${C.accent}" stroke-width="14"/>`;
   return { world: w, ui: titleText('KETINDIHAN\n= *HANTU*?', 540, 400, 172, 980, 26) };
 }
