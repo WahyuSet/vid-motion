@@ -1,0 +1,18 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Pernah bangun, badan nggak bisa *gerak*, dan kayak ada sosok di kamar?"},
+    {"vo": "Banyak yang bilang itu *ketindihan* makhluk halus."},
+    {"vo": "Sains menyebutnya *kelumpuhan tidur*.", "hold": 0.3},
+    {"vo": "Saat bermimpi, otak sengaja *mengunci* ototmu supaya nggak ikut bergerak.", "hold": 0.3},
+    {"vo": "Kadang kamu sudah sadar duluan, tapi kuncinya *belum lepas*."},
+    {"vo": "Sisa mimpi pun bocor jadi *halusinasi*: sosok, suara, atau dada terasa berat.", "hold": 0.3},
+    {"vo": "Ini umum, sekitar *8 dari 100* orang pernah mengalaminya.", "hold": 0.4},
+    {"vo": "Wajah seram di tembok atau baju jemuran? Itu *pareidolia*."},
+    {"vo": "Otak kita jago mencari *wajah*, sampai noda pun terlihat seperti muka.", "hold": 0.3},
+    {"vo": "Sering ketindihan? Tidur cukup, dan kalau mengganggu, tanya *dokter*, ya!"}
+  ]
+}
