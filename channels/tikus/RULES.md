@@ -1,6 +1,6 @@
 # Channel Si Tikus — rules (politik, pemerintahan, keuangan, investasi)
 
-Mascot **Si Tikus** (`tikus`, soft plush style), theme **newsprint** (newspaper grey, condensed news titles,
+Mascot **Si Tikus** (`tikus`, editorial-cartoon news analyst), theme **newsprint** (newspaper grey, condensed news titles,
 lower-third captions). Channel name and handle are not chosen yet (`channel.json`).
 
 These topics carry legal and reputational risk. The rules below are stricter than `AGENTS.md` and win over it.
@@ -20,12 +20,13 @@ These topics carry legal and reputational risk. The rules below are stricter tha
   "diduga" claims need a named, reputable source. No insults, nicknames or mockery of real people.
 - Do **not** use the mascot or the word "tikus" as a joke about corruption or about any real person or office
   (in Indonesia "tikus" is slang for a corrupt official); Si Tikus is a friendly explainer.
-- Si Tikus wears the **eksekutif** outfit by default (glasses, blazer, necktie: `tikus(..., outfit)`, default
-  in `MOUSE.outfit`). Because a mouse in a suit and tie echoes the "tikus berdasi" (koruptor) meme, keep it
-  reading as a friendly analyst: never draw it with money bags, cash under the table, a mask, bars or a prison,
+- Si Tikus is drawn as a **news analyst** in an editorial-cartoon style (grey mouse, thin navy lines, halftone
+  shading) and wears the **analis** outfit by default (rolled-up shirt, glasses, a pen in the pocket, no tie:
+  `tikus(..., outfit)`, default in `MOUSE.outfit`). It never wears a necktie: a mouse in a suit and tie echoes
+  the "tikus berdasi" (koruptor) meme (`eksekutif` is a blazer with an open collar). Keep it reading as a friendly analyst: never draw it with money bags, cash under the table, a mask, bars or a prison,
   sneaking or grabbing poses, or next to officials, parliament or party symbols; keep its faces friendly
   (`smile`, `skeptical`, `smug`, `wow`), never sly or greedy. For `cek fakta` videos the `reporter` outfit
-  (glasses + ID card) fits better; `profesor` works for long explainers.
+  (PERS card on a lanyard) fits better; `profesor` (knitted vest) works for long explainers.
 - No content that could mislead about elections (dates, places, how to vote); during campaign periods prefer
   procedural explainers from KPU/Bawaslu sources.
 - No SARA framing.

@@ -55,7 +55,7 @@ const DOODLE = {
 //   paper (warm paper, ink), soft (pastel gradient, bokeh, no outlines), notebook (lined page, pen)
 const MASCOT_SHEET = {
   cicak: { draw: cicak, title: 'SI *CICAK*', sub: 'maskot @cicaktahu · gaya tinta flat', s: 0.72, dy: -6, theme: 'paper' },
-  tikus: { draw: tikus, title: 'SI *TIKUS*', sub: 'maskot channel lain · gaya soft plush', s: 0.84, dy: 18, theme: 'soft' },
+  tikus: { draw: tikus, title: 'SI *TIKUS*', sub: 'maskot channel lain · gaya analis berita (kartun editorial)', s: 0.84, dy: 0, theme: 'soft' },
   stickman: { draw: stickman, title: '*STICKMAN*', sub: 'maskot channel lain · gaya doodle', s: 0.84, dy: 0, theme: 'notebook' },
 };
 
@@ -126,15 +126,15 @@ async function renderOutfits() {
   await setupCanvas(W, H, { light: false, texture: false });
   let s = `<rect width="${W}" height="${H}" fill="#E9E5DC"/>`, ui = '';
   ui += titleText('PILIHAN *PAKAIAN* SI TIKUS', 1300, 100, 84, 1600, 14);
-  const opts = [['none', 'polos', ''], ['kacamata', 'kacamata', ''], ['profesor', 'profesor', 'dasi kupu-kupu + rompi rajut'],
-    ['reporter', 'reporter', 'kartu identitas + tali'], ['eksekutif', 'eksekutif', 'jas + dasi: mirip "tikus berdasi"']];
+  const opts = [['analis', 'analis', 'default: kemeja, kacamata, pulpen'], ['reporter', 'reporter', 'kartu PERS + tali'],
+    ['profesor', 'profesor', 'rompi rajut'], ['eksekutif', 'eksekutif', 'jas, kerah terbuka, tanpa dasi'], ['kacamata', 'kacamata', '']];
   opts.forEach(([key, label, note], i) => {
     const cx = 290 + i * 505;
     s += `<rect x="${cx - 230}" y="200" width="460" height="1120" rx="34" fill="#fff" opacity="0.6"/>`;
     s += tikus(cx, 520, 0.95, 'point', 1.3, 0, null, 'smile', key);
     s += tikus(cx, 1010, 0.95, 'verdict', 1.3, 0, null, 'smug', key);
-    ui += pill(label.toUpperCase(), cx, 1230, 34, key === 'eksekutif' ? C.accent : '#34416A');
-    if (note) ui += hand(note, cx, 1290, 34, key === 'eksekutif' ? C.accent : C.muted);
+    ui += pill(label.toUpperCase(), cx, 1230, 34, key === 'analis' ? C.accent : '#34416A');
+    if (note) ui += hand(note, cx, 1290, 34, C.muted);
   });
   put(s, ui);
 }

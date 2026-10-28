@@ -6,7 +6,7 @@ tema visual, dan aturan kontennya sendiri (di `channels/<id>/`):
 | Channel | Maskot | Tema | Topik |
 |---|---|---|---|
 | **Cicak Tahu** (`@cicaktahu`) | Si Cicak (flat ink) | kertas hangat | fakta unik, mitos atau fakta |
-| *(nama belum ada)* `tikus` | Si Tikus (soft plush) | koran | politik, pemerintahan, keuangan, investasi |
+| *(nama belum ada)* `tikus` | Si Tikus (kartun editorial, gaya analis berita) | koran | politik, pemerintahan, keuangan, investasi |
 | *(nama belum ada)* `stickman` | Stickman (doodle) | buku tulis | kesehatan, tubuh manusia, edukasi |
 
 Topik memilih channel lewat `"channel"` di `script.json` (default `cicaktahu`). Semua visual digambar lewat kode (SVG), suara dari TTS, dirender dengan

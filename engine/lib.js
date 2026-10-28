@@ -181,7 +181,7 @@ const THEMES = {
     grade: { sat: 1.12, contrast: 1.05 },
     head: { mode: 'outline' }, cap: { mode: 'marker', font: 'Nunito', weight: 900, size: 64 },
     stamp: 'rubber', badge: 'round' },
-  newsprint: { texture: 'newsprint', glow: false, vignette: true, fx: 'soft',
+  newsprint: { texture: 'newsprint', glow: false, vignette: true, fx: 'soft', vol: 'halftone',
     grade: { sat: 1.0, contrast: 1.08 },
     palette: { bg: '#E9E5DC', ink: '#18223A', muted: '#5F6676', line: '#C9C3B6', yellow: '#F2C14E', accent: '#C8312B', cool: '#1F4E8C', leaf: '#2E8B57' },
     head: { mode: 'news', font: 'Oswald', weight: 700 }, cap: { mode: 'bar', font: 'Oswald', weight: 500, size: 52 },
@@ -984,6 +984,7 @@ function invertFlash(t, ts, dur = 0.07) {
 // vol(d, fill, opts): a shape (SVG path d) drawn with volume in the theme's style. Light comes from the top
 // left. ink (paper): a cel shadow on the lower right, a highlight on the upper left, ink outline. soft
 // (newsprint): a round gradient and no outline. doodle (notebook): hatching in the shadow, pen outline.
+// newsprint uses halftone dots instead (flat colour, dots in the shadow, thin navy line), matching Si Tikus.
 // opts: {depth (shadow width, world units), w (outline width), shine (highlight on/off),
 //        rot (degrees the drawing is turned by, so the light stays top-left on screen)}
 let VOL_N = 0;
@@ -994,6 +995,13 @@ function vol(d, fill, { depth = 14, w = STROKE, shine = true, rot = 0 } = {}) {
   const id = `vol${VOL_N++}`, dark = mix(fill, C.ink, 0.3), light = mix(fill, '#fff', 0.5);
   // the light's direction (top-left on screen) in the drawing's own turned coordinates
   const a = (-135 - rot) * Math.PI / 180, lx = Math.cos(a) * depth * 1.41, ly = Math.sin(a) * depth * 1.41;
+  if (TH.vol === 'halftone') {  // newsprint: flat colour, halftone dots on the shadow side, thin navy line (like Si Tikus)
+    return `<defs><pattern id="htDots" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(30)">` +
+      `<circle cx="4" cy="4" r="1.9" fill="${C.ink}" opacity="0.42"/></pattern><clipPath id="${id}a"><path d="${d}"/></clipPath>` +
+      `<clipPath id="${id}b"><path d="${d}" transform="translate(${f(lx)} ${f(ly)})"/></clipPath></defs><path d="${d}" fill="${fill}"/>` +
+      `<g clip-path="url(#${id}a)"><path d="${d}" fill="url(#htDots)"/><g clip-path="url(#${id}b)"><path d="${d}" fill="${fill}"/></g></g>` +
+      (w ? `<path d="${d}" fill="none" stroke="${C.ink}" stroke-width="${f(Math.min(w, 4.5))}" stroke-linejoin="round"/>` : '');
+  }
   if (TH.fx === 'soft') {
     return `<defs><radialGradient id="${id}" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="${light}"/>` +
       `<stop offset="0.55" stop-color="${fill}"/><stop offset="1" stop-color="${dark}"/></radialGradient></defs><path d="${d}" fill="url(#${id})"/>`;
