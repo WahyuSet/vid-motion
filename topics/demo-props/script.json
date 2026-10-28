@@ -1,13 +1,36 @@
 {
   "channel": "cicaktahu",
   "style": "paper",
-  "captions": {"words": 5},
+  "captions": {
+    "words": 5
+  },
   "fps": 30,
   "outro": "",
   "music": false,
   "scenes": [
-    {"vo": "Ini contoh *pohon*, rumput, dan bunga dari pustaka props.", "hold": 0.5},
-    {"vo": "Dan ini benda sehari-hari: *lampu*, koin, uang, ponsel, gelas, dan kardus.", "hold": 0.5},
-    {"vo": "Ada juga isi *dapur* dan rumah, serta *cuaca*, hewan, dan buah-buahan.", "hold": 1.2}
+    {
+      "vo": "Ini contoh *pohon*, rumput, dan bunga dari pustaka props.",
+      "hold": 0.5
+    },
+    {
+      "vo": "Dan ini benda sehari-hari: *lampu*, koin, uang, ponsel, gelas, dan kardus.",
+      "hold": 0.5
+    },
+    {
+      "vo": "Ada juga isi *dapur* dan rumah, serta *cuaca*, hewan, dan buah-buahan.",
+      "hold": 1.2
+    },
+    {
+      "vo": "Props dari topik lama kini bisa dipakai ulang: *toples*, kalender, kasur, stopkontak, dan kuman.",
+      "hold": 0.6
+    },
+    {
+      "vo": "Untuk berita dan keuangan ada *dompet*, celengan, kalkulator, grafik, gedung, dokumen, dan mikrofon.",
+      "hold": 0.6
+    },
+    {
+      "vo": "Untuk tubuh ada *jantung*, paru-paru, lambung, otak, sel, termometer, stetoskop, dan sikat gigi.",
+      "hold": 0.8
+    }
   ]
 }

@@ -1,5 +1,6 @@
 // Showcase of engine/props.js: plants and surfaces (first view), everyday objects (second view),
-// kitchen and home (third view), weather, animals and fruit (fourth view).
+// kitchen and home (third view), weather, animals and fruit (fourth view), props shared from topics (fifth),
+// money and news (sixth), body and health (seventh).
 // Render it with another "theme" in script.json to see the newsprint (soft) and notebook (doodle) looks.
 let K = {};
 
@@ -9,23 +10,30 @@ function setup(D) {
     s2: s[1].start,
     s3: s[2].start,
     s4: s[2].start + (s[2].end - s[2].start) * 0.58,
+    s5: s[3].start, s6: s[4].start, s7: s[5].start,
   };
   setCamera([
     { x: 0, y: 0, z: 1 },
     { at: K.s2, dur: 1.0, x: 0, y: -1900, z: 1 },
     { at: K.s3, dur: 0.9, x: 0, y: -3800, z: 1 },
     { at: K.s4, dur: 0.9, x: 0, y: -5700, z: 1 },
+    { at: K.s5, dur: 0.9, x: 0, y: -7600, z: 1 },
+    { at: K.s6, dur: 0.9, x: 0, y: -9500, z: 1 },
+    { at: K.s7, dur: 0.9, x: 0, y: -11400, z: 1 },
   ]);
   setHeadlines([
     { at: 0.2, end: K.s2 - 0.1, text: 'PUSTAKA\n*ALAM*' },
     { at: K.s2 + 0.3, end: K.s3 - 0.1, text: 'PUSTAKA\n*BENDA*' },
     { at: K.s3 + 0.25, end: K.s4 - 0.1, text: 'DAPUR &\n*RUMAH*' },
-    { at: K.s4 + 0.25, end: D.total, text: 'CUACA &\n*BUAH*' },
+    { at: K.s4 + 0.25, end: K.s5 - 0.1, text: 'CUACA &\n*BUAH*' },
+    { at: K.s5 + 0.3, end: K.s6 - 0.1, text: 'DARI\n*TOPIK LAMA*' },
+    { at: K.s6 + 0.3, end: K.s7 - 0.1, text: 'UANG &\n*BERITA*' },
+    { at: K.s7 + 0.3, end: D.total, text: 'TUBUH &\n*KESEHATAN*' },
   ]);
   setChapters([]);
 }
 
-function cues(D) { return [[K.s2, 'whoosh'], [K.s3, 'whoosh'], [K.s4, 'whoosh']]; }
+function cues(D) { return [[K.s2, 'whoosh'], [K.s3, 'whoosh'], [K.s4, 'whoosh'], [K.s5, 'whoosh'], [K.s6, 'whoosh'], [K.s7, 'whoosh']]; }
 
 function phoneScreen() {  // a little chat on the phone's screen
   return `<rect x="0" y="0" width="200" height="40" fill="${C.cool}"/>` + txt('Si Cicak', 100, 22, 18, '#fff', 900) +
@@ -34,7 +42,7 @@ function phoneScreen() {  // a little chat on the phone's screen
 }
 
 function drawWorld(t) {
-  let s = `<rect x="-2000" y="-7000" width="4000" height="8200" fill="${C.bg}"/>`;
+  let s = `<rect x="-2000" y="-12800" width="4000" height="14000" fill="${C.bg}"/>`;
   // view 1: nature
   s += leaf(-430, -300, 260, -18) + leaf(-420, -290, 180, -60, { col: '#8CC152' });
   s += ground(-700, 700, 340, 400, t);
@@ -59,5 +67,18 @@ function drawWorld(t) {
   s += bee(-340, -5680, 0.95, { t, rot: -6 }) + fish(-20, -5680, 0.95, { t }) + umbrella(310, -5630, 0.9, { open: true });
   s += woodPlank(-520, -5260, 1040, 44);
   s += fruit(-290, -5312, 0.95, { kind: 'pisang' }) + fruit(0, -5326, 0.95, { kind: 'jeruk' }) + fruit(290, -5340, 0.9, { kind: 'alpukat' });
+  // view 5: shared from topics (jar, wallCalendar, bedSide, socket, germ)
+  s += wallCalendar(-300, -7820, 0.9, { big: '2026' }) + germ(20, -7810, 0.75, { t }) + socket(320, -7820, 1.0);
+  s += woodPlank(-520, -7330, 1040, 44);
+  s += jar(-300, -7330, 0.62, { label: 'MADU' }) + bedSide(190, -7330, 0.42, { sleeper: cicak(-200, -215, 0.5, 'calm', t, -90, null, 'sleepy') });
+  // view 6: money and news (wallet, piggyBank, calculator, chart, building, docPaper, newsMic)
+  s += building(-280, -9560, 0.52) + docPaper(20, -9760, 0.62, { stamp: true, rot: -6 });
+  s += chart(150, -9560, 370, 300, { values: [3, 4, 4, 6, 8], p: P(t, K.s6 + 0.4, 1.4) });
+  s += woodPlank(-520, -9180, 1040, 44);
+  s += wallet(-330, -9230, 0.62) + piggyBank(-70, -9180, 0.55, { t }) + calculator(170, -9300, 0.5) + newsMic(390, -9360, 0.55);
+  // view 7: body and health (heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush)
+  s += heartOrgan(-300, -11640, 0.62, { t }) + lungs(20, -11620, 0.62, { t }) + brain(300, -11650, 0.62);
+  s += stomach(-300, -11260, 0.62, { t }) + bodyCell(10, -11280, 0.62, { t }) + thermometer(240, -11100, 0.62) + stethoscope(400, -11090, 0.48);
+  s += toothbrush(-60, -11020, 0.6);
   return s;
 }

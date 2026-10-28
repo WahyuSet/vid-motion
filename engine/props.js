@@ -6,6 +6,9 @@
 // Nature:   leaf, tree (kind 'round' | 'palm'), bush, grass, flower, rock, cloud, sun, rain, bee, fish, fruit
 // Surfaces: woodPlank, ground
 // Objects:  bulb, coin, banknote, phone, glass, box, plate, riceBowl, pot, stove, bottle, fan, wallClock, windowFrame, umbrella
+// Shared:   jar, wallCalendar, bedSide, socket, germ
+// Money:    wallet, piggyBank, calculator, chart, building, docPaper, newsMic
+// Body:     heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush (schematic only)
 
 const tone = (col, k) => k > 0 ? mix(col, '#FFFFFF', k) : mix(col, C.ink, -k);
 const detail = (d, col, w, o = 1) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${f(w)}" stroke-linecap="round" stroke-linejoin="round"${o < 1 ? ` opacity="${f(o)}"` : ''}/>`;
@@ -614,5 +617,265 @@ function umbrella(x, y, s = 1, { open = true, col = '#E0522F', handleCol = '#8A5
     g += detail('M-2,-130 L-10,-18 M4,-130 L12,-18', dk, 3, 0.8);
     g += vol(rectD(-18, -58, 36, 10, 4), dk, { depth: 2, w: 4 });
   }
+  return G(T(x, y, s, rot), 1, g);
+}
+
+// ---------- batch B: things the topics drew themselves, now shared ----------
+
+// jar(x, y, s, opts): a glass jar standing on (x, y), filled to level with a colour (honey, jam, sambal);
+// label: text on a paper label ('' for none); crystal 0..1 turns the content pale and grainy
+function jar(x, y, s = 1, { fill = '#E9A21A', level = 0.85, label = '', lid = '#D9A441', crystal = 0 } = {}) {
+  const top = -300 + 270 * (1 - level);
+  let g = shadow(0, 4, 190, 0.18);
+  const body = 'M-150,-330 C-170,-322 -175,-300 -175,-270 L-175,-30 C-175,-10 -160,0 -140,0 L140,0 C160,0 175,-10 175,-30 L175,-270 C175,-300 170,-322 150,-330 Z';
+  g += `<path d="${body}" fill="#F4F8F8" fill-opacity="0.55"/>`;
+  if (level > 0) {
+    g += vol(`M-160,${f(top)} L160,${f(top)} L160,-30 C160,-20 152,-14 140,-14 L-140,-14 C-152,-14 -160,-20 -160,-30 Z`, fill, { depth: 22, w: 0 });
+    g += `<ellipse cx="0" cy="${f(top)}" rx="160" ry="14" fill="${tone(fill, 0.3)}"/>`;
+    if (crystal > 0) for (let k = 0; k < 36; k++) {
+      const cx = -140 + rnd(k) * 280, cy = top + 20 + rnd(k + 50) * (-34 - top), r = 3 + rnd(k + 9) * 5;
+      g += `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(r)}" fill="#FFFFFF" opacity="${f(0.85 * crystal)}"/>`;
+    }
+  }
+  if (label) g += vol(rectD(-120, -226, 240, 120, 14), '#FFF6E0', { depth: 6, w: 5 }) + bodyText(label, 0, -166, 52, C.ink, 'middle', 900);
+  g += `<path d="${body}" fill="none" ${stroke()}/>`;
+  g += detail('M-150,-240 C-156,-180 -156,-110 -150,-60', '#FFFFFF', 16, 0.55);
+  g += `<path d="M-130,-300 L-130,-338 L130,-338 L130,-300" fill="#F4F8F8" fill-opacity="0.6" ${stroke(6)}/>`;
+  if (lid) g += vol(rectD(-146, -392, 292, 56, 12), lid, { depth: 8 }) +
+    [...Array(11)].map((_, k) => detail(`M${-120 + k * 24},-384 L${-120 + k * 24},-344`, tone(lid, -0.3), 3)).join('');
+  return G(T(x, y, s), 1, g);
+}
+
+// wallCalendar(x, y, s, opts): a wall calendar centred on (x, y); big = the large number (a year, a date)
+function wallCalendar(x, y, s = 1, { top = 'TAHUN', big = '2026', col = C.accent } = {}) {
+  let g = vol(rectD(-95, -110, 190, 220, 10), '#FFFFFF', { depth: 8, w: 6 });
+  g += `<path d="M-95,-56 L-95,-100 Q-95,-110 -85,-110 L85,-110 Q95,-110 95,-100 L95,-56 Z" fill="${col}"/>`;
+  g += txt(top, 0, -82, 26, '#FFFFFF', 900);
+  [-50, 50].forEach(dx => g += vol(rectD(dx - 6, -126, 12, 30, 6), '#B9BCC2', { depth: 3, w: 4 }));
+  g += mono(String(big), 0, 10, 58, C.ink, { anchor: 'middle' });
+  for (let k = 0; k < 4; k++) for (let j = 0; j < 5; j++) g += `<rect x="${-76 + j * 32}" y="${50 + k * 12}" width="22" height="6" rx="3" fill="${tone(C.line, -0.05)}"/>`;
+  return G(T(x, y, s), 1, g);
+}
+
+// bedSide(x, y, s, opts): a single bed seen from the side, standing on the floor at (x, y), headboard on the
+// left. sleeper: SVG drawn on the mattress, under the blanket (local coords: mattress top at y -205)
+function bedSide(x, y, s = 1, { wood = '#B07B4F', sheet = '#F4F1EA', blanket = '#7FA7D6', sleeper = '' } = {}) {
+  let g = shadow(0, 4, 380, 0.16);
+  g += vol(rectD(-380, -360, 50, 360, 10), wood, { depth: 8 });
+  g += vol(rectD(-340, -150, 720, 70, 10), wood, { depth: 8 }) + vol(rectD(340, -240, 40, 240, 8), wood, { depth: 6 });
+  g += vol(rectD(-330, -200, 680, 56, 14), sheet, { depth: 8, w: 6 });
+  g += vol('M-310,-210 C-310,-242 -160,-248 -160,-214 C-160,-184 -310,-180 -310,-210 Z', '#FFFFFF', { depth: 8, w: 6 });
+  g += sleeper;
+  g += vol('M-75,-252 C20,-270 260,-268 355,-254 L362,-140 L-82,-140 Z', blanket, { depth: 14 });
+  for (let k = 0; k < 5; k++) g += detail(`M${-35 + k * 84},${-256 - k * 2} q12,58 0,114`, tone(blanket, -0.25), 5);
+  return G(T(x, y, s), 1, g);
+}
+
+// socket(x, y, s): a wall power socket (round recess, two holes, earth clips) centred on (x, y)
+function socket(x, y, s = 1, { col = '#F7F4EC' } = {}) {
+  let g = vol(rectD(-60, -60, 120, 120, 18), col, { depth: 8 });
+  g += vol(circleD(0, 0, 42), tone(col, -0.08), { depth: 6, w: 5, shine: false });
+  g += `<circle cx="-16" cy="0" r="8" fill="${C.ink}"/><circle cx="16" cy="0" r="8" fill="${C.ink}"/>`;
+  g += `<rect x="-6" y="-42" width="12" height="9" rx="2" fill="#C9CDD3"/><rect x="-6" y="33" width="12" height="9" rx="2" fill="#C9CDD3"/>`;
+  return G(T(x, y, s), 1, g);
+}
+
+// germ(x, y, s, opts): a cute bacterium centred on (x, y); dry 0..1 shrinks and wrinkles it; kind: a FACES name
+function germ(x, y, s = 1, { t = 0, dry = 0, kind = null, col = '#8FD18B', seed = 1 } = {}) {
+  const sc = 1 - 0.35 * dry, c = mix(col, '#B9A77A', dry);
+  let d = '';
+  for (let k = 0; k <= 24; k++) {
+    const a = k / 24 * Math.PI * 2, r = 70 * (1 + (0.06 + 0.12 * dry) * Math.sin(a * 6 + seed) + 0.03 * Math.sin(t * 5 + k));
+    d += `${k ? 'L' : 'M'}${f(r * Math.cos(a) * 1.2)},${f(r * Math.sin(a))}`;
+  }
+  let g = '';
+  for (let k = 0; k < 10; k++) {
+    const a = k / 10 * Math.PI * 2 + 0.3 * Math.sin(t * 6 + k);
+    g += detail(`M${f(80 * Math.cos(a))},${f(66 * Math.sin(a))} l${f(22 * Math.cos(a + 0.4))},${f(22 * Math.sin(a + 0.4))}`, tone(c, -0.45), 5);
+  }
+  g += vol(d + 'Z', c, { depth: 12, w: 6 });
+  if (dry > 0.3) g += detail('M-40,-30 q10,8 0,16 M30,-36 q-8,10 0,18 M-10,30 q10,-6 20,0', tone(c, -0.4), 4);
+  g += face(kind || (dry > 0.5 ? 'sad' : dry > 0.15 ? 'shock' : 'smile'), { lx: -24, rx: 24, ey: -10, er: 14, my: 24, mw: 18, skin: c }, t);
+  return G(T(x, y, s * sc), 1, g);
+}
+
+// ---------- batch B: money and news (Si Tikus) ----------
+
+// wallet(x, y, s, opts): a leather bifold wallet lying centred on (x, y); cash: a generic note peeking out
+function wallet(x, y, s = 1, { col = '#8A5A36', cash = true } = {}) {
+  let g = shadow(0, 70, 170, 0.14);
+  if (cash) g += G(T(20, -58, 1, -6), 1, vol(rectD(-120, -30, 240, 70, 6), '#8FC1A9', { depth: 6, w: 4 }) + txt('Rp', -70, 2, 22, tone('#8FC1A9', -0.45), 900));
+  g += vol(rectD(-160, -60, 320, 130, 22), col, { depth: 14 });
+  g += `<rect x="-146" y="-46" width="292" height="102" rx="14" fill="none" stroke="${tone(col, 0.25)}" stroke-width="3" stroke-dasharray="7 6"/>`;
+  g += vol('M60,-40 L160,-40 L160,40 L60,40 Q40,40 40,20 L40,-20 Q40,-40 60,-40 Z', tone(col, -0.12), { depth: 6, w: 5 }) + vol(circleD(76, 0, 10), '#D9B36A', { depth: 3, w: 3 });
+  return G(T(x, y, s), 1, g);
+}
+
+// piggyBank(x, y, s, opts): a piggy bank standing on (x, y), with a coin bobbing above the slot
+function piggyBank(x, y, s = 1, { col = '#F2A7B8', coin: withCoin = true, t = 0 } = {}) {
+  let g = shadow(0, 4, 150, 0.16);
+  [-80, -30, 40, 90].forEach(lx => g += vol(rectD(lx - 18, -50, 36, 50, 10), tone(col, -0.12), { depth: 5, w: 5 }));
+  g += vol('M-160,-140 C-160,-230 -60,-260 20,-256 C120,-252 170,-200 170,-140 C170,-80 110,-44 10,-44 C-90,-44 -160,-70 -160,-140 Z', col, { depth: 16 });
+  g += vol('M150,-176 C200,-182 214,-150 206,-124 C198,-98 160,-100 150,-112 Z', tone(col, -0.06), { depth: 6, w: 5 });
+  g += `<ellipse cx="190" cy="-142" rx="5" ry="8" fill="${tone(col, -0.5)}"/><ellipse cx="174" cy="-140" rx="5" ry="8" fill="${tone(col, -0.5)}"/>`;
+  g += vol('M60,-246 L92,-290 L110,-238 Z', tone(col, -0.08), { depth: 4, w: 5 }) + `<circle cx="112" cy="-196" r="9" fill="${C.ink}"/><circle cx="115" cy="-199" r="3" fill="#FFFFFF"/>`;
+  g += `<rect x="-50" y="-262" width="80" height="12" rx="6" fill="${tone(col, -0.55)}"/>`;
+  g += detail('M-160,-150 q-40,-10 -30,-40 q10,-20 24,-6', tone(col, -0.3), 6);
+  if (withCoin) g += G(T(-10, -300 - 6 * Math.abs(Math.sin(t * 3))), 1, vol('M-40,0 A40,14 0 0 0 40,0 L40,8 A40,14 0 0 1 -40,8 Z', '#C9A23E', { depth: 3, w: 4, shine: false }) +
+    vol('M-40,0 A40,14 0 1 1 40,0 A40,14 0 1 1 -40,0 Z', '#E8C55A', { depth: 4, w: 4 }));
+  return G(T(x, y, s), 1, g);
+}
+
+// calculator(x, y, s, opts): a desk calculator centred on (x, y) showing display (digits, dots, commas)
+function calculator(x, y, s = 1, { display = '1.250.000', col = '#3A3F4E' } = {}) {
+  let g = vol(rectD(-120, -170, 240, 340, 26), col, { depth: 12 });
+  g += vol(rectD(-96, -146, 192, 74, 10), '#CFE3B5', { depth: 4, w: 4, shine: false }) + mono(String(display).slice(-10), 84, -108, Math.min(34, 176 / Math.max(1, String(display).slice(-10).length) / 0.68), '#26331F', { anchor: 'end' });
+  const keys = ['7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '−', '0', '.', '=', '+'];
+  keys.forEach((k, i) => {
+    const kx = -96 + (i % 4) * 50, ky = -54 + Math.floor(i / 4) * 52, op = i % 4 === 3 || k === '=';
+    g += vol(rectD(kx, ky, 42, 42, 9), op ? C.accent : '#F1F1EE', { depth: 4, w: 4 }) + txt(k, kx + 21, ky + 22, 24, op ? '#FFFFFF' : C.ink, 900);
+  });
+  return G(T(x, y, s), 1, g);
+}
+
+// chart(x, y, w, h, opts): a chart card with its bottom-left corner at (x, y). kind 'bar' | 'line';
+// values: numbers (scaled to the tallest); p 0..1 grows the bars or draws the line; labels under the bars
+function chart(x, y, w = 520, h = 360, { values = [3, 5, 4, 7, 9], kind = 'bar', p = 1, col = C.cool, labels = [] } = {}) {
+  let g = vol(rectD(0, -h, w, h, 18), '#FFFFFF', { depth: 8, w: 5 });
+  const L = 60, B = -50, W = w - L - 30, H = h - 90, max = Math.max(...values), n = values.length;
+  for (let k = 1; k <= 3; k++) g += detail(`M${L},${f(B - H * k / 3)} L${L + W},${f(B - H * k / 3)}`, tone(C.line, -0.1), 2, 0.8);
+  g += detail(`M${L},${B - H - 10} L${L},${B} L${L + W + 10},${B}`, tone(C.muted, -0.1), 4);
+  const px = i => L + W * (i + 0.5) / n, py = v => B - H * v / max;
+  if (kind === 'bar') values.forEach((v, i) => {
+    const bh = H * v / max * E.outBack(clamp(p * n - i));
+    if (bh > 1) g += vol(rectD(px(i) - W / n * 0.32, B - bh, W / n * 0.64, bh, 6), i === n - 1 ? C.accent : col, { depth: 5, w: 4 });
+  });
+  else {
+    const pts = values.map((v, i) => [px(i), py(v)]), m = Math.min(n, Math.max(1, Math.floor(p * (n - 1)) + 1));
+    if (m > 1) g += detail('M' + pts.slice(0, m).map(q => q.map(f).join(',')).join(' L'), col, 8);
+    pts.slice(0, m).forEach(([qx, qy], i) => g += vol(circleD(qx, qy, 10), i === n - 1 ? C.accent : col, { depth: 3, w: 4 }));
+  }
+  labels.forEach((l, i) => g += txt(l, px(i), B + 26, 20, C.muted, 800));
+  return G(T(x, y, 1), 1, g);
+}
+
+// building(x, y, s, opts): a generic bank or office with columns, standing on (x, y); label: plain text sign
+function building(x, y, s = 1, { label = 'BANK', col = '#E9E4DA', roof = '#B9BCC2' } = {}) {
+  let g = shadow(0, 4, 300, 0.16);
+  g += vol(rectD(-280, -40, 560, 40, 4), tone(col, -0.1), { depth: 6 }) + vol(rectD(-250, -70, 500, 30, 4), tone(col, -0.05), { depth: 5 });
+  g += vol(rectD(-230, -330, 460, 260, 4), col, { depth: 12 });
+  for (let k = 0; k < 5; k++) g += vol(rectD(-200 + k * 92, -320, 38, 250, 6), '#FFFFFF', { depth: 6, w: 5 });
+  g += vol('M-270,-330 L0,-450 L270,-330 Z', roof, { depth: 10 });
+  g += vol(rectD(-150, -310, 300, 40, 6), '#FFFFFF', { depth: 4, w: 4 }) + txt(label, 0, -289, 30, C.ink, 900);
+  return G(T(x, y, s), 1, g);
+}
+
+// docPaper(x, y, s, opts): a sheet of paper centred on (x, y), with a folded corner and text lines;
+// title: a heading; stamp: true adds a round red approval stamp
+function docPaper(x, y, s = 1, { title = 'DOKUMEN', lines = 7, stamp = false, rot = 0 } = {}) {
+  let g = vol('M-130,-170 L80,-170 L130,-120 L130,170 L-130,170 Z', '#FFFFFF', { depth: 8, w: 5, rot });
+  g += vol('M80,-170 L80,-120 L130,-120 Z', '#E6E2DA', { depth: 2, w: 4, shine: false });
+  if (title) g += txt(title, -100, -130, 26, C.ink, 900, 'start');
+  for (let k = 0; k < lines; k++) g += `<rect x="-100" y="${-92 + k * 30}" width="${200 - (k % 3) * 40}" height="9" rx="4" fill="${tone(C.line, -0.1)}"/>`;
+  if (stamp) g += G(T(56, 112, 1, -14), 0.85, `<circle r="44" fill="none" stroke="${C.accent}" stroke-width="6"/><circle r="34" fill="none" stroke="${C.accent}" stroke-width="2"/>` + txt('OK', 0, 2, 26, C.accent, 900));
+  return G(T(x, y, s, rot), 1, g);
+}
+
+// newsMic(x, y, s, opts): a reporter's handheld microphone with a plain flag box, its head at (x, y)
+function newsMic(x, y, s = 1, { label = 'BERITA', col = C.accent, rot = -12 } = {}) {
+  let g = vol(rectD(-22, 40, 44, 230, 18), '#2B2F3F', { depth: 6 });
+  g += vol(rectD(-62, 24, 124, 96, 10), col, { depth: 8 }) + txt(label, 0, 72, 24, '#FFFFFF', 900);
+  g += vol(circleD(0, -10, 58), '#6B7078', { depth: 10 });
+  for (let k = 0; k < 5; k++) g += detail(`M${-44 + 22 * k},-48 L${-44 + 22 * k},28`, '#4A4E56', 2.5, 0.7);
+  g += detail('M-52,-10 L52,-10 M-46,-36 L46,-36 M-46,16 L46,16', '#4A4E56', 2.5, 0.7);
+  return G(T(x, y, s, rot), 1, g);
+}
+
+// ---------- batch B: body and health (Stickman); schematic, never realistic or gory ----------
+
+// heartOrgan(x, y, s, opts): a schematic heart centred on (x, y) that beats with t (red arteries, blue veins)
+function heartOrgan(x, y, s = 1, { t = 0, beat = true } = {}) {
+  const ph = (t * 1.2) % 1, k = beat ? 1 + 0.06 * Math.exp(-ph * 9) : 1;
+  let g = detail('M-26,-128 C-30,-190 40,-200 52,-140', '#C8312B', 26) + detail('M60,-120 C90,-170 120,-160 120,-130', '#C8312B', 18);
+  g += detail('M-60,-120 C-80,-170 -110,-170 -120,-140', '#2F6FB5', 18) + detail('M-20,-150 L-20,-196', '#2F6FB5', 16);
+  g += G(`scale(${f(k)})`, 1, vol('M0,150 C-40,110 -140,40 -140,-40 C-140,-110 -70,-140 -20,-110 C0,-98 10,-98 30,-110 C80,-140 140,-110 140,-40 C140,40 40,110 0,150 Z', '#E25A5A', { depth: 16 }) +
+    detail('M-10,-100 C-30,-20 10,40 -6,130', tone('#E25A5A', -0.3), 5));
+  return G(T(x, y, s), 1, g);
+}
+
+// lungs(x, y, s, opts): two schematic lungs and the airway centred on (x, y), breathing slowly with t
+function lungs(x, y, s = 1, { t = 0, col = '#F29AA8' } = {}) {
+  const k = 1 + 0.04 * Math.sin(t * 1.6);
+  let g = '';
+  [-1, 1].forEach(sd => g += G(`translate(${sd * 74} 20) scale(${f(sd * k)} ${f(k)})`, 1,
+    vol('M-18,-150 C40,-160 70,-60 66,40 C64,120 30,150 -10,140 C-40,132 -40,80 -36,40 L-36,-120 C-36,-140 -28,-150 -18,-150 Z', col, { depth: 12 })));
+  const air = 'M0,-210 L0,-90 M0,-90 C-20,-70 -40,-60 -60,-40 M0,-90 C20,-70 40,-60 60,-40';
+  g += detail(air, '#C9CDD3', 16) + detail(air, '#EEF0F2', 9);
+  for (let i = 0; i < 6; i++) g += detail(`M-8,${-200 + i * 18} L8,${-200 + i * 18}`, '#9BA1AA', 3);
+  return G(T(x, y, s), 1, g);
+}
+
+// stomach(x, y, s, opts): a schematic J-shaped stomach with the food pipe, centred on (x, y)
+function stomach(x, y, s = 1, { col = '#F0A07C', t = 0 } = {}) {
+  let g = detail('M-40,-200 C-40,-150 -30,-120 -20,-96', tone(col, -0.2), 26);
+  g += vol('M-30,-110 C10,-130 90,-120 110,-60 C130,0 110,90 30,110 C-30,124 -90,100 -110,60 C-124,30 -100,0 -70,10 C-40,20 -40,60 0,60 C40,58 50,0 30,-40 C14,-70 -20,-70 -40,-80 Z', col, { depth: 14 });
+  g += detail(`M-20,-60 C20,-40 ${f(60 + 4 * Math.sin(t * 2))},0 40,40`, tone(col, -0.28), 4, 0.8);
+  g += detail('M-100,60 C-120,80 -120,110 -100,130', tone(col, -0.2), 22);
+  return G(T(x, y, s), 1, g);
+}
+
+// brain(x, y, s, opts): a schematic brain seen from the side, centred on (x, y)
+function brain(x, y, s = 1, { col = '#F2A7B8' } = {}) {
+  let g = vol('M40,90 C60,130 40,160 20,170 L4,170 C10,140 0,110 -10,96 Z', tone(col, -0.08), { depth: 5, w: 5 });
+  g += vol('M70,60 C110,60 130,90 110,110 C90,126 60,110 52,90 Z', tone(col, -0.06), { depth: 5, w: 5 });
+  g += vol('M-150,10 C-170,-70 -110,-140 -30,-140 C40,-160 130,-120 150,-50 C170,10 140,70 80,80 C30,92 -30,96 -80,84 C-130,72 -146,44 -150,10 Z', col, { depth: 14 });
+  const gy = tone(col, -0.3);
+  g += detail('M-120,-30 q20,-30 50,-20 t50,-10 t40,10 M-100,30 q30,-26 60,-10 t60,-6 t40,12 M-40,-120 q-6,40 20,70 M40,-130 q10,40 -10,80', gy, 5);
+  g += detail('M-130,0 q-10,30 20,46 M100,-80 q30,10 30,40', gy, 4);
+  return G(T(x, y, s), 1, g);
+}
+
+// bodyCell(x, y, s, opts): a schematic animal cell centred on (x, y): membrane, nucleus, a few organelles
+function bodyCell(x, y, s = 1, { t = 0, col = '#BFE3D2', nucleus = '#8E7DB5' } = {}) {
+  let d = '';
+  for (let k = 0; k <= 30; k++) {
+    const a = k / 30 * Math.PI * 2, r = 150 * (1 + 0.05 * Math.sin(a * 3 + t * 1.4) + 0.03 * Math.sin(a * 5 - t));
+    d += `${k ? 'L' : 'M'}${f(r * Math.cos(a))},${f(r * 0.86 * Math.sin(a))}`;
+  }
+  let g = vol(d + 'Z', col, { depth: 14 });
+  g += vol(circleD(-20, -10, 50), nucleus, { depth: 8, w: 5 }) + `<circle cx="-10" cy="-14" r="14" fill="${tone(nucleus, -0.3)}"/>`;
+  [[70, 40, 20], [50, -70, -30], [-90, 60, 40]].forEach(([mx, my, a], i) =>
+    g += G(T(mx + 3 * Math.sin(t * 2 + i), my, 1, a), 1, vol('M-34,0 C-34,-16 34,-16 34,0 C34,16 -34,16 -34,0 Z', '#F2A15A', { depth: 4, w: 4 }) +
+      detail('M-24,0 q8,-8 14,0 t14,0 t14,0', tone('#F2A15A', -0.3), 3)));
+  for (let i = 0; i < 8; i++) g += `<circle cx="${f(-110 + rnd(i) * 220)}" cy="${f(-90 + rnd(i + 20) * 180)}" r="5" fill="${tone(col, -0.3)}"/>`;
+  return G(T(x, y, s), 1, g);
+}
+
+// thermometer(x, y, s, opts): a glass thermometer standing upright, bulb at (x, y); temp 0..1 fills it
+function thermometer(x, y, s = 1, { temp = 0.6, col = '#E0522F' } = {}) {
+  let g = vol(rectD(-24, -320, 48, 300, 24), '#F4F8F8', { depth: 6, w: 5 });
+  const top = -40 - 260 * clamp(temp);
+  g += `<rect x="-10" y="${f(top)}" width="20" height="${f(-20 - top)}" rx="10" fill="${col}"/>`;
+  g += vol(circleD(0, 0, 40), col, { depth: 8, w: 5 });
+  for (let k = 0; k < 9; k++) g += detail(`M24,${-60 - k * 28} L${k % 2 ? 36 : 44},${-60 - k * 28}`, tone(C.muted, -0.1), 3);
+  g += detail('M-12,-300 L-12,-60', '#FFFFFF', 5, 0.7);
+  return G(T(x, y, s), 1, g);
+}
+
+// stethoscope(x, y, s, opts): a stethoscope lying in a loop, chest piece at (x, y)
+function stethoscope(x, y, s = 1, { col = '#2F6FB5' } = {}) {
+  let g = limb('M0,-30 C0,-140 -120,-160 -120,-260 M0,-30 C0,-140 120,-160 120,-260', 14, col);
+  g += limb('M-120,-260 C-120,-300 -80,-320 -70,-300 M120,-260 C120,-300 80,-320 70,-300', 9, '#B9BCC2');
+  g += vol(circleD(-70, -300, 11), '#2B2F3F', { depth: 2, w: 3 }) + vol(circleD(70, -300, 11), '#2B2F3F', { depth: 2, w: 3 });
+  g += vol(circleD(0, 0, 46), '#C9CDD3', { depth: 8 }) + vol(circleD(0, 0, 30), '#EEF0F2', { depth: 4, w: 4, shine: false });
+  return G(T(x, y, s), 1, g);
+}
+
+// toothbrush(x, y, s, opts): a toothbrush lying centred on (x, y), with a blob of toothpaste
+function toothbrush(x, y, s = 1, { col = '#5FB3E0', rot = -10, paste = true } = {}) {
+  let g = vol('M-220,-14 C-220,-26 120,-24 140,-16 L140,14 C120,22 -220,24 -220,12 Z', col, { depth: 6, rot });
+  g += vol(rectD(120, -22, 120, 36, 10), tone(col, -0.05), { depth: 5, w: 5, rot });
+  for (let k = 0; k < 9; k++) g += `<rect x="${126 + k * 12}" y="-72" width="8" height="52" rx="3" fill="${k % 2 ? '#FFFFFF' : '#CFE8F7'}" ${stroke(2.5)}/>`;
+  if (paste) g += vol('M126,-74 C150,-100 190,-96 214,-84 C236,-74 240,-62 230,-60 L126,-60 Z', '#FFFFFF', { depth: 4, w: 4 }) + detail('M146,-80 C170,-90 196,-86 214,-76', '#7FC8E8', 6);
   return G(T(x, y, s, rot), 1, g);
 }

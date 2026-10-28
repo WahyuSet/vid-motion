@@ -235,6 +235,12 @@ world coordinates; plants take `t` for wind. See `topics/demo-props` (render it 
 | `woodPlank(x, y, w, h, {col})`, `ground(x0, x1, y, depth, t, {col, withGrass})` | surfaces: a board with grain and a knot, soil with pebbles and grass |
 | `bulb(x, y, s, {on, t})`, `coin(x, y, s, {label})`, `banknote(x, y, s, {value, col, rot})` | lamp hanging from its base, coin with a rim, a generic banknote (never copy a real design) |
 | `phone(x, y, s, {screen, col, rot})`, `glass(x, y, s, {level, liquid, t})`, `box(x, y, s, {col})` | smartphone (screen SVG in a 200×380 box), drinking glass, cardboard box |
+| `plate(x, y, s, {food, spoon})`, `riceBowl`, `pot`, `stove(…, {on, t})`, `bottle(…, {level})` | kitchen: standing on (x, y) |
+| `fan(x, y, s, {t, on})`, `wallClock(x, y, s, {h, m})`, `windowFrame(x, y, w, h, {night, t})` | home (clock and window centred on (x, y)) |
+| `cloud`, `sun`, `rain(x0, x1, y0, y1, t)`, `umbrella`, `bee`, `fish`, `fruit(x, y, s, {kind: 'pisang' \| 'jeruk' \| 'alpukat'})` | weather, animals, fruit (centred) |
+| `jar(x, y, s, {fill, level, label, crystal})`, `wallCalendar(x, y, s, {top, big})`, `bedSide(x, y, s, {sleeper})`, `socket`, `germ(x, y, s, {t, dry, kind})` | shared from earlier topics: a filled jar, a calendar, a bed seen from the side (draw the sleeper under the blanket), a wall socket, a cute germ |
+| `wallet`, `piggyBank(…, {coin, t})`, `calculator(…, {display})`, `chart(x, y, w, h, {values, kind, p, labels})`, `building(…, {label})`, `docPaper(…, {title, stamp})`, `newsMic(…, {label})` | money and news for Si Tikus; generic, never a real banknote, bank or logo |
+| `heartOrgan`, `lungs`, `stomach`, `brain`, `bodyCell`, `thermometer(…, {temp})`, `stethoscope`, `toothbrush` | body and health for Stickman; schematic, never realistic or gory |
 
 Add a prop here (not in a topic) once two topics need it, and give it all three looks through `vol`.
 
