@@ -159,7 +159,37 @@ def caption_chunks(sc, max_words=CAPTION_WORDS, max_line=CAPTION_LINE):
 
 # ---------- sound effects ----------
 
+SFX_DIR = ROOT / "engine" / "sfx"  # engine/sfx/<kind>.mp3|m4a|wav replaces the synthesized sound of that name
+_sfx_files = {}
+
+
+def sfx_file(kind):
+    """A recorded sound from engine/sfx: leading/trailing silence cut (so it starts on its cue), loudness
+    (energy of the first 0.3 s) matched to the synthesized sound it replaces, peak kept under 0.9.
+    None when there is no file for this kind."""
+    if kind in _sfx_files:
+        return _sfx_files[kind]
+    path = next((p for p in (SFX_DIR / f"{kind}.{ext}" for ext in ("mp3", "m4a", "wav")) if p.exists()), None)
+    a = None
+    if path:
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"],
+                             capture_output=True, check=True).stdout
+        a = np.frombuffer(raw, np.float32)
+        loud = np.flatnonzero(np.abs(a) > 0.02 * np.abs(a).max())
+        a = a[max(0, loud[0] - int(0.01 * SR)): loud[-1] + int(0.03 * SR)].copy()
+        level = lambda x: float(np.sqrt((x[: int(0.3 * SR)] ** 2).mean()))
+        a *= level(synth_sfx(kind)) / max(1e-6, level(a))
+        a *= min(1.0, 0.9 / max(1e-6, float(np.abs(a).max())))
+    _sfx_files[kind] = a
+    return a
+
+
 def sfx(kind):
+    a = sfx_file(kind)
+    return a if a is not None else synth_sfx(kind)
+
+
+def synth_sfx(kind):
     rng = np.random.default_rng(sum(map(ord, kind)))
 
     def env(n, k):

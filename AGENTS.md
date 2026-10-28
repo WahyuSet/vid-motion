@@ -180,6 +180,9 @@ during the recap window all earlier icons line up with a green check. Icons are 
 
 **Sound effects** (`cues`): `pop`, `tick`, `thud`, `whoosh`, `ding`, `click`, `sparkle`, `zap`, `chirp`.
 Use `whoosh` on camera moves, `pop` on things appearing, `thud` on stamps, `ding` on conclusions.
+A recorded file `engine/sfx/<kind>.mp3` (or `.m4a`, `.wav`) replaces the synthesized sound of that name in every video;
+its silence is trimmed and its loudness matched to the sound it replaces. Recorded now: `whoosh` (camera moves),
+`pop` (a mouse click: headlines, cards, labels appearing), `ding` (conclusions) and `thud` (a deep boom: stamps, big hits).
 
 **Helpers** (`engine/lib.js`):
 
