@@ -16,7 +16,7 @@ A topic lives in topics/<topic>/:
                caption keyword). "style": "panel" (card layout: header label, "cont": true keeps the
                previous picture) or "paper" (full-screen world with a moving camera); optional
                "channel" (channels/<id>, default cicaktahu: gives the theme, mascot and watermark),
-               "captions": {"words", "line"}, "theme"/"watermark" overrides, "tail", "voice" (see tts.py).
+               "captions": {"words", "line", "size", "mode": "pill"}, "theme"/"watermark" overrides, "tail", "voice" (see tts.py).
   scenes.js    panel style: one draw(t, S)/cues(S) object per scene.
                paper style: drawWorld(t, cam), setup(D) for camera/headlines/chapters, cues(D),
                optional drawOverlay(t, cam). Helpers come from engine/lib.js and engine/cicak.js.
@@ -206,6 +206,7 @@ def timeline(script, topic_dir):
         "total": total,
         "progress": script.get("progress", True),
         "captionSize": cap.get("size"),
+        "captionMode": cap.get("mode"),
         "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
         "captions": [c for sc in SCENES for c in caption_chunks(
             sc, cap.get("words", CAPTION_WORDS), cap.get("line", CAPTION_LINE))],

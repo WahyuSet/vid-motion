@@ -91,5 +91,5 @@ function drawWorld(t) {
 }
 
 function drawOverlay(t) {
-  return cite('sumber: American Heart Association (60–100 detak/menit saat istirahat)', t, K.n + 0.4, K.s2 - 0.1);
+  return sticker('dug-dug!', t, 0.25, 760, 520, { rot: -8, size: 80, dur: 1.4 }) + cite('sumber: American Heart Association (60–100 detak/menit saat istirahat)', t, K.n + 0.4, K.s2 - 0.1);
 }

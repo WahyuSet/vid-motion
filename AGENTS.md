@@ -22,6 +22,7 @@ Each `channels/<id>/` holds `channel.json` (name, handle, tagline, mascot, theme
 with a doctor disclaimer). Use only that channel's mascot and draw props in its art style. The theme is applied
 automatically from the channel. Mention the channel by name in metadata (description sign-off), never in the hook.
 `topics/demo-tikus` and `topics/demo-stickman` are short working examples of the two newer themes.
+`topics/demo-cicak` shows the data card, scramble, sound stickers, x-ray lens, cutaway and pill captions.
 
 ## Commands
 
@@ -125,6 +126,9 @@ need it, and re-check old topics with `preview` afterwards.
 - `voice`: see `tts.py`. Default is fine. `TTS_PROVIDER` / `TTS_VOICE` env vars override it.
 - `channel`: `cicaktahu` (default), `tikus` or `stickman`; it sets the theme, mascot and watermark.
 - `captions`: `"words": 5` recommended. `"size": N` overrides theme caption size. `"line"` is mostly irrelevant now that captions re-wrap automatically in JS.
+  `"mode": "pill"` puts every caption line on a dark pill with a yellow box sliding behind the spoken word
+  (spoken keywords turn yellow). Use it when the picture behind the captions is busy (circuits, maps, crowds);
+  leave it out to keep the channel's own caption look.
 - `progress`: `false` disables the top progress bar (`true` by default).
 - `watermark`: leave it out; the handle from the channel's `channel.json` is used (top-left).
   Set `"watermark": ""` only to switch it off for one topic. `"theme"` overrides the channel's theme (rarely needed).
@@ -185,6 +189,13 @@ Use `whoosh` on camera moves, `pop` on things appearing, `thud` on stamps, `ding
 | `spotlight(t, t0, t1, x, y, r, dim)` | darkened vignette around a circle in screen space |
 | `toScreen(cam, x, y)` | convert world point `(x, y)` to screen coordinates for screen-space FX |
 | `impact(t, ts, k)` | camera shake and zoom punch (called automatically by `stamp`) |
+| `sticker(label, t, ts, x, y, opts)` | sound word ("TIT-TIT!", "TEK!", "BZZT!") that pops on at `ts`, wobbles, pops off after `dur` (`{rot, size, col, dur, shake, lines}`); no shake by default. Pair it with a cue, 3–4 per video at most |
+| `card(t, t0, x, y, w, h, inner, opts)` | info card centred on `(x, y)` in the theme's style, pops in at `t0`; `inner` is drawn from the card's top-left (`{title, tOut, col, rot}`) |
+| `scramble(text, t, t0, dur, opts)` | returns `text` as random glyphs that lock in left to right from `t0` to `t0 + dur` (`{seed, rate, set}`); digits stay digits, spaces and punctuation stay |
+| `mono(s, x, y, size, fill, opts)`, `monoWidth(s, size)` | text on a fixed character grid (use it for scrambled text and numbers so they don't jump; `{anchor, cell, weight}`) |
+| `bodyText(s, x, y, size, fill, anchor, weight)`, `bodyFont()` | text in the theme's body font (Nunito / Oswald / Caveat), for card contents |
+| `xray(t, t0, x, y, r, inside, opts)` | round lens that opens at `t0` and shows `inside` (same coordinates as the world) through a cover (`{t1, dur, id, bg}`); give each lens in a frame its own `id` |
+| `cutaway(t, t0, shell, opts)` | lifts a cover (`shell` SVG) off from `t0` to show what is drawn under it, back from `t1` (`{t1, dx, dy, rot, dur, cx, cy}`) |
 | `sparkle`, `snowflake`, `mix(hexA, hexB, p)`, `rnd(i)`, `lerp`, `clamp`, `measure` | small utilities |
 | `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (top-down view, crawls any direction with `rot`; `walk = t * 11` animates legs). See "Mascots" below |
 | `face(kind, geometry, t)`, `eye`, `eyePair`, `magnifier` | shared expressions and props (`engine/faces.js`) for drawing new characters |

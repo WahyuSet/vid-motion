@@ -407,6 +407,7 @@ function chapterBadges(t) {
 function smallCaptions(t) {
   const ch = D.captions.find(c => t >= c.start && t < c.end);
   if (!ch) return '';
+  if (D.captionMode === 'pill') return pillCaptions(t, ch);
   const p = P(t, ch.start, 0.18);
   const cap = TH.cap, bar = cap.mode === 'bar';
   const size = ch.renderSize || cap.size;
@@ -451,6 +452,41 @@ function smallCaptions(t) {
     });
   });
   return `<g opacity="${f(p)}" transform="translate(0 ${f(slideDy)})">${s}</g>`;
+}
+
+// script.json "captions": {"mode": "pill"}: every line on a dark pill, a yellow box slides from word to word
+// behind the one being spoken, spoken *keywords* turn yellow. Readable on busy pictures in any theme.
+function pillCaptions(t, ch) {
+  const cap = TH.cap, size = ch.renderSize || cap.size, gapW = size * 0.3, pad = size * 0.12;
+  const lines = ch.wrappedLines || ch.lines;
+  const lh = size * 1.32, y0 = 1500 - (lines.length - 1) * lh / 2;
+  const p = P(t, ch.start, 0.18);
+  const words = [];
+  let s = '';
+  lines.forEach((line, li) => {
+    const widths = line.map(x => measure(x.w, size, cap.weight, cap.font));
+    const lw = widths.reduce((a, b) => a + b, 0) + gapW * (line.length - 1), y = y0 + li * lh, hh = size * 1.18;
+    s += `<rect x="${f(540 - lw / 2 - size * 0.4)}" y="${f(y - hh / 2)}" width="${f(lw + size * 0.8)}" height="${f(hh)}" rx="${f(size * 0.28)}" fill="${C.ink}" opacity="0.84"/>`;
+    let x = 540 - lw / 2;
+    line.forEach((wd, wi) => { words.push({ wd, x: x + widths[wi] / 2, w: widths[wi], y, li }); x += widths[wi] + gapW; });
+  });
+  // the box slides from the previous word (same line) to the active one; on a new line it pops in
+  const k = words.findIndex(o => t >= o.wd.t - 0.05 && t < (o.wd.next || ch.end));
+  let q = 1;
+  if (k >= 0) {
+    const cur = words[k], prev = words[k - 1];
+    q = P(t, cur.wd.t - 0.05, 0.12);
+    const from = prev && prev.li === cur.li ? prev : null;
+    const bx = from ? lerp(from.x, cur.x, q) : cur.x, bw = (from ? lerp(from.w, cur.w, q) : cur.w) + 2 * pad;
+    const bs = from ? 1 : 0.6 + 0.4 * E.outBack(q), bh = size * 0.98;
+    s += G(T(bx, cur.y, bs), 1, `<rect x="${f(-bw / 2)}" y="${f(-bh / 2)}" width="${f(bw)}" height="${f(bh)}" rx="${f(size * 0.18)}" fill="${C.yellow}"/>`);
+  }
+  words.forEach((o, i) => {
+    // the active word turns dark only once the box is mostly under it
+    const spoken = t >= o.wd.t - 0.05, fill = i === k && q > 0.5 ? C.ink : o.wd.kw && spoken ? C.yellow : '#fff';
+    s += `<text x="${f(o.x)}" y="${f(o.y + 2)}" font-family="${cap.font}" font-weight="${cap.weight}" font-size="${f(size)}" fill="${fill}" text-anchor="middle" dominant-baseline="central"${spoken ? '' : ' opacity="0.55"'}>${esc(o.wd.w)}</text>`;
+  });
+  return `<g opacity="${f(p)}" transform="translate(0 ${f((1 - p) * 24)})">${s}</g>`;
 }
 
 // progress bar at the top of the screen (y ≈ 28, x 40–1040, 10 px)
@@ -749,6 +785,145 @@ function toScreen(cam, x, y) {
     x: 540 + (x - cam.x) * cam.z,
     y: VIEW_CY + (y - cam.y) * cam.z,
   };
+}
+
+// ---------- Paket C helpers: data cards, scramble, sound stickers, x-ray, cutaway ----------
+
+// body font of the theme, for card text and data: [font, weight, weight for mono data]
+const bodyFont = () => TH.fx === 'soft' ? ['Oswald', 500, 600] : TH.fx === 'doodle' ? ['Caveat', 700, 700] : [FONT, 800, 900];
+function bodyText(s, x, y, size, fill = C.ink, anchor = 'start', weight = null, extra = '') {
+  const [font, w] = bodyFont();
+  return `<text x="${f(x)}" y="${f(y)}" font-family="${font}" font-weight="${weight || w}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
+}
+
+// mono(s, x, y, size, fill, opts): text on a fixed character grid, so digits and scrambled glyphs never
+// make the line jump. opts: {anchor: 'start' | 'middle' | 'end', cell (px per character), weight}
+function monoWidth(s, size, cell = null) {
+  const [font, , wt] = bodyFont();
+  return [...s].length * (cell || measure('0', size, wt, font) * 1.12);
+}
+function mono(s, x, y, size, fill = C.ink, { anchor = 'start', cell = null, weight = null } = {}) {
+  const [font, , mw] = bodyFont(), wt = weight || mw;
+  const cw = cell || measure('0', size, wt, font) * 1.12, chars = [...s];
+  const x0 = x - chars.length * cw * (anchor === 'middle' ? 0.5 : anchor === 'end' ? 1 : 0);
+  return chars.map((ch, i) => ch === ' ' ? '' :
+    `<text x="${f(x0 + (i + 0.5) * cw)}" y="${f(y)}" font-family="${font}" font-weight="${wt}" font-size="${f(size)}" fill="${fill}" text-anchor="middle" dominant-baseline="central">${esc(ch)}</text>`).join('');
+}
+
+// scramble(text, t, t0, dur, opts): the text as random glyphs that lock into place left to right between
+// t0 and t0 + dur (fully random before t0). Spaces and punctuation stay. opts: {seed, rate (changes/s), set}
+const GLYPHS = { digit: '0123456789', letter: 'ABCDEFGHJKLMNPQRSTUVWXYZ', symbol: '#%&?!@$*' };
+function scramble(text, t, t0, dur = 0.6, { seed = 1, rate = 20, set = null } = {}) {
+  if (t >= t0 + dur) return text;
+  const done = Math.floor(clamp((t - t0) / dur) * text.length), step = Math.floor(t * rate);
+  return [...text].map((ch, i) => {
+    if (i < done || /[\s.,:·\-\/()]/.test(ch)) return ch;
+    const pool = set || (/\d/.test(ch) ? GLYPHS.digit : /[a-z]/i.test(ch) ? GLYPHS.letter : GLYPHS.symbol);
+    return pool[Math.floor(rnd(seed * 97 + i * 13 + step * 7) * pool.length)];
+  }).join('');
+}
+
+// card(t, t0, x, y, w, h, inner, opts): info card centred on (x, y) in the theme's style; pops in at t0 and
+// out at tOut. inner is drawn with (0, 0) at the card's top-left corner. opts: {title, tOut, col, rot}
+function card(t, t0, x, y, w, h, inner, { title = '', tOut = Infinity, col = C.accent, rot = 0 } = {}) {
+  if (t < t0 || t > tOut + 0.3) return '';
+  const p = pop(t, t0, 0.45), out = P(t, tOut, 0.25, E.inCubic);
+  const L = -w / 2, Tp = -h / 2;
+  let s = '';
+  if (TH.fx === 'soft') {
+    s += `<rect x="${f(L + 6)}" y="${f(Tp + 14)}" width="${f(w)}" height="${f(h)}" rx="18" fill="${C.ink}" opacity="0.14"/>` +
+      `<rect x="${f(L)}" y="${f(Tp)}" width="${f(w)}" height="${f(h)}" rx="18" fill="#fff"/>` +
+      `<rect x="${f(L)}" y="${f(Tp + 18)}" width="10" height="${f(h - 36)}" fill="${col}"/>`;
+    if (title) s += `<text x="${f(L + 40)}" y="${f(Tp + 38)}" font-family="Oswald" font-weight="600" font-size="26" fill="${C.muted}" dominant-baseline="central" letter-spacing="3">${esc(title.toUpperCase())}</text>`;
+  } else if (TH.fx === 'doodle') {
+    const box = [[L, Tp], [L + w / 2, Tp + 3], [L + w, Tp], [L + w - 3, Tp + h / 2], [L + w, Tp + h], [L + w / 2, Tp + h - 3], [L, Tp + h], [L + 3, Tp + h / 2], [L, Tp]];
+    s += `<rect x="${f(L)}" y="${f(Tp)}" width="${f(w)}" height="${f(h)}" fill="#FFFDF2"/>` +
+      `<path d="${jitterPath(box, t, 7, 3)}" fill="none" ${stroke(4, C.ink)}/>` +
+      `<rect x="${f(-60)}" y="${f(Tp - 18)}" width="120" height="36" fill="${C.yellow}" opacity="0.75" transform="rotate(-4)"/>`;
+    if (title) s += hand(title, L + 36, Tp + 46, 40, C.muted, 'start');
+  } else {
+    s += `<rect x="${f(L + 8)}" y="${f(Tp + 12)}" width="${f(w)}" height="${f(h)}" rx="28" fill="${C.ink}" opacity="0.18"/>` +
+      `<rect x="${f(L)}" y="${f(Tp)}" width="${f(w)}" height="${f(h)}" rx="28" fill="#fff" ${stroke(6)}/>`;
+    if (title) s += txt(title.toUpperCase(), L + 36, Tp + 40, 24, C.muted, 900, 'start', 'letter-spacing="3"');
+  }
+  return G(T(x, y, p.s * (1 - 0.1 * out), rot), p.o * (1 - out), s + G(T(L, Tp), 1, inner));
+}
+
+// sticker(label, t, ts, x, y, opts): sound-effect word ("TIT-TIT!", "TEK!", "BZZT!") that pops on at ts,
+// wobbles and pops off after dur. Lighter than stamp(): no camera shake unless opts.shake > 0.
+// opts: {rot, size, col, dur, shake, lines (action marks)}
+function sticker(label, t, ts, x, y, { rot = -8, size = 110, col = null, dur = 0.9, shake = 0, lines = true } = {}) {
+  const u = t - ts;
+  if (u < 0 || u > dur + 0.15) return '';
+  if (shake > 0) impact(t, ts, shake);
+  const q = P(t, ts + dur, 0.15, E.inCubic);
+  const sc = (0.3 + 0.7 * E.outBack(clamp(u / 0.18))) * (1 + 0.2 * q);
+  const r = rot + 4 * Math.sin(u * 18) * Math.exp(-4 * u);
+  const doodle = TH.fx === 'doodle', soft = TH.fx === 'soft';
+  const font = soft ? 'Oswald' : doodle ? 'Caveat' : HEAD_FONT, wt = soft || doodle ? 700 : 400;
+  const sz = doodle ? size * 1.25 : size, fill = col || (doodle ? C.accent : C.yellow);
+  const chars = [...(soft ? label.toUpperCase() : label)], ws = chars.map(ch => measure(ch, sz, wt, font) + sz * 0.05);
+  const total = ws.reduce((a, b) => a + b, 0);
+  let s = '', x0 = -total / 2;
+  if (soft) {
+    s += `<rect x="${f(-total / 2 - 30 + 8)}" y="${f(-sz * 0.62 + 10)}" width="${f(total + 60)}" height="${f(sz * 1.24)}" rx="10" fill="${C.ink}" opacity="0.15"/>` +
+      `<rect x="${f(-total / 2 - 30)}" y="${f(-sz * 0.62)}" width="${f(total + 60)}" height="${f(sz * 1.24)}" rx="10" fill="${fill}"/>`;
+  }
+  // every letter bounces in a little after the one before and sits at its own small tilt;
+  // halos go down first so no letter's halo covers its neighbour's outline
+  const halo = [], front = [];
+  chars.forEach((ch, i) => {
+    const li = clamp((u - i * 0.025) / 0.15), cx = x0 + ws[i] / 2;
+    const dy = (rnd(i * 7 + 3) - 0.5) * sz * 0.12 - (1 - E.outBack(li)) * sz * 0.3, lr = (rnd(i * 11 + 5) - 0.5) * 12;
+    const base = `x="0" y="0" font-family="${font}" font-weight="${wt}" font-size="${f(sz)}" text-anchor="middle" dominant-baseline="central"`;
+    const at = g => `<g transform="translate(${f(cx)} ${f(dy)}) rotate(${f(lr)})" opacity="${f(clamp(li * 3))}">${g}</g>`;
+    if (soft) front.push(at(`<text ${base} y="${f(sz * 0.04)}" fill="${fill === C.yellow ? C.ink : '#fff'}">${esc(ch)}</text>`));
+    else {
+      halo.push(at(`<text ${base} fill="#fff" stroke="#fff" stroke-width="${f(sz * (doodle ? 0.14 : 0.32))}" stroke-linejoin="round">${esc(ch)}</text>`));
+      front.push(at(doodle ? `<text ${base} fill="${fill}">${esc(ch)}</text>`
+        : `<text ${base} fill="${fill}" stroke="${C.ink}" stroke-width="${f(sz * 0.12)}" stroke-linejoin="round" paint-order="stroke">${esc(ch)}</text>`));
+    }
+    x0 += ws[i];
+  });
+  s += halo.join('') + front.join('');
+  if (lines && !soft) {  // three action marks on each side
+    [-1, 1].forEach(side => [-0.5, 0, 0.5].forEach((a, k) => {
+      const ax = side * (total / 2 + sz * 0.25), an = a * 0.9 + (side < 0 ? Math.PI : 0), l = sz * (0.35 + 0.15 * (k === 1));
+      const pts = [[ax, a * sz * 0.5], [ax + Math.cos(an) * l, a * sz * 0.5 + Math.sin(an) * l]];
+      s += doodle ? `<path d="${jitterPath(pts, t, 50 + k + side * 5, 2)}" fill="none" ${stroke(5, C.ink)}/>`
+        : `<line x1="${f(pts[0][0])}" y1="${f(pts[0][1])}" x2="${f(pts[1][0])}" y2="${f(pts[1][1])}" ${stroke(sz * 0.07)} opacity="${f(clamp(u / 0.12))}"/>`;
+    }));
+  }
+  return G(T(x, y, sc, r), 1 - q, s);
+}
+
+// xray(t, t0, x, y, r, inside, opts): round lens that opens at t0 (and closes at t1) and shows `inside`,
+// drawn in the same coordinates as everything around it, through the object's shell.
+// opts: {t1, dur, id (unique per lens in a frame), bg (fill behind inside)}
+function xray(t, t0, x, y, r, inside, { t1 = Infinity, dur = 0.5, id = 'xr', bg = C.bg } = {}) {
+  const rr = r * E.outBack(P(t, t0, dur, E.lin)) * (1 - E.inCubic(P(t, t1, dur * 0.7, E.lin)));
+  if (t < t0 || rr < 1) return '';
+  let s = `<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse"><circle cx="${f(x)}" cy="${f(y)}" r="${f(rr)}"/></clipPath></defs>` +
+    `<g clip-path="url(#${id})"><circle cx="${f(x)}" cy="${f(y)}" r="${f(rr)}" fill="${bg}"/>${inside}</g>`;
+  if (TH.fx === 'soft') {
+    s += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rr + 6)}" fill="none" stroke="#fff" stroke-width="14"/>` +
+      `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rr + 14)}" fill="none" stroke="${C.ink}" stroke-width="3" opacity="0.18"/>`;
+  } else if (TH.fx === 'doodle') {
+    const ring = k => [...Array(33)].map((_, i) => { const a = i / 32 * Math.PI * 2; return [x + (rr + k) * Math.cos(a), y + (rr + k) * Math.sin(a)]; });
+    s += `<path d="${jitterPath(ring(0), t, 70, 3)}" fill="none" ${stroke(6, C.ink)}/><path d="${jitterPath(ring(8), t, 90, 3)}" fill="none" ${stroke(2.5, C.ink)} opacity="0.5"/>`;
+  } else {
+    s += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rr)}" fill="none" ${stroke(STROKE * 1.6)}/>` +
+      `<path d="M${f(x - rr * 0.62)},${f(y - rr * 0.45)} A${f(rr * 0.78)},${f(rr * 0.78)} 0 0 1 ${f(x - rr * 0.1)},${f(y - rr * 0.76)}" fill="none" stroke="#fff" stroke-width="${f(Math.max(3, rr * 0.06))}" stroke-linecap="round" opacity="0.8"/>`;
+  }
+  return s;
+}
+
+// cutaway(t, t0, shell, opts): lifts an object's cover (shell, its SVG) off from t0 to show what is drawn
+// under it, and puts it back from t1. opts: {t1, dx, dy, rot, dur, cx, cy (rotation centre)}
+function cutaway(t, t0, shell, { t1 = Infinity, dx = 0, dy = -260, rot = -8, dur = 0.7, cx = 0, cy = 0 } = {}) {
+  const p = E.inOutCubic(P(t, t0, dur, E.lin)) * (1 - E.inOutCubic(P(t, t1, dur, E.lin)));
+  if (p >= 0.999) return '';
+  return G(`translate(${f(dx * p)} ${f(dy * p)}) rotate(${f(rot * p)} ${f(cx)} ${f(cy)})`, 1 - E.inCubic(p), shell);
 }
 
 // ---------- frame ----------

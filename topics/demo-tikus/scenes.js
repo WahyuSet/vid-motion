@@ -32,7 +32,7 @@ function setup(D) {
 }
 
 function cues(D) {
-  return [[K.naik, 'pop'], [K.s2, 'whoosh'], [K.inflasi, 'tick'], [K.s3, 'whoosh'], [K.sedikit, 'pop'], [K.loop, 'whoosh']];
+  return [[K.naik, 'pop'], [K.naik + 0.7, 'pop'],[K.s2, 'whoosh'], [K.inflasi, 'tick'], [K.s3, 'whoosh'], [K.sedikit, 'pop'], [K.loop, 'whoosh']];
 }
 
 function priceTag(x, y, label, s = 1) {
@@ -93,5 +93,6 @@ function drawWorld(t) {
 }
 
 function drawOverlay(t) {
-  return cite('Sumber: Bank Indonesia, definisi inflasi', t, K.inflasi, K.s2e - 0.1);
+  return sticker('NAIK!', t, K.naik + 0.7, 820, 640, { rot: 6, size: 84, col: C.accent, dur: 0.8 }) +
+    cite('Sumber: Bank Indonesia, definisi inflasi', t, K.inflasi, K.s2e - 0.1);
 }

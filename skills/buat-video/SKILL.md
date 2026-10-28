@@ -28,7 +28,9 @@ Write `scenes.js` in this order; after every pass run `preview` at the relevant 
    Check: the subject of each beat is framed, between screen y 550 and 1400.
 2. **Characters and motion**: the stars of the story, Si Cicak (at least hook, verdict, ending), entrances on words.
 3. **Text**: headlines (2–4 words, `*yellow*` keyword), chapter icons, `stamp`, `cite` for any number or claim.
-4. **Overlays and polish**: explanation cards, flashes, handwritten notes, sound cues.
+4. **Overlays and polish**: explanation cards (`card`, with `scramble` + `mono` for codes and numbers), flashes,
+   handwritten notes, sound stickers (`sticker`, each with a cue), sound cues. To show how something works inside,
+   draw its inside and its cover separately and use `xray` (a lens) or `cutaway` (cover lifts off); see `topics/demo-cicak`.
 5. **FX and depth**: add FX at key beats (`burst`, `confetti`, `speedLines`, `spotlight`) and parallax with `layer(d, cam, ...)` for background layers.
 
 Anchor every timing to spoken words via `D.scenes[i].at(word)`. Draw from `t` only (no state, no `Math.random`).

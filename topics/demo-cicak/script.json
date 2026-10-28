@@ -1,0 +1,12 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5, "mode": "pill"},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Tit, tit! Token listrikmu mau *habis*."},
+    {"vo": "Yuk, intip *dalamnya* pakai lensa.", "hold": 0.3},
+    {"vo": "Atau langsung kita *bedah* saja!", "hold": 0.3},
+    {"vo": "Kode token itu *terkunci*, khusus untuk *meteranmu*.", "hold": 0.8}
+  ]
+}
