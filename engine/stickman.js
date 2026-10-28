@@ -29,6 +29,11 @@ function stickman(x, y, s, pose = 'happy', t = 0, rot = 0, walk = null, faceKind
   let g = '';
   // scribbled ground under the feet
   g += `<path d="M-74,${f(156 + jit(1))} q24,-6 48,0 t48,0 t48,0" fill="none" ${stroke(3, STICK.ink)} opacity="0.35"/>`;
+  // pencil-hatched shadow on the ground, on the side away from the light
+  for (let k = 0; k < 7; k++) {
+    const hx = -30 + k * 13;
+    g += `<line x1="${f(hx + jit(70 + k))}" y1="${f(150 + jit(80 + k, 1))}" x2="${f(hx + 16 + jit(90 + k))}" y2="${f(162 + jit(100 + k, 1))}" ${stroke(2.5, STICK.ink)} opacity="0.3"/>`;
+  }
   // legs: a stride when walking, a little jump-spread when shocked
   const swing = walk !== null ? 34 * Math.sin(walk) : 0;
   const lf = pose === 'shock' ? [-62, 138] : [-36 + swing, 150], rf = pose === 'shock' ? [62, 138] : [36 - swing, 150];

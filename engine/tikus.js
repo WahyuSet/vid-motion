@@ -94,6 +94,8 @@ function tikus(x, y, s, pose = 'happy', t = 0, rot = 0, walk = null, faceKind = 
   g += `<ellipse cx="0" cy="30" rx="62" ry="72" fill="url(#tkFur)"/>`;
   g += `<ellipse cx="0" cy="44" rx="38" ry="47" fill="url(#tkBelly)"/>` + gloss(-30, -10, 14, 8);
   g += tikusOutfitBody(outfit);
+  // soft shadow the head casts on the shoulders
+  g += `<ellipse cx="6" cy="-34" rx="60" ry="18" fill="url(#tkShadow)"/>`;
   // arms: [hand x, hand y, elbow x, elbow y] for left then right
   const arms = {
     happy: [[-70, 66, -80, 30], [f(100 + wave), -96, 96, -30]],

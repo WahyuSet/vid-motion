@@ -1,0 +1,12 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5},
+  "fps": 30,
+  "outro": "",
+  "music": false,
+  "scenes": [
+    {"vo": "Ini contoh *pohon*, rumput, dan bunga dari pustaka props.", "hold": 0.5},
+    {"vo": "Dan ini benda sehari-hari: *lampu*, koin, uang, ponsel, gelas, dan kardus.", "hold": 0.5}
+  ]
+}

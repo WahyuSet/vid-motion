@@ -11,13 +11,19 @@ const GECKO = { body: '#9CCB6B', dark: '#6E9E46', spot: '#7FB255' };
 function cicak(x, y, s, pose = 'happy', t = 0, rot = 0, walk = null, faceKind = null) {
   const c = GECKO.body, sway = Math.sin(t * 3) * 6 + (walk !== null ? Math.sin(walk) * 10 : 0);
   const wave = 10 * Math.sin(t * 9);
+  // shading: light from the top left of the screen, whichever way the gecko is turned
+  const la = (-135 - rot) * Math.PI / 180, lx = Math.cos(la), ly = Math.sin(la), hi = mix(c, '#fff', 0.5);
   let g = '';
   // tail (drops off when shocked, a real gecko trick)
-  const tail = `<path d="M-24,80 C-30,160 40,170 52,232 C56,252 70,250 66,228 C56,160 22,150 24,80 Z" fill="${c}" ${stroke(6)}/>` +
+  const tailTurn = pose === 'shock' ? 28 : sway;
+  const tail = vol('M-24,80 C-30,160 40,170 52,232 C56,252 70,250 66,228 C56,160 22,150 24,80 Z', c, { depth: 9, w: 6, rot: rot + tailTurn }) +
     `<circle cx="30" cy="170" r="6" fill="${GECKO.spot}"/><circle cx="52" cy="206" r="5" fill="${GECKO.spot}"/>`;
   g += pose === 'shock' ? G(T(46, 40, 1, 28), 1, tail) + `<path d="M70,150 l14,-8 M76,170 l16,0 M70,190 l14,8" ${stroke(5)}/>` : G(`rotate(${f(sway)} 0 80)`, 1, tail);
   // legs with sticky toe pads; diagonal pairs step together when walking
-  const toes = (x0, y0, a) => [-0.5, 0, 0.5].map(d => `<circle cx="${f(x0 + 20 * Math.cos(a + d))}" cy="${f(y0 + 20 * Math.sin(a + d))}" r="9" fill="${c}" ${stroke(5)}/>`).join('');
+  const toes = (x0, y0, a) => [-0.5, 0, 0.5].map(d => {
+    const tx = x0 + 20 * Math.cos(a + d), ty = y0 + 20 * Math.sin(a + d);
+    return `<circle cx="${f(tx)}" cy="${f(ty)}" r="9" fill="${c}" ${stroke(5)}/><circle cx="${f(tx + lx * 3.5)}" cy="${f(ty + ly * 3.5)}" r="3.2" fill="${hi}"/>`;
+  }).join('');
   const legs = [
     [-1, -40, -100, -66, -132, -100, -2.2], [1, -40, 100, -66, 132, -100, -0.9],
     [-1, 60, -96, 80, -112, 124, 2.2], [1, 60, 96, 80, 112, 124, 0.9],
@@ -33,12 +39,13 @@ function cicak(x, y, s, pose = 'happy', t = 0, rot = 0, walk = null, faceKind = 
     let ex2 = ex, ey2 = ey, a2 = a, kx2 = kx, ky2 = ky;
     if (walk !== null) ey2 += 22 * Math.sin(walk + (i === 0 || i === 3 ? 0 : Math.PI));
     else if (front[i]) [ex2, ey2, a2, kx2 = kx, ky2 = ky] = front[i];
-    g += limb(`M${sd * 40},${y0} Q${kx2},${ky2} ${f(ex2)},${f(ey2)}`, 16, c) + toes(ex2, ey2, a2);
+    const leg = `M${sd * 40},${y0} Q${kx2},${ky2} ${f(ex2)},${f(ey2)}`;
+    g += limb(leg, 16, c) + `<path d="${leg}" fill="none" stroke="${hi}" stroke-width="4" stroke-linecap="round" opacity="0.75" transform="translate(${f(lx * 3)} ${f(ly * 3)})"/>` + toes(ex2, ey2, a2);
   });
-  g += `<path d="M0,-70 C40,-70 46,-20 44,30 C42,80 26,104 0,104 C-26,104 -42,80 -44,30 C-46,-20 -40,-70 0,-70 Z" fill="${c}" ${stroke()}/>`;
+  g += vol('M0,-70 C40,-70 46,-20 44,30 C42,80 26,104 0,104 C-26,104 -42,80 -44,30 C-46,-20 -40,-70 0,-70 Z', c, { depth: 12, rot });
   [[-16, -10, 8], [16, 20, 7], [-10, 52, 7], [14, 76, 5], [8, -36, 6]].forEach(([sx, sy, r]) => g += `<circle cx="${sx}" cy="${sy}" r="${r}" fill="${GECKO.spot}"/>`);
   // wide flat head with a rounded snout, eyes bulging out of the sides
-  g += `<path d="M0,-184 C54,-184 92,-150 92,-118 C92,-86 56,-66 0,-66 C-56,-66 -92,-86 -92,-118 C-92,-150 -54,-184 0,-184 Z" fill="${c}" ${stroke()}/>`;
+  g += vol('M0,-184 C54,-184 92,-150 92,-118 C92,-86 56,-66 0,-66 C-56,-66 -92,-86 -92,-118 C-92,-150 -54,-184 0,-184 Z', c, { depth: 14, rot });
   g += `<circle cx="-14" cy="-166" r="3.5" fill="${GECKO.dark}"/><circle cx="14" cy="-166" r="3.5" fill="${GECKO.dark}"/>`;
   g += `<ellipse cx="-50" cy="-92" rx="12" ry="7" fill="${C.cheek}" opacity="0.5"/><ellipse cx="50" cy="-92" rx="12" ry="7" fill="${C.cheek}" opacity="0.5"/>`;
   g += face(faceKind || POSE_FACE[pose] || 'smile', { lx: -76, rx: 76, ey: -132, er: 26, my: -100, mw: 44, skin: c }, t);

@@ -100,6 +100,7 @@ engine/index.html   page with static layers (#world, paper texture, glow, vignet
 engine/lib.js       drawing helpers, camera, headlines, captions, chapters, stamp, cite, panel style
 engine/faces.js     expressions and props shared by all mascots
 engine/cicak.js     Si Cicak (this channel); engine/tikus.js, engine/stickman.js (other channels)
+engine/props.js     prop library: plants, surfaces and everyday objects with volume, in every theme
 engine/fonts/       Nunito, Lilita One, Caveat (OFL)
 topics/<topic>/     script.json + scenes.js (+ voice/ for own recordings)
 build/, output/     generated, git-ignored
@@ -216,6 +217,22 @@ Use `whoosh` on camera moves, `pop` on things appearing, `thud` on stamps, `ding
 | `sparkle`, `snowflake`, `mix(hexA, hexB, p)`, `rnd(i)`, `lerp`, `clamp`, `measure` | small utilities |
 | `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (top-down view, crawls any direction with `rot`; `walk = t * 11` animates legs). See "Mascots" below |
 | `face(kind, geometry, t)`, `eye`, `eyePair`, `magnifier` | shared expressions and props (`engine/faces.js`) for drawing new characters |
+
+## Prop library (`engine/props.js`)
+
+Reach for these before drawing a prop from scratch; they are shaded with `vol` and follow the theme. Each takes
+world coordinates; plants take `t` for wind. See `topics/demo-props` (render it with `"theme"` set to see all looks).
+
+| function | draws |
+|---|---|
+| `leaf(x, y, len, ang, {col, wide, veins})` | one leaf with midrib and veins, from its stalk |
+| `tree(x, y, h, t, {kind: 'round' \| 'palm', seed, col, bark, fruit})` | a tree standing on (x, y): leafy crown with one outline, or a coconut palm with fronds |
+| `bush(x, y, w, t, {col, flowers})`, `grass(x0, x1, y, t, {h, col, density})`, `flower(x, y, s, t, {petal, center, n})`, `rock(x, y, w)` | undergrowth |
+| `woodPlank(x, y, w, h, {col})`, `ground(x0, x1, y, depth, t, {col, withGrass})` | surfaces: a board with grain and a knot, soil with pebbles and grass |
+| `bulb(x, y, s, {on, t})`, `coin(x, y, s, {label})`, `banknote(x, y, s, {value, col, rot})` | lamp hanging from its base, coin with a rim, a generic banknote (never copy a real design) |
+| `phone(x, y, s, {screen, col, rot})`, `glass(x, y, s, {level, liquid, t})`, `box(x, y, s, {col})` | smartphone (screen SVG in a 200×380 box), drinking glass, cardboard box |
+
+Add a prop here (not in a topic) once two topics need it, and give it all three looks through `vol`.
 
 ## Mascots
 

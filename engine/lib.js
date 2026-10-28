@@ -28,6 +28,8 @@ const P = (t, t0, dur, ease = E.outCubic) => ease(clamp((t - t0) / dur));
 const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 const f = n => Math.round(n * 100) / 100;
 function mix(a, b, p) {
+  const long = c => c.length === 4 ? '#' + [...c.slice(1)].map(x => x + x).join('') : c;  // '#fff' -> '#ffffff'
+  a = long(a); b = long(b);
   const pa = [1, 3, 5].map(i => parseInt(a.substr(i, 2), 16));
   const pb = [1, 3, 5].map(i => parseInt(b.substr(i, 2), 16));
   return '#' + pa.map((v, i) => Math.round(lerp(v, pb[i], clamp(p))).toString(16).padStart(2, '0')).join('');
@@ -982,21 +984,24 @@ function invertFlash(t, ts, dur = 0.07) {
 // vol(d, fill, opts): a shape (SVG path d) drawn with volume in the theme's style. Light comes from the top
 // left. ink (paper): a cel shadow on the lower right, a highlight on the upper left, ink outline. soft
 // (newsprint): a round gradient and no outline. doodle (notebook): hatching in the shadow, pen outline.
-// opts: {depth (shadow width, world units), w (outline width), shine (highlight on/off)}
+// opts: {depth (shadow width, world units), w (outline width), shine (highlight on/off),
+//        rot (degrees the drawing is turned by, so the light stays top-left on screen)}
 let VOL_N = 0;
 const circleD = (cx, cy, r) => `M${f(cx - r)},${f(cy)} a${f(r)},${f(r)} 0 1 0 ${f(2 * r)},0 a${f(r)},${f(r)} 0 1 0 ${f(-2 * r)},0 Z`;
 const rectD = (x, y, w, h, r = 0) => r ? `M${f(x + r)},${f(y)} H${f(x + w - r)} A${f(r)},${f(r)} 0 0 1 ${f(x + w)},${f(y + r)} V${f(y + h - r)} A${f(r)},${f(r)} 0 0 1 ${f(x + w - r)},${f(y + h)} H${f(x + r)} A${f(r)},${f(r)} 0 0 1 ${f(x)},${f(y + h - r)} V${f(y + r)} A${f(r)},${f(r)} 0 0 1 ${f(x + r)},${f(y)} Z`
   : `M${f(x)},${f(y)} H${f(x + w)} V${f(y + h)} H${f(x)} Z`;
-function vol(d, fill, { depth = 14, w = STROKE, shine = true } = {}) {
+function vol(d, fill, { depth = 14, w = STROKE, shine = true, rot = 0 } = {}) {
   const id = `vol${VOL_N++}`, dark = mix(fill, C.ink, 0.3), light = mix(fill, '#fff', 0.5);
+  // the light's direction (top-left on screen) in the drawing's own turned coordinates
+  const a = (-135 - rot) * Math.PI / 180, lx = Math.cos(a) * depth * 1.41, ly = Math.sin(a) * depth * 1.41;
   if (TH.fx === 'soft') {
     return `<defs><radialGradient id="${id}" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="${light}"/>` +
       `<stop offset="0.55" stop-color="${fill}"/><stop offset="1" stop-color="${dark}"/></radialGradient></defs><path d="${d}" fill="url(#${id})"/>`;
   }
-  const clips = `<defs><clipPath id="${id}a"><path d="${d}"/></clipPath><clipPath id="${id}b"><path d="${d}" transform="translate(${-depth} ${-depth})"/></clipPath>` +
+  const clips = `<defs><clipPath id="${id}a"><path d="${d}"/></clipPath><clipPath id="${id}b"><path d="${d}" transform="translate(${f(lx)} ${f(ly)})"/></clipPath>` +
     (TH.fx === 'doodle' ? `<pattern id="${id}h" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="${C.ink}" stroke-width="2.5" opacity="0.55"/></pattern>` : '') + `</defs>`;
   const shadow = TH.fx === 'doodle' ? `<path d="${d}" fill="${fill}"/><path d="${d}" fill="url(#${id}h)"/>` : `<path d="${d}" fill="${dark}"/>`;
-  const lit = shine ? `<path d="${d}" fill="${light}"/><path d="${d}" transform="translate(${f(depth * 0.55)} ${f(depth * 0.55)})" fill="${fill}"/>` : `<path d="${d}" fill="${fill}"/>`;
+  const lit = shine ? `<path d="${d}" fill="${light}"/><path d="${d}" transform="translate(${f(-lx * 0.55)} ${f(-ly * 0.55)})" fill="${fill}"/>` : `<path d="${d}" fill="${fill}"/>`;
   return clips + `<g clip-path="url(#${id}a)">${shadow}<g clip-path="url(#${id}b)">${lit}</g></g>` +
     `<path d="${d}" fill="none" ${stroke(TH.fx === 'doodle' ? w * 0.7 : w)}/>`;
 }

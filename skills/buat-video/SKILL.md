@@ -27,7 +27,8 @@ Write `scenes.js` in this order; after every pass run `preview` at the relevant 
 1. **World + camera**: background, the main props in their final places, camera keys for every beat.
    Check: the subject of each beat is framed, between screen y 550 and 1400.
 2. **Characters and motion**: the stars of the story, Si Cicak (at least hook, verdict, ending), entrances on words.
-   Draw props with `vol(path, fill)` (shadow, highlight, outline) rather than flat fills; build paths with
+   Use the prop library (`engine/props.js`: trees, grass, flowers, ground, bulb, coin, phone, …) first.
+   Draw other props with `vol(path, fill)` (shadow, highlight, outline) rather than flat fills; build paths with
    `circleD` / `rectD` or your own `d`. Give big props secondary details (rims, labels, seams, screws).
 3. **Text**: headlines (2–4 words, `*yellow*` keyword), chapter icons, `stamp`, `cite` for any number or claim.
 4. **Overlays and polish**: explanation cards (`card`, with `scramble` + `mono` for codes and numbers), flashes,
