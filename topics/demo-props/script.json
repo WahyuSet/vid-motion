@@ -7,6 +7,7 @@
   "music": false,
   "scenes": [
     {"vo": "Ini contoh *pohon*, rumput, dan bunga dari pustaka props.", "hold": 0.5},
-    {"vo": "Dan ini benda sehari-hari: *lampu*, koin, uang, ponsel, gelas, dan kardus.", "hold": 0.5}
+    {"vo": "Dan ini benda sehari-hari: *lampu*, koin, uang, ponsel, gelas, dan kardus.", "hold": 0.5},
+    {"vo": "Ada juga isi *dapur* dan rumah, serta *cuaca*, hewan, dan buah-buahan.", "hold": 1.2}
   ]
 }
