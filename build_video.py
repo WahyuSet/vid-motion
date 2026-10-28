@@ -5,6 +5,7 @@ Usage:
   python build_video.py <topic> preview    render only still frames to build/<topic>/preview.png
   python build_video.py <topic> preview 3.5,12   ...at chosen seconds
   python build_video.py <topic> thumb            render output/<topic>-thumbnail.jpg from drawThumbnail()
+  python build_video.py <topic> check            list retention problems (hook, pauses, static stretches)
   python build_video.py <topic> workers=4       choose how many browsers render in parallel
                                                  (default: half the CPU cores, at most 6)
 
@@ -16,7 +17,8 @@ A topic lives in topics/<topic>/:
                caption keyword). "style": "panel" (card layout: header label, "cont": true keeps the
                previous picture) or "paper" (full-screen world with a moving camera); optional
                "channel" (channels/<id>, default cicaktahu: gives the theme, mascot and watermark),
-               "captions": {"words", "line", "size", "mode": "pill"}, "theme"/"watermark" overrides, "tail", "voice" (see tts.py).
+               "captions": {"words", "line", "size", "mode": "pill"}, "theme"/"watermark" overrides, "tail", "voice" (see tts.py),
+               "pause" (longest silence inside a line), "outro" (end card text, "" = off), "progress": true.
   scenes.js    panel style: one draw(t, S)/cues(S) object per scene.
                paper style: drawWorld(t, cam), setup(D) for camera/headlines/chapters, cues(D),
                optional drawOverlay(t, cam). Helpers come from engine/lib.js and engine/cicak.js.
@@ -61,21 +63,48 @@ SR = 48000
 LEAD_IN = 0.3   # silence before the first line
 GAP = 0.35      # silence between scenes
 TAIL = 1.5      # hold on the last scene
+PAUSE = 0.35    # longest silence kept between two sentences inside one line ("pause" in script.json)
+OUTRO = "Thank you\nfor *watching*!"  # end card text (channel.json / script.json "outro"; "" switches it off)
+OUTRO_TAIL = 2.4  # seconds after the last word when the end card is on, so it shows for about two seconds
 CAPTION_LINE = 18  # max characters per caption line
 CAPTION_WORDS = 4  # max words per caption
 
 
 # ---------- voice-over ----------
 
-def decode(path, words):
+def decode(path, words, max_pause=PAUSE):
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "1",
                           "-ar", str(SR), "-"], capture_output=True, check=True).stdout
     a = np.frombuffer(raw, np.float32).copy()
     # edge-tts pads ~0.8s of silence after the last word; cut it so GAP controls pacing
     a = a[: int((words[-1]["t"] + words[-1]["d"] + 0.2) * SR)]
+    a, words = trim_pauses(a, words, max_pause)
     fade = min(len(a), int(0.03 * SR))
     a[-fade:] *= np.linspace(1, 0, fade, dtype=np.float32)
-    return a
+    return a, words
+
+
+def trim_pauses(a, words, max_pause):
+    """Shorten the silence between two words of one line (TTS stops ~1 s after "." "?" "!") to max_pause
+    seconds and shift the later word times. Gaps that are not really quiet are kept as they are."""
+    if not max_pause:
+        return a, words
+    peak = max(1e-6, float(np.abs(a).max()))
+    parts, cursor, shift, out = [], 0, 0.0, []
+    for k, w in enumerate(words):
+        out.append({**w, "t": w["t"] - shift})
+        if k + 1 == len(words):
+            break
+        end, nxt = w["t"] + w["d"], words[k + 1]["t"]
+        if nxt - end <= max_pause:
+            continue
+        c0, c1 = int((end + max_pause / 2) * SR), int((nxt - max_pause / 2) * SR)
+        if c1 <= c0 or np.abs(a[c0:c1]).max() > 0.05 * peak:
+            continue
+        parts.append(a[cursor:c0])
+        cursor, shift = c1, shift + (c1 - c0) / SR
+    parts.append(a[cursor:])
+    return np.concatenate(parts), out
 
 
 def caption_chunks(sc, max_words=CAPTION_WORDS, max_line=CAPTION_LINE):
@@ -186,13 +215,15 @@ def timeline(script, topic_dir):
     clips = []
     for i, sc in enumerate(SCENES):
         audio, words = tts.voice_for(i, sc["vo"].replace("*", ""), voice, BUILD / "tts", topic_dir)
-        clip = decode(audio, words)
+        clip, words = decode(audio, words, script.get("pause", PAUSE))
         sc["audio"] = t
         sc["start"] = 0.0 if i == 0 else t - 0.25
         sc["words"] = [{**w, "t": t + w["t"]} for w in words]
         clips.append((t, clip))
         t += len(clip) / SR + GAP + sc.get("hold", 0)  # "hold": extra seconds for the picture to finish
-    total = clips[-1][0] + len(clips[-1][1]) / SR + script.get("tail", TAIL)
+    outro = script.get("outro", channel.get("outro", OUTRO)) if script.get("style") == "paper" else ""
+    tail = script.get("tail", TAIL)
+    total = clips[-1][0] + len(clips[-1][1]) / SR + (max(tail, OUTRO_TAIL) if outro else tail)
     for i, sc in enumerate(SCENES):
         sc["end"] = SCENES[i + 1]["start"] if i + 1 < len(SCENES) else total
     cap = script.get("captions", {})
@@ -204,7 +235,8 @@ def timeline(script, topic_dir):
         "theme": script.get("theme", channel.get("theme", "paper")),
         "watermark": script.get("watermark", channel.get("watermark", "")),
         "total": total,
-        "progress": script.get("progress", True),
+        "progress": script.get("progress", False),
+        "outro": outro,
         "captionSize": cap.get("size"),
         "captionMode": cap.get("mode"),
         "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
@@ -230,6 +262,37 @@ def mix_audio(total, clips, cues):
         wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
         wf.writeframes((mix * 32767).astype(np.int16).tobytes())
     return wav
+
+
+def check_report(data, qa):
+    """Retention warnings worked out from the timeline alone (no frames are rendered)."""
+    warn, total, heads = [], data["total"], qa["heads"]
+    if not 40 <= total <= 60:
+        warn.append(f"length {total:.1f} s: aim for 40-60 s")
+    if not heads or heads[0][0] > 0.5:
+        first = f"{heads[0][0]:.1f} s" if heads else "never"
+        warn.append(f"hook: first headline at {first}; show the question from frame 0 (headline + big subject)")
+    scenes = data["scenes"]
+    for i, sc in enumerate(scenes):
+        ws = sc["words"]
+        for a, b in zip(ws, ws[1:]):
+            if b["t"] - a["t"] - a["d"] > 0.6:
+                warn.append(f"line {i + 1}: {b['t'] - a['t'] - a['d']:.1f} s pause after '{a['w']}' (too noisy to trim)")
+        if i and scenes[i - 1]["words"] and ws:
+            prev = scenes[i - 1]["words"][-1]
+            gap = ws[0]["t"] - prev["t"] - prev["d"]
+            if gap > 1.4:
+                warn.append(f"{prev['t'] + prev['d']:.1f} s: {gap:.1f} s without voice before line {i + 1}; lower its 'hold' or fill it with a beat")
+    end = qa["outroAt"]
+    events = sorted({0.0, end, *[x for h in heads for x in h], *[x for c in qa["cams"] for x in c], *qa["chapters"]})
+    events = [e for e in events if e <= end]
+    for a, b in zip(events, events[1:]):
+        if b - a > 7:
+            warn.append(f"{a:.1f}-{b:.1f} s: {b - a:.1f} s without a camera move, headline or chapter change; add a beat")
+    print(f"check: {total:.1f} s, {len(scenes)} lines, end card {'on' if data.get('outro') else 'off'}")
+    for w in warn:
+        print("  - " + w)
+    print("  ok" if not warn else f"  {len(warn)} warning(s); also look at the stills (empty cards, small text, dead frames)")
 
 
 def preview_times(data):
@@ -327,6 +390,10 @@ def main():
     with sync_playwright() as p:
         browser, page, shot = open_page(p, topic_dir, data)
         cues = page.evaluate("getCues()")
+
+        if "check" in args[1:]:
+            check_report(data, page.evaluate("qaInfo()"))
+            return
 
         if "thumb" in args[1:]:
             page.evaluate("renderThumbnail()")

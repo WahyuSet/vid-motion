@@ -23,7 +23,9 @@ Output: `topics/<id>/sources.md`, `topics/<id>/script.json`, `topics/<id>/plan.m
 Follow the schema in `AGENTS.md`: `"style": "paper"` and `"channel": "<channel>"`. One entry per beat, 9–11 entries, ~80–100 words total.
 
 Story formula:
-1. **Hook (line 1, < 2 s):** a concrete, visual claim or question. "Kabel ini bertegangan 20.000 volt."
+1. **Hook (line 1, < 2 s):** the question or surprising claim of the whole video, said first, and visible from
+   frame 0. "Kok cicak nggak jatuh dari langit-langit?" beats "Cicak ini santai jalan terbalik" (the question came
+   4 s late there). The thumbnail title and line 1 should ask the same thing.
 2. **Set-up (line 2):** the puzzle. "Tapi burung ini santai saja. Kok bisa?"
 3. **The belief + verdict:** what people think, then "Faktanya, itu *mitos*!" (or "*fakta*!") — mitos-fakta format.
    For fakta-unik, line 3 is the first surprising fact.
@@ -56,7 +58,8 @@ Create a minimal `topics/<id>/scenes.js` (see "Minimal paper topic" in AGENTS.md
 ## 5. Self-check, then stop
 
 - [ ] every factual sentence maps to a bullet in `sources.md`
-- [ ] hook is visual and under 2 s; verdict present for mitos-fakta
+- [ ] hook is the video's question/claim, under 2 s; verdict present for mitos-fakta
+- [ ] one sentence per line where possible; 45–55 s is the sweet spot (the end card adds ~2.4 s after the last word)
 - [ ] 40–60 s; 1–2 keywords per line
 - [ ] local reference somewhere; ending loops back to the opening picture
 - [ ] nothing from another channel's script copied

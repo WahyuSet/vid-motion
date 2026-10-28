@@ -489,9 +489,9 @@ function pillCaptions(t, ch) {
   return `<g opacity="${f(p)}" transform="translate(0 ${f((1 - p) * 24)})">${s}</g>`;
 }
 
-// progress bar at the top of the screen (y ≈ 28, x 40–1040, 10 px)
+// progress bar at the top of the screen (y ≈ 28, x 40–1040, 10 px); off unless script.json has "progress": true
 function progressBar(t) {
-  if (D.progress === false) return '';
+  if (!D.progress) return '';
   const prog = clamp(t / D.total);
   const x0 = 40, w = 1000, h = 10, y = 28;
   let s = '';
@@ -514,6 +514,21 @@ function progressBar(t) {
     });
   }
   return s;
+}
+
+// end card after the last word ("outro" in channel.json or script.json, "" switches it off). It is gone
+// 0.25 s before the end, so the last frames still match the first ones and the loop stays seamless.
+function outroCard(t) {
+  if (!D.outro || t < D.outroAt) return '';
+  const p = pop(t, D.outroAt, 0.5), o = p.o * (1 - P(t, D.total - 0.55, 0.3, E.inCubic));
+  if (o <= 0.01) return '';
+  let s = titleText(D.outro, 540, 880, 124, 880, 18);
+  if (D.watermark) {
+    const [wf, ww] = TH.cap.mode === 'bar' ? ['Oswald', 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
+    s += `<text x="540" y="1080" font-family="${wf}" font-weight="${ww}" font-size="${TH.cap.mode === 'hand' ? 64 : 48}" fill="#fff" text-anchor="middle" dominant-baseline="central" stroke="${C.ink}" stroke-width="10" stroke-linejoin="round" paint-order="stroke">${esc(D.watermark)}</text>`;
+  }
+  return `<rect width="1080" height="1920" fill="${C.ink}" opacity="${f(0.45 * o)}"/>` +
+    G(`translate(540 960) scale(${f(p.s)}) translate(-540 -960)`, o, s);
 }
 
 let IMPACTS = [];
@@ -1010,7 +1025,7 @@ function renderAt(t) {
     if (flashOp > 0.005) {
       ui += `<rect width="1080" height="1920" fill="#fff" opacity="${f(flashOp)}"/>`;
     }
-    ui += overlayInner + headlines(t) + chapterBadges(t) + smallCaptions(t) + progressBar(t);
+    ui += overlayInner + headlines(t) + chapterBadges(t) + smallCaptions(t) + progressBar(t) + outroCard(t);
 
     if (D.watermark) {
       const [wf, ww] = TH.cap.mode === 'bar' ? ['Oswald', 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
@@ -1106,8 +1121,16 @@ async function init(data) {
     c.renderSize = size;
   });
 
+  const lastWords = D.scenes[D.scenes.length - 1].words;
+  D.outroAt = lastWords.length ? lastWords[lastWords.length - 1].t + lastWords[lastWords.length - 1].d + 0.25 : D.total;
   if (typeof setup === 'function') setup(D);
   return fontsOk;
+}
+
+// timeline facts for `build_video.py <topic> check`
+function qaInfo() {
+  return { heads: HEADS.map(h => [h.at, h.outAt]), cams: CAM.slice(1).map(k => [k.at, k.at + (k.dur || 0.8)]),
+    chapters: CHAP.list.map(c => c.at), outroAt: D.outroAt || D.total };
 }
 
 // warm paper palette used by world-mode topics (style: "paper")
@@ -1117,7 +1140,7 @@ const PAPER = {
 };
 
 function getCues() {
-  if (worldMode()) return typeof cues === 'function' ? cues(D) : [];
+  if (worldMode()) return (typeof cues === 'function' ? cues(D) : []).concat(D.outro ? [[D.outroAt, 'sparkle']] : []);
   const out = [];
   D.scenes.forEach((S, i) => {
     if (i > 0 && !S.cont) out.push([S.start, 'whoosh']);

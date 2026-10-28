@@ -20,9 +20,14 @@ Reference: `drawThumbnail()` at the end of `topics/burung-listrik/scenes.js`.
    subject, not covering it. Titles follow the channel theme automatically (`titleText`).
    Characters may get a fun prop (sunglasses on the calm sparrow).
 4. **Point at the mystery.** A red circle (`C.accent`, stroke ~12) or arrow on the key detail.
-5. **Contrast.** A bold background behind the subject (sunburst rays, a strong colour block); dark ink outlines;
+5. **Contrast.** A bold background behind the subject (sunburst rays, a strong colour block, a dark or saturated
+   field; never beige on beige); dark ink outlines;
    effects (lightning, sparks, smoke) get an ink outline so they do not wash out.
 6. **Safe areas.** Nothing important below y 1550 or in the bottom-right corner (Shorts UI).
+7. **Show where.** The place that makes the question make sense must be visible (a ceiling for "kok nggak jatuh?",
+   a wire for "kok nggak kesetrum?"). Don't put a bare horizontal band right under the title: it reads as a divider.
+8. **Insets only if they read at 180 px.** A zoom lens or detail circle must still be recognisable at feed size;
+   otherwise drop it and use a short label ("2 JUTA BULU") with an arrow.
 
 `drawThumbnail()` returns `{ world, ui }`: `world` is drawn under the paper texture and vignette,
 `ui` above them. Use fixed times (e.g. `const t = 1.3`) for poses and animated parts.

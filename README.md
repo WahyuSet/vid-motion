@@ -55,6 +55,7 @@ python build_video.py burung-listrik preview 3,12.5   # frame di detik tertentu
 python build_video.py burung-listrik                  # render penuh -> output/burung-listrik.mp4
 python build_video.py burung-listrik thumb            # thumbnail -> output/burung-listrik-thumbnail.jpg
 python build_video.py burung-listrik workers=2        # jumlah browser paralel (default: setengah core, maks 6)
+python build_video.py burung-listrik check            # peringatan retensi: hook, jeda, bagian statis
 ```
 
 Topik yang ada: `burung-listrik` (gaya baru, layar penuh), `alpukat`, `mandi-malam` (gaya kartu lama).

@@ -35,11 +35,26 @@ Write `scenes.js` in this order; after every pass run `preview` at the relevant 
 
 Anchor every timing to spoken words via `D.scenes[i].at(word)`. Draw from `t` only (no state, no `Math.random`).
 
+Retention rules (from reviewing finished videos):
+- **Frame 0 hooks**: a headline from t = 0 and the subject big and near the centre, not a wide empty view.
+- **Cards pop in with their first content** (`card(t, t0…)` with `t0` at the first row's word), never empty.
+  Drawings fill most of the card; card text ≥ 40 px.
+- **No stretch over ~6 s** without a camera move, a new element or a headline change; inside a long zoom or
+  lens, give each stage a camera push or a pop. Keep dimming (`spotlight`) light (≤ 0.3) and short.
+- **Ending**: the mascot big and central for the last line; don't walk it off and leave an empty set.
+  The end card ("Thank you for watching!") is added by the engine after the last word.
+- Nothing important cut off by the frame edge (lamps, signs half outside look like mistakes).
+
+Run `python build_video.py <id> check` after every pass and fix its warnings.
+
 ## 3. Visual review checklist
 
 Render stills at: 0, every headline start, every stamp, every camera move midpoint, every card, the last 0.1 s.
 For each still check:
-- [ ] headline, chapter badge, captions and progress bar do not overlap each other or the subject
+- [ ] headline, chapter badge and captions do not overlap each other or the subject
+- [ ] frame 0: headline visible and the subject big; no card is ever on screen empty
+- [ ] the end card frame (last line + 0.5 s) is clean: nothing important under it
+- [ ] `check` prints `ok` (or every warning is understood)
 - [ ] impact frames (stamp landing, burst, flash) look punchy without obscuring text
 - [ ] nothing important below y 1600 or under the right-side Shorts buttons (x > 960, y 1000–1700)
 - [ ] text is readable at phone size (try a 270 px wide copy of the still)

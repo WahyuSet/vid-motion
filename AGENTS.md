@@ -31,11 +31,13 @@ python build_video.py <topic> preview              # stills at the middle/end of
 python build_video.py <topic> preview 3.5,12.8     # stills at chosen seconds
 python build_video.py <topic>                      # full render -> output/<topic>.mp4
 python build_video.py <topic> thumb                # output/<topic>-thumbnail.jpg (needs drawThumbnail)
+python build_video.py <topic> check                # retention warnings: hook, pauses, silences, static stretches
 python build_video.py <topic> workers=2            # fewer parallel browsers on small machines
 ```
 
 A full 50 s render takes about 2 minutes with 6 workers on 12 cores; scale expectations to the machine.
-Always iterate with `preview` (seconds) before a full render.
+Always iterate with `preview` (seconds) before a full render, and run `check` before it: fix every warning or
+know why it is fine.
 
 ## Tasks (skills) and approval gates
 
@@ -120,16 +122,23 @@ need it, and re-check old topics with `preview` afterwards.
 }
 ```
 
-- One entry per voice-over line. The pipeline inserts 0.35 s of silence between lines.
+- One entry per voice-over line. The pipeline inserts 0.35 s of silence between lines. The TTS stops about 1 s
+  after "." "?" "!" inside a line; those pauses are cut to 0.35 s automatically (`"pause": s` changes the
+  limit, `0` keeps them). Prefer one sentence per line anyway: it paces captions and headlines better.
 - `hold`: extra seconds after a line so an animation can finish (cards, explosions, reveals).
-- `tail`: seconds after the last line (use ~1.6 for the loop back to the opening view).
+- `tail`: seconds after the last line (use ~1.6 for the loop back to the opening view). With the end card on,
+  the tail is at least 2.4 s.
 - `voice`: see `tts.py`. Default is fine. `TTS_PROVIDER` / `TTS_VOICE` env vars override it.
 - `channel`: `cicaktahu` (default), `tikus` or `stickman`; it sets the theme, mascot and watermark.
 - `captions`: `"words": 5` recommended. `"size": N` overrides theme caption size. `"line"` is mostly irrelevant now that captions re-wrap automatically in JS.
   `"mode": "pill"` puts every caption line on a dark pill with a yellow box sliding behind the spoken word
   (spoken keywords turn yellow). Use it when the picture behind the captions is busy (circuits, maps, crowds);
   leave it out to keep the channel's own caption look.
-- `progress`: `false` disables the top progress bar (`true` by default).
+- `progress`: `true` shows a progress bar at the top (off by default).
+- `outro`: end card shown from 0.25 s after the last word, fading out 0.25 s before the end so the loop stays
+  seamless: "Thank you for watching!" plus the channel handle, in the theme's title style. Default text comes
+  from the engine or `channel.json` → `"outro"`; `"outro": ""` switches it off. Keep the last line's visuals
+  finished before it (the card dims the picture).
 - `watermark`: leave it out; the handle from the channel's `channel.json` is used (top-left).
   Set `"watermark": ""` only to switch it off for one topic. `"theme"` overrides the channel's theme (rarely needed).
 - `style: "panel"` is the older card layout (`topics/alpukat`, `topics/mandi-malam`); use `paper` for new videos.
@@ -236,7 +245,7 @@ Colours: use `C.*` (`ink`, `muted`, `yellow`, `accent`, `cool`, `leaf`, `line`, 
 
 ## Layout rules (screen space, 1080×1920)
 
-- Progress bar at the top (y ≈ 28, x 40–1040, 10 px).
+- Progress bar (only with `"progress": true`) at the top (y ≈ 28, x 40–1040, 10 px).
 - Headline ~y 280–480 (keep ≥ y 280). Chapter badge (950, 190). Captions centred at y 1500. `cite` at y 1395.
 - Keep the subject between y 550 and y 1400. Below ~1600 and the right edge (x > 960, y 1000–1700) are covered
   by the YouTube Shorts UI.
