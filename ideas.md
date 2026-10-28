@@ -17,6 +17,7 @@ agent tidak pernah melewatinya sendiri.
 | golongan-darah | stickman | Golongan darahmu apa? A, B, AB, atau O? | catatan-belajar | video | diminta langsung lewat chat sebagai tes (lewat gerbang ide & naskah); ~58.6s; tunggu ditonton → siap-upload |
 | serat-jeruk | cicaktahu | Kulit jerukmu dibuang, serat 25 gram ikut hilang? | fakta-unik | video | diminta langsung lewat chat (lewat gerbang ide & naskah); 49.6s; tunggu ditonton → siap-upload |
 | nyamuk-jantan | stickman | Nyamuk yang menggigitmu semalam itu pasti betina? | mitos-kesehatan | video | durasi 64.2s (1927 frame); siap ditonton pengguna → siap-upload |
+| cicak-nempel | cicaktahu | Kok cicak nggak jatuh dari langit-langit? | mitos-fakta | video | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); 58.0s (1740 frame); pakai lensa xray, kartu, stiker; tunggu ditonton → siap-upload |
 
 ## Usulan
 

@@ -1,0 +1,18 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Cicak ini santai jalan *terbalik* di langit-langit."},
+    {"vo": "Kok nggak jatuh? Katanya kakinya *berlem*, atau mengisap kayak *pompa*."},
+    {"vo": "Faktanya, dua-duanya *mitos*!", "hold": 0.4},
+    {"vo": "Kakinya nggak punya *kelenjar lem*, dan tetap nempel di ruang *hampa*.", "hold": 0.3},
+    {"vo": "Rahasianya di jari: tokek punya sekitar *dua juta* bulu super halus."},
+    {"vo": "Ujung tiap bulu pecah lagi jadi *ratusan* bantalan mungil.", "hold": 0.3},
+    {"vo": "Saking dekatnya, molekul bulu dan dinding saling *tarik-menarik*. Namanya gaya *van der Waals*.", "hold": 0.3},
+    {"vo": "Sejuta bulu, seluas koin, bisa menahan *20 kilogram*. Seberat anak kecil!", "hold": 0.5},
+    {"vo": "Mau jalan? Cukup *gulung* jarinya ke atas, langsung lepas.", "hold": 0.4},
+    {"vo": "Jadi bukan lem, tapi jutaan bulu *mini*. Malam ini, coba intip cicak di *rumahmu*!"}
+  ]
+}
