@@ -959,7 +959,9 @@ function hype(text, t, t0, x, y, { size = 120, tOut = Infinity, skew = -9, depth
   const widest = Math.max(...lines.map(l => measure(plain(l), size, wt, font)));
   if (widest > maxW) size *= maxW / widest;
   const out = P(t, tOut, 0.25), o = clamp(u / 0.06) * (1 - out);
-  const sc = (u < 0.16 ? 2.3 - 1.3 * E.inCubic(u / 0.16) : 1 - 0.05 * Math.exp(-9 * (u - 0.16)) * Math.sin(26 * (u - 0.16))) * (1 - 0.15 * out);
+  // the slam starts big, but never wider than the frame (1080 px, skew included)
+  const big = clamp(1060 / (Math.min(widest, maxW) * (1 + Math.abs(Math.tan(skew * Math.PI / 180)) * 0.3)), 1.15, 2.3);
+  const sc = (u < 0.16 ? big - (big - 1) * E.inCubic(u / 0.16) : 1 - 0.05 * Math.exp(-9 * (u - 0.16)) * Math.sin(26 * (u - 0.16))) * (1 - 0.15 * out);
   const echo = clamp((u - 0.16) / 0.45), lh = size * 1.05, y0 = -(lines.length - 1) * lh / 2;
   const main = TH.head.mode === 'marker' ? C.ink : '#fff';
   let s = '';
@@ -1066,9 +1068,9 @@ function renderAt(t) {
     const blurEl = document.getElementById('wBlur');
     const worldG = document.getElementById('world');
 
-    if (v > 0.6 && blurEl) {
-      const sx = clamp(Math.abs(dx) * 0.8 + dz * 0.4, 0, 24);
-      const sy = clamp(Math.abs(dy) * 0.8 + dz * 0.4, 0, 24);
+    if (v > 1.0 && blurEl) {  // only fast moves blur, and gently: the subject stays readable mid-move
+      const sx = clamp(Math.abs(dx) * 0.45 + dz * 0.25, 0, 10);
+      const sy = clamp(Math.abs(dy) * 0.45 + dz * 0.25, 0, 10);
       blurEl.setAttribute('stdDeviation', `${f(sx)} ${f(sy)}`);
       worldG.setAttribute('filter', 'url(#wGradeBlur)');
     } else {

@@ -20,6 +20,7 @@ or override per run with environment variables TTS_PROVIDER / TTS_VOICE.
 import asyncio
 import base64
 import difflib
+import hashlib
 import json
 import os
 import re
@@ -155,7 +156,9 @@ def elevenlabs(text, cfg):
 
 
 def stamp(path):
-    return [path.name, path.stat().st_size, path.stat().st_mtime_ns]
+    """Identifies a recording by its content, so git checkouts or copies (which change the file's time) do not
+    make Whisper align an unchanged take again."""
+    return [path.name, path.stat().st_size, hashlib.sha1(path.read_bytes()).hexdigest()[:16]]
 
 
 def full_recording(topic_dir):

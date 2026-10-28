@@ -409,6 +409,26 @@ def export_narration(topic, script):
     print(data["text"])
 
 
+# gentle bus compression and a limiter before loudness normalization: the mix is very peaky (clicks, booms,
+# plosives), so without them reaching -14 LUFS would break the -1.5 dBTP ceiling and loudnorm falls short
+MIX_GLUE = "acompressor=threshold=0.125:ratio=3:attack=5:release=120:makeup=1,alimiter=limit=0.5:attack=3:release=60:level=disabled"
+
+
+def loudnorm_filter(wav, target=-14):
+    """Audio filter for the final mux: MIX_GLUE, then two-pass EBU R128 loudness (measure first, then apply), so
+    every video lands within a few tenths of the target whatever the voice. A single loudnorm pass left a
+    Cartesia voice at -15.4 LUFS while Edge voices sat at -14.5."""
+    base = f"{MIX_GLUE},loudnorm=I={target}:TP=-1.5:LRA=11"
+    res = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(wav), "-af", base + ":print_format=json", "-f", "null", "-"],
+                         capture_output=True, text=True)
+    m = re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", res.stderr, re.S)
+    if not m:
+        return base
+    j = json.loads(m.group(0))
+    return (f"{base}:measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}"
+            f":measured_thresh={j['input_thresh']}:offset={j['target_offset']}:linear=true")
+
+
 def check_report(data, qa):
     """Retention warnings worked out from the timeline alone (no frames are rendered)."""
     warn, total, heads = [], data["total"], qa["heads"]
@@ -580,7 +600,7 @@ def main():
     subprocess.run(
         ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(concat), "-i", str(wav),
          "-map", "0:v", "-map", "1:a", "-c:v", "copy",
-         "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
+         "-af", loudnorm_filter(wav), "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
          "-movflags", "+faststart", "-shortest", str(OUT)], check=True)
     for s in segs:
         Path(s).unlink()
