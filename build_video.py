@@ -6,6 +6,7 @@ Usage:
   python build_video.py <topic> preview 3.5,12   ...at chosen seconds
   python build_video.py <topic> thumb            render output/<topic>-thumbnail.jpg from drawThumbnail()
   python build_video.py <topic> check            list retention problems (hook, pauses, static stretches)
+  python build_video.py <topic> narasi           output/<topic>-narasi.json: the clean narration to voice outside
   python build_video.py <topic> workers=4       choose how many browsers render in parallel
                                                  (default: half the CPU cores, at most 6)
 
@@ -386,6 +387,24 @@ def mix_audio(total, clips, cues, music=None):
     return wav
 
 
+def export_narration(topic, script):
+    """output/<topic>-narasi.json: the clean narration (no *keyword* marks) to voice outside, as one take
+    (save it as topics/<topic>/voice/full.mp3) or line by line (voice/scene1.wav ...)."""
+    lines = [re.sub(r"\s+", " ", sc["vo"].replace("*", "")).strip() for sc in script["scenes"]]
+    out = ROOT / "output" / f"{topic}-narasi.json"
+    out.parent.mkdir(exist_ok=True)
+    data = {
+        "topic": topic,
+        "channel": script.get("channel", DEFAULT_CHANNEL),
+        "words": sum(len(l.split()) for l in lines),
+        "lines": lines,
+        "text": "\n".join(lines),
+        "save_as": f"topics/{topic}/voice/full.mp3",
+    }
+    out.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"narasi: {out} ({len(lines)} lines, {data['words']} words)")
+
+
 def check_report(data, qa):
     """Retention warnings worked out from the timeline alone (no frames are rendered)."""
     warn, total, heads = [], data["total"], qa["heads"]
@@ -501,6 +520,9 @@ def main():
     workers = next((int(a.split("=")[1]) for a in args if a.startswith("workers=")), min(6, max(1, os.cpu_count() // 2)))
     topic_dir = ROOT / "topics" / topic
     script = json.loads((topic_dir / "script.json").read_text(encoding="utf-8"))
+    if "narasi" in args[1:]:
+        export_narration(topic, script)
+        return
     BUILD = ROOT / "build" / topic
     BUILD.mkdir(parents=True, exist_ok=True)
     OUT = ROOT / "output" / f"{topic}.mp4"

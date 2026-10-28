@@ -197,9 +197,14 @@ def split_full(texts, cfg, cache_dir, topic_dir):
         lo = int(max(0.0, ws[0]["t"] - 0.6) * 100)
         if i:
             lo = max(lo, int((lines[i - 1][-1]["t"] + lines[i - 1][-1]["d"]) * 100))
-        hit = np.flatnonzero(loud[lo: int((ws[0]["t"] + ws[0]["d"]) * 100) + 1])
+        seg = loud[lo: int((ws[0]["t"] + ws[0]["d"]) * 100) + 1]
+        skip = 0
+        if i:  # the window may start inside the previous line's last sound: step past it first
+            while skip < len(seg) and seg[skip]:
+                skip += 1
+        hit = np.flatnonzero(seg[skip:])
         if hit.size:
-            on = (lo + hit[0]) / 100
+            on = (lo + skip + hit[0]) / 100
             ws[0]["d"] = max(0.05, ws[0]["t"] + ws[0]["d"] - on)
             ws[0]["t"] = on
         end = ws[-1]["t"] + ws[-1]["d"]
@@ -218,7 +223,7 @@ def split_full(texts, cfg, cache_dir, topic_dir):
         subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{a:.3f}", "-to", f"{b:.3f}", "-i", str(src),
                         "-ac", "1", "-ar", "48000", str(clip)], check=True)
         key = {"text": text, "voice": cfg["name"], "rate": cfg["rate"], "provider": "file", "source": stamp(src)}
-        local = [{**w, "t": round(w["t"] - a, 3)} for w in ws]
+        local = [{**w, "t": round(max(0.0, w["t"] - a), 3)} for w in ws]
         (cache_dir / f"scene{i + 1}.json").write_text(
             json.dumps({**key, "audio": clip.name, "start": round(a, 3), "words": local}, ensure_ascii=False, indent=1), encoding="utf-8")
     marker.write_text(json.dumps(want, ensure_ascii=False), encoding="utf-8")
