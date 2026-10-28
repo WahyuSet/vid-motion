@@ -27,11 +27,14 @@ Write `scenes.js` in this order; after every pass run `preview` at the relevant 
 1. **World + camera**: background, the main props in their final places, camera keys for every beat.
    Check: the subject of each beat is framed, between screen y 550 and 1400.
 2. **Characters and motion**: the stars of the story, Si Cicak (at least hook, verdict, ending), entrances on words.
+   Draw props with `vol(path, fill)` (shadow, highlight, outline) rather than flat fills; build paths with
+   `circleD` / `rectD` or your own `d`. Give big props secondary details (rims, labels, seams, screws).
 3. **Text**: headlines (2–4 words, `*yellow*` keyword), chapter icons, `stamp`, `cite` for any number or claim.
 4. **Overlays and polish**: explanation cards (`card`, with `scramble` + `mono` for codes and numbers), flashes,
    handwritten notes, sound stickers (`sticker`, each with a cue), sound cues. To show how something works inside,
    draw its inside and its cover separately and use `xray` (a lens) or `cutaway` (cover lifts off); see `topics/demo-cicak`.
-5. **FX and depth**: add FX at key beats (`burst`, `confetti`, `speedLines`, `spotlight`) and parallax with `layer(d, cam, ...)` for background layers.
+5. **FX and depth**: `hype` (or `{hype: true}` on a headline) for the 1–2 hardest-hitting words or numbers,
+   `invertFlash` at most once or twice on a big hit; add FX at key beats (`burst`, `confetti`, `speedLines`, `spotlight`) and parallax with `layer(d, cam, ...)` for background layers.
 
 Anchor every timing to spoken words via `D.scenes[i].at(word)`. Draw from `t` only (no state, no `Math.random`).
 

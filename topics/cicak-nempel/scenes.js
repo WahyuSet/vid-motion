@@ -50,11 +50,11 @@ function setup(D) {
     { at: K.berlem, end: K.isap - 0.15, text: 'KAKINYA\n*BERLEM*?' },
     { at: K.isap, end: K.s2e - 0.1, text: 'ATAU\n*MENGISAP*?' },
     { at: K.kelenjar, end: K.s4e - 0.1, text: 'BUKAN *LEM*,\nBUKAN *POMPA*' },
-    { at: K.dua, end: K.s5e - 0.1, text: '*2 JUTA* BULU' },
+    { at: K.dua, end: K.s5e - 0.1, text: '*2 JUTA*\nBULU', hype: true },
     { at: K.ratusan, end: K.s6e - 0.1, text: '*RATUSAN*\nBANTALAN' },
     { at: K.tarik, end: K.namanya - 0.1, text: 'SALING\n*TARIK-MENARIK*' },
     { at: K.namanya, end: K.s7e - 0.1, text: 'GAYA\n*VAN DER WAALS*' },
-    { at: K.kg, end: K.s8e - 0.1, text: '*20 KG*\nSELUAS KOIN' },
+    { at: K.kg, end: K.s8e - 0.1, text: '*20 KG*\nSELUAS KOIN', hype: true },
     { at: K.gulung, end: K.s9e - 0.1, text: '*GULUNG*,\nLEPAS!' },
     { at: K.jutaan, end: K.malam - 0.1, text: 'JUTAAN\nBULU *MINI*' },
     { at: K.malam, end: K.loop, text: 'INTIP CICAK\nDI *RUMAHMU*' },
@@ -96,7 +96,7 @@ function ceiling(t) {
   // the lamp seen from below, with flying termites (laron) around it
   const L = { x: 380, y: -220 };
   s += `<circle cx="${L.x}" cy="${L.y}" r="260" fill="url(#bulbGlow)"/>`;
-  s += `<circle cx="${L.x}" cy="${L.y}" r="92" fill="${C.fitting}" ${stroke()}/><circle cx="${L.x}" cy="${L.y}" r="66" fill="${C.bulb}" ${stroke(6)}/>`;
+  s += vol(circleD(L.x, L.y, 92), C.fitting, { depth: 14 }) + vol(circleD(L.x, L.y, 66), C.bulb, { depth: 10, w: 6 });
   s += `<path d="M${L.x - 22},${L.y - 10} q22,-26 44,0" fill="none" ${stroke(4, '#E8C55A')}/><circle cx="${L.x - 24}" cy="${L.y - 26}" r="10" fill="#fff" opacity="0.8"/>`;
   for (let i = 0; i < 6; i++) {
     const a = t * (1.2 + rnd(i) * 0.8) + i * 1.05, r = 130 + 40 * Math.sin(t * 1.7 + i);
@@ -218,13 +218,13 @@ function lensInside(t) {
 
 // ---------- overlay pieces ----------
 function glueBottle(x, y, s) {
-  return G(T(x, y, s), 1, `<rect x="-42" y="-30" width="84" height="110" rx="20" fill="${C.glue}" ${stroke(6)}/>` +
-    `<path d="M-20,-30 L0,-84 L20,-30 Z" fill="${C.accent}" ${stroke(6)}/><rect x="-42" y="6" width="84" height="40" fill="${C.yellow}" ${stroke(5)}/>` +
+  return G(T(x, y, s), 1, vol(rectD(-42, -30, 84, 110, 20), C.glue, { depth: 12, w: 6 }) +
+    vol('M-20,-30 L0,-84 L20,-30 Z', C.accent, { depth: 7, w: 6 }) + `<rect x="-42" y="6" width="84" height="40" fill="${C.yellow}" ${stroke(5)}/>` +
     txt('LEM', 0, 27, 26, C.ink, 900));
 }
 function suctionCup(x, y, s) {
-  return G(T(x, y, s), 1, `<rect x="-12" y="-90" width="24" height="70" rx="10" fill="#8A6A44" ${stroke(6)}/>` +
-    `<path d="M-70,40 C-60,-20 -30,-30 0,-30 C30,-30 60,-20 70,40 Z" fill="${C.rubber}" ${stroke(6)}/><path d="M-40,8 Q0,-12 40,8" fill="none" ${stroke(4, '#fff')} opacity="0.6"/>`);
+  return G(T(x, y, s), 1, vol(rectD(-12, -90, 24, 70, 10), '#8A6A44', { depth: 6, w: 6 }) +
+    vol('M-70,40 C-60,-20 -30,-30 0,-30 C30,-30 60,-20 70,40 Z', C.rubber, { depth: 14, w: 6 }));
 }
 function bubble(x, y, tx, ty, inner, p) {  // thought bubble with trailing dots towards (tx, ty)
   if (p.o <= 0) return '';
@@ -258,14 +258,14 @@ function coinCard(t) {  // side view: a coin-sized patch of a million hairs hold
   s += `<rect x="300" y="130" width="160" height="34" rx="10" fill="${C.pad}" ${stroke(5)}/>`;
   for (let k = 0; k < 16; k++) s += `<line x1="${306 + k * 10}" y1="130" x2="${306 + k * 10}" y2="122" stroke="${C.hair}" stroke-width="3"/>`;
   const cp = pop(t, K.koin, 0.45);
-  s += G(T(140, 260, cp.s), cp.o, `<circle r="70" fill="${C.coin}" ${stroke(6)}/><circle r="54" fill="none" ${stroke(3, '#A9ADB3')}/>` +
+  s += G(T(140, 260, cp.s), cp.o, vol(circleD(0, 0, 70), C.coin, { depth: 10, w: 6 }) + `<circle r="54" fill="none" ${stroke(3, '#A9ADB3')}/>` +
     txt('1000', 0, 2, 34, '#6B7078', 900)) + G('', cp.o, `<path d="M215,250 L295,180" fill="none" ${stroke(4, C.muted)} stroke-dasharray="8 8"/>` +
     hand('seluas koin', 140, 360, 40, C.muted));
   // the load drops in and swings a little
   const d = E.outBack(P(t, K.kg - 0.15, 0.45)), sw = 4 * Math.sin((t - K.kg) * 3) * Math.exp(-(t - K.kg) * 0.8) * (t > K.kg ? 1 : 0);
   if (t > K.kg - 0.15) {
     s += G(`rotate(${f(sw)} 380 164)`, 1, `<line x1="380" y1="164" x2="380" y2="${f(164 + 150 * d)}" ${stroke(6, '#8A6A44')}/>` +
-      G(T(380, 164 + 150 * d + 100), 1, `<path d="M-110,90 C-130,20 -100,-60 -40,-80 L-20,-96 L20,-96 L40,-80 C100,-60 130,20 110,90 Z" fill="${C.sack}" ${stroke(6)}/>` +
+      G(T(380, 164 + 150 * d + 100), 1, vol('M-110,90 C-130,20 -100,-60 -40,-80 L-20,-96 L20,-96 L40,-80 C100,-60 130,20 110,90 Z', C.sack, { depth: 18, w: 6 }) +
         `<path d="M-30,-86 Q0,-70 30,-86" fill="none" ${stroke(5, C.sackD)}/>` + headText('20 kg', 0, 18, 64, C.ink)));
   }
   if (t > K.anak) s += G('', P(t, K.anak, 0.3), hand('≈ seberat', 600, 330, 46, C.accent) + hand('anak kecil', 600, 380, 46, C.accent));
@@ -325,6 +325,7 @@ function drawOverlay(t) {
   s += cite('Sumber: Autumn dkk., Nature (2000) & PNAS (2002)', t, K.molekul, K.s7e - 0.2);
 
   s += card(t, K.s8 + 0.2, 540, 1030, 760, 560, coinCard(t), { title: 'Sejuta bulu', tOut: K.s8e - 0.3 });
+  s += invertFlash(t, K.kg + 0.15);
   s += sticker('KUAT!', t, K.kg + 0.25, 830, 1180, { rot: 10, size: 100, dur: 0.9 });
   s += cite('Sumber: UC Berkeley (2000)', t, K.koin, K.s8e - 0.3);
 

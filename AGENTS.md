@@ -35,7 +35,8 @@ python build_video.py <topic> check                # retention warnings: hook, p
 python build_video.py <topic> workers=2            # fewer parallel browsers on small machines
 ```
 
-A full 50 s render takes about 2 minutes with 6 workers on 12 cores; scale expectations to the machine.
+Videos render at 60 fps: a full 50 s render takes about 4–5 minutes with 6 workers on 12 cores (`"fps": 30`
+halves that while iterating); scale expectations to the machine.
 Always iterate with `preview` (seconds) before a full render, and run `check` before it: fix every warning or
 know why it is fine.
 
@@ -135,6 +136,10 @@ need it, and re-check old topics with `preview` afterwards.
   (spoken keywords turn yellow). Use it when the picture behind the captions is busy (circuits, maps, crowds);
   leave it out to keep the channel's own caption look.
 - `progress`: `true` shows a progress bar at the top (off by default).
+- `fps`: 60 by default (smoother motion); 30 renders twice as fast.
+- `music`: a quiet, original music bed made by the pipeline (pad, bass, plucked arpeggio; mood per theme) runs
+  under every paper-style video and ducks while the voice speaks, so there is no dead silence. `false` switches it
+  off; a path (relative to the topic folder) uses your own track instead, looped (you are responsible for its rights).
 - `outro`: end card shown from 0.25 s after the last word, fading out 0.25 s before the end so the loop stays
   seamless: "Thank you for watching!" plus the channel handle, in the theme's title style. Default text comes
   from the engine or `channel.json` → `"outro"`; `"outro": ""` switches it off. Keep the last line's visuals
@@ -204,6 +209,9 @@ Use `whoosh` on camera moves, `pop` on things appearing, `thud` on stamps, `ding
 | `mono(s, x, y, size, fill, opts)`, `monoWidth(s, size)` | text on a fixed character grid (use it for scrambled text and numbers so they don't jump; `{anchor, cell, weight}`) |
 | `bodyText(s, x, y, size, fill, anchor, weight)`, `bodyFont()` | text in the theme's body font (Nunito / Oswald / Caveat), for card contents |
 | `xray(t, t0, x, y, r, inside, opts)` | round lens that opens at `t0` and shows `inside` (same coordinates as the world) through a cover (`{t1, dur, id, bg}`); give each lens in a frame its own `id` |
+| `hype(text, t, t0, x, y, opts)` | "hypermotion" title: slams in skewed at `t0` with a short shake, 3D extrusion, an outline echo that pulses out (`{size, tOut, skew, depth, col, shake}`). For the one or two words that must hit hardest; headlines take `{hype: true}` |
+| `invertFlash(t, ts, dur)` | the whole frame flips to its negative for ~2 frames at `ts`; a hard accent, once or twice per video |
+| `vol(d, fill, opts)`, `circleD`, `rectD` | draws a shape (path `d`) with volume in the theme's style: cel shadow + highlight + ink outline (paper), round gradient (newsprint), hatched shadow (notebook) (`{depth, w, shine}`). Use it for every prop instead of a flat `fill` |
 | `cutaway(t, t0, shell, opts)` | lifts a cover (`shell` SVG) off from `t0` to show what is drawn under it, back from `t1` (`{t1, dx, dy, rot, dur, cx, cy}`) |
 | `sparkle`, `snowflake`, `mix(hexA, hexB, p)`, `rnd(i)`, `lerp`, `clamp`, `measure` | small utilities |
 | `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (top-down view, crawls any direction with `rot`; `walk = t * 11` animates legs). See "Mascots" below |

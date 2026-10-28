@@ -57,7 +57,7 @@ def load_channel(cid):
         raise SystemExit(f"unknown channel {cid!r}: {path} not found")
     return json.loads(path.read_text(encoding="utf-8"))
 
-W, H, FPS = 1080, 1920, 30
+W, H, FPS = 1080, 1920, 60  # "fps" in script.json overrides (30 renders twice as fast)
 SR = 48000
 
 LEAD_IN = 0.3   # silence before the first line
@@ -237,6 +237,7 @@ def timeline(script, topic_dir):
         "total": total,
         "progress": script.get("progress", False),
         "outro": outro,
+        "fps": script.get("fps", FPS),
         "captionSize": cap.get("size"),
         "captionMode": cap.get("mode"),
         "scenes": [{k: sc.get(k, False) for k in ("vo", "start", "end", "audio", "cont", "words")} for sc in SCENES],
@@ -246,15 +247,102 @@ def timeline(script, topic_dir):
     return data, clips
 
 
-def mix_audio(total, clips, cues):
-    mix = np.zeros(int(total * SR) + SR, np.float32)
+MUSIC_DB = -17  # music level against the voice's loudness; it ducks a further 8 dB while the voice speaks
+MOODS = {  # per theme: tempo, root note (MIDI) and a four-chord loop (semitones from the root)
+    "paper": dict(bpm=100, root=60, chords=[(0, 4, 7), (7, 11, 14), (9, 12, 16), (5, 9, 12)], hats=True),
+    "newsprint": dict(bpm=86, root=57, chords=[(0, 3, 7), (-4, 0, 3), (3, 7, 10), (-2, 2, 5)], hats=False),
+    "notebook": dict(bpm=104, root=62, chords=[(0, 4, 7), (9, 12, 16), (5, 9, 12), (7, 11, 14)], hats=True),
+}
+
+
+def pluck(midi, dur=0.5):
+    """Karplus-Strong plucked string: a soft ukulele-like note."""
+    f0 = 440 * 2 ** ((midi - 69) / 12)
+    period, n = max(2, int(SR / f0)), int(dur * SR)
+    buf = np.random.default_rng(midi).uniform(-1, 1, period)
+    out = np.empty(n, np.float32)
+    for i in range(n):
+        j = i % period
+        out[i] = buf[j]
+        buf[j] = 0.497 * (buf[j] + buf[(j + 1) % period])
+    return out * np.linspace(1, 0, n, dtype=np.float32)
+
+
+def music_bed(total, theme):
+    """An original, quiet loop (pad, bass, plucked arpeggio, shaker) under the voice, so no moment is dead
+    silence. Made from numbers, so there are no rights to clear. The mood follows the channel theme."""
+    m = MOODS.get(theme, MOODS["paper"])
+    hz = lambda midi: 440 * 2 ** ((midi - 69) / 12)
+    beat = 60 / m["bpm"]
+    n = int(total * SR)
+    out = np.zeros(n + int(12 * beat * SR) + SR, np.float32)
+    plucks = {}
+    for b in range(int(total / (4 * beat)) + 2):
+        chord, t0 = m["chords"][b % 4], b * 4 * beat
+        s0, bar = int(t0 * SR), int(4 * beat * SR)
+        tt = np.arange(bar) / SR
+        env = np.minimum(1, tt / 0.4) * np.minimum(1, (4 * beat - tt) / 0.3)
+        for c in chord:  # warm pad, one octave below the root
+            f = hz(m["root"] - 12 + c)
+            out[s0: s0 + bar] += 0.05 * env * (np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(4 * np.pi * f * tt))
+        for k in (0, 2):  # round bass on beats one and three
+            s, ln = int((t0 + k * beat) * SR), int(1.8 * beat * SR)
+            tb = np.arange(ln) / SR
+            out[s: s + ln] += 0.22 * np.tanh(1.5 * np.sin(2 * np.pi * hz(m["root"] - 24 + chord[0]) * tb)) * np.exp(-3 * tb)
+        for k, idx in enumerate([0, 1, 2, 1, 0, 2, 1, 2]):  # plucked eighth notes
+            note = m["root"] + 12 + chord[idx] - (12 if chord[idx] > 12 else 0)
+            p = plucks.setdefault(note, pluck(note))
+            s = int((t0 + k * beat / 2) * SR)
+            out[s: s + len(p)] += 0.13 * (0.8 + 0.2 * (k % 2 == 0)) * p
+            if m["hats"] and k % 2 == 1:  # soft shaker on the off-beats
+                ln = int(0.04 * SR)
+                noise = np.diff(np.random.default_rng(b * 8 + k).standard_normal(ln + 1)).astype(np.float32)
+                out[s: s + ln] += 0.025 * noise * np.exp(-np.arange(ln) / SR * 90)
+    out = out[:n]
+    fade_in, fade_out = int(0.3 * SR), int(1.0 * SR)
+    out[:fade_in] *= np.linspace(0, 1, fade_in)
+    out[-fade_out:] *= np.linspace(1, 0, fade_out)
+    return out / max(1e-6, float(np.abs(out).max()))
+
+
+def music_track(script, data, topic_dir, total):
+    """script.json "music": true (default for paper style), false, or a path to your own track (looped)."""
+    choice = script.get("music", data["style"] == "paper")
+    if not choice:
+        return None
+    if choice is True:
+        return music_bed(total, data["theme"])
+    path = (topic_dir / choice) if not Path(choice).is_absolute() else Path(choice)
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"],
+                         capture_output=True, check=True).stdout
+    a = np.frombuffer(raw, np.float32)
+    a = np.tile(a, int(total * SR) // len(a) + 1)[: int(total * SR)].copy()
+    a[-SR:] *= np.linspace(1, 0, SR)
+    return a / max(1e-6, float(np.abs(a).max()))
+
+
+def mix_audio(total, clips, cues, music=None):
+    n = int(total * SR) + SR
+    voice, mix = np.zeros(n, np.float32), np.zeros(n, np.float32)
     for start, clip in clips:
         s = int(start * SR)
-        mix[s: s + len(clip)] += clip
+        voice[s: s + len(clip)] += clip
     for when, kind in cues:
         fx = sfx(kind).astype(np.float32)
         s = max(0, int(when * SR))
         mix[s: s + len(fx)] += fx[: len(mix) - s]
+    mix += voice
+    if music is not None:
+        # duck the music while the voice speaks: 10 ms loudness steps, smoothed over a quarter second
+        hop = SR // 100
+        k = len(music) // hop
+        env = np.sqrt((voice[: k * hop].reshape(k, hop) ** 2).mean(axis=1))
+        speaking = (env > 0.05 * env.max()).astype(np.float32)
+        speaking = np.clip(np.convolve(speaking, np.ones(25) / 25, mode="same") * 1.6, 0, 1)
+        gain = np.repeat(1 - (1 - 10 ** (-8 / 20)) * speaking, hop)
+        voice_rms = np.sqrt((voice[voice != 0] ** 2).mean()) if voice.any() else 0.1
+        music = music[: len(gain)] * gain * (voice_rms / np.sqrt((music ** 2).mean() + 1e-9)) * 10 ** (MUSIC_DB / 20)
+        mix[: len(music)] += music
     mix = mix[: int(total * SR)]
     mix *= min(1.0, 0.95 / max(1e-6, np.abs(mix).max()))
     wav = BUILD / "audio.wav"
@@ -355,11 +443,11 @@ def render_segment(job):
     with sync_playwright() as p:
         browser, _, shot = open_page(p, topic_dir, data)
         ff = subprocess.Popen(
-            ["ffmpeg", "-y", "-v", "error", "-f", "image2pipe", "-framerate", str(FPS), "-c:v", "png", "-i", "-",
+            ["ffmpeg", "-y", "-v", "error", "-f", "image2pipe", "-framerate", str(data["fps"]), "-c:v", "png", "-i", "-",
              "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", str(seg)],
             stdin=subprocess.PIPE)
         for f in range(a, b):
-            ff.stdin.write(shot(f / FPS))
+            ff.stdin.write(shot(f / data["fps"]))
             if (f - a) % 100 == 0:
                 print(f"  worker {k}: frame {f - a}/{b - a}", flush=True)
         ff.stdin.close()
@@ -385,7 +473,7 @@ def main():
     OUT.parent.mkdir(exist_ok=True)
     data, clips = timeline(script, topic_dir)
     total = data["total"]
-    n_frames = int(round(total * FPS))
+    n_frames = int(round(total * data["fps"]))
 
     with sync_playwright() as p:
         browser, page, shot = open_page(p, topic_dir, data)
@@ -417,7 +505,7 @@ def main():
             return
         browser.close()
 
-    wav = mix_audio(total, clips, cues)
+    wav = mix_audio(total, clips, cues, music_track(script, data, topic_dir, total))
     # split the frames into contiguous slices, one browser per worker, then join the slices
     seg_dir = BUILD / "segments"
     seg_dir.mkdir(exist_ok=True)

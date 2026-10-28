@@ -356,6 +356,7 @@ function headlines(t) {
   let s = '';
   HEADS.forEach(h => {
     if (t < h.at || t > h.outAt + h.outDur) return;
+    if (h.hype) { s += hype(h.text, t, h.at + 0.16, 540, h.y || 360, { size: h.size || 112, tOut: h.outAt, shake: 0.3 }); return; }
     const pout = P(t, h.outAt, h.outDur, E.inCubic);
     const exitO = 1 - pout;
     const exitDy = -20 * pout;
@@ -941,6 +942,65 @@ function cutaway(t, t0, shell, { t1 = Infinity, dx = 0, dy = -260, rot = -8, dur
   return G(`translate(${f(dx * p)} ${f(dy * p)}) rotate(${f(rot * p)} ${f(cx)} ${f(cy)})`, 1 - E.inCubic(p), shell);
 }
 
+// ---------- Paket D: hypermotion type, inversion flash, volume shading ----------
+
+// hype(text, t, t0, x, y, opts): kinetic title in the "hypermotion" style. It slams in skewed at t0 with a short
+// shake, sits on a 3D extrusion, and an outline echo pulses out once. *word* is highlighted, \n breaks lines.
+// Use it for the one or two words that must hit hardest (a number, a verdict). Headlines take {hype: true}.
+// opts: {size, tOut, skew, depth (extrusion steps), col (highlight), shake, maxW}
+function hype(text, t, t0, x, y, { size = 120, tOut = Infinity, skew = -9, depth = 7, col = C.yellow, shake = 0.4, maxW = 900 } = {}) {
+  const u = t - (t0 - 0.16);
+  if (u < 0 || t > tOut + 0.25) return '';
+  if (shake) impact(t, t0, shake);
+  const outline = TH.head.mode === 'outline', font = outline ? HEAD_FONT : TH.head.font, wt = outline ? 400 : TH.head.weight;
+  const lines = (TH.head.mode === 'news' ? text.toUpperCase() : text).split('\n'), plain = l => l.replace(/\*/g, '');
+  const widest = Math.max(...lines.map(l => measure(plain(l), size, wt, font)));
+  if (widest > maxW) size *= maxW / widest;
+  const out = P(t, tOut, 0.25), o = clamp(u / 0.06) * (1 - out);
+  const sc = (u < 0.16 ? 2.3 - 1.3 * E.inCubic(u / 0.16) : 1 - 0.05 * Math.exp(-9 * (u - 0.16)) * Math.sin(26 * (u - 0.16))) * (1 - 0.15 * out);
+  const echo = clamp((u - 0.16) / 0.45), lh = size * 1.05, y0 = -(lines.length - 1) * lh / 2;
+  const main = TH.head.mode === 'marker' ? C.ink : '#fff';
+  let s = '';
+  lines.forEach((l, i) => {
+    const base = `x="0" y="${f(y0 + i * lh)}" font-family="${font}" font-weight="${wt}" font-size="${f(size)}" text-anchor="middle" dominant-baseline="central"`;
+    for (let k = depth; k > 0; k--) s += `<text ${base} transform="translate(${f(k * size * 0.022)} ${f(k * size * 0.022)})" fill="${C.ink}" stroke="${C.ink}" stroke-width="${f(size * 0.12)}" stroke-linejoin="round">${esc(plain(l))}</text>`;
+    if (u > 0.16 && echo < 1) s += `<text ${base} transform="scale(${f(1.08 + 0.25 * echo)})" fill="none" stroke="${col}" stroke-width="${f(size * 0.035)}" opacity="${f(0.9 * (1 - echo))}">${esc(plain(l))}</text>`;
+    const spans = l.split(/(\*[^*]+\*)/).filter(Boolean).map(p => p.startsWith('*') ? `<tspan fill="${col}">${esc(p.slice(1, -1))}</tspan>` : esc(p)).join('');
+    s += `<text ${base} fill="${main}" stroke="${C.ink}" stroke-width="${f(size * 0.12)}" stroke-linejoin="round" paint-order="stroke">${spans}</text>`;
+  });
+  return `<g transform="translate(${f(x)} ${f(y)}) skewX(${f(skew)}) scale(${f(sc)})" opacity="${f(o)}">${s}</g>`;
+}
+
+// invertFlash(t, ts, dur): the whole frame flips to its negative for a couple of frames at ts (a hard accent;
+// once or twice per video at most). Returns '' so it can sit in a drawOverlay string.
+let FLASHES = [];
+function invertFlash(t, ts, dur = 0.07) {
+  if (t >= ts && t < ts + dur) FLASHES.push(ts);
+  return '';
+}
+
+// vol(d, fill, opts): a shape (SVG path d) drawn with volume in the theme's style. Light comes from the top
+// left. ink (paper): a cel shadow on the lower right, a highlight on the upper left, ink outline. soft
+// (newsprint): a round gradient and no outline. doodle (notebook): hatching in the shadow, pen outline.
+// opts: {depth (shadow width, world units), w (outline width), shine (highlight on/off)}
+let VOL_N = 0;
+const circleD = (cx, cy, r) => `M${f(cx - r)},${f(cy)} a${f(r)},${f(r)} 0 1 0 ${f(2 * r)},0 a${f(r)},${f(r)} 0 1 0 ${f(-2 * r)},0 Z`;
+const rectD = (x, y, w, h, r = 0) => r ? `M${f(x + r)},${f(y)} H${f(x + w - r)} A${f(r)},${f(r)} 0 0 1 ${f(x + w)},${f(y + r)} V${f(y + h - r)} A${f(r)},${f(r)} 0 0 1 ${f(x + w - r)},${f(y + h)} H${f(x + r)} A${f(r)},${f(r)} 0 0 1 ${f(x)},${f(y + h - r)} V${f(y + r)} A${f(r)},${f(r)} 0 0 1 ${f(x + r)},${f(y)} Z`
+  : `M${f(x)},${f(y)} H${f(x + w)} V${f(y + h)} H${f(x)} Z`;
+function vol(d, fill, { depth = 14, w = STROKE, shine = true } = {}) {
+  const id = `vol${VOL_N++}`, dark = mix(fill, C.ink, 0.3), light = mix(fill, '#fff', 0.5);
+  if (TH.fx === 'soft') {
+    return `<defs><radialGradient id="${id}" cx="36%" cy="30%" r="80%"><stop offset="0" stop-color="${light}"/>` +
+      `<stop offset="0.55" stop-color="${fill}"/><stop offset="1" stop-color="${dark}"/></radialGradient></defs><path d="${d}" fill="url(#${id})"/>`;
+  }
+  const clips = `<defs><clipPath id="${id}a"><path d="${d}"/></clipPath><clipPath id="${id}b"><path d="${d}" transform="translate(${-depth} ${-depth})"/></clipPath>` +
+    (TH.fx === 'doodle' ? `<pattern id="${id}h" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="${C.ink}" stroke-width="2.5" opacity="0.55"/></pattern>` : '') + `</defs>`;
+  const shadow = TH.fx === 'doodle' ? `<path d="${d}" fill="${fill}"/><path d="${d}" fill="url(#${id}h)"/>` : `<path d="${d}" fill="${dark}"/>`;
+  const lit = shine ? `<path d="${d}" fill="${light}"/><path d="${d}" transform="translate(${f(depth * 0.55)} ${f(depth * 0.55)})" fill="${fill}"/>` : `<path d="${d}" fill="${fill}"/>`;
+  return clips + `<g clip-path="url(#${id}a)">${shadow}<g clip-path="url(#${id}b)">${lit}</g></g>` +
+    `<path d="${d}" fill="none" ${stroke(TH.fx === 'doodle' ? w * 0.7 : w)}/>`;
+}
+
 // ---------- frame ----------
 let D = null;
 const TRANS = 0.45;
@@ -1002,9 +1062,10 @@ function renderAt(t) {
       worldG.setAttribute('filter', 'url(#wGrade)');
     }
 
-    IMPACTS = [];
+    IMPACTS = []; FLASHES = []; VOL_N = 0;
     const worldInner = drawWorld(t, cam);
     let overlayInner = typeof drawOverlay === 'function' ? drawOverlay(t, cam) : '';
+    const headSvg = headlines(t);  // before the shake below, so {hype: true} headlines can add an impact
 
     let shakeX = 0, shakeY = 0, zoomPunch = 1, flashOp = 0;
     for (const imp of IMPACTS) {
@@ -1025,7 +1086,7 @@ function renderAt(t) {
     if (flashOp > 0.005) {
       ui += `<rect width="1080" height="1920" fill="#fff" opacity="${f(flashOp)}"/>`;
     }
-    ui += overlayInner + headlines(t) + chapterBadges(t) + smallCaptions(t) + progressBar(t) + outroCard(t);
+    ui += overlayInner + headSvg + chapterBadges(t) + smallCaptions(t) + progressBar(t) + outroCard(t);
 
     if (D.watermark) {
       const [wf, ww] = TH.cap.mode === 'bar' ? ['Oswald', 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
@@ -1036,12 +1097,15 @@ function renderAt(t) {
   }
   document.getElementById('world').innerHTML = world;
   document.getElementById('ui').innerHTML = ui;
+  document.getElementById('v').style.filter = FLASHES.length ? 'invert(1) hue-rotate(180deg)' : '';
 }
 
 // a topic's drawThumbnail() returns the 1080x1920 picture: a string, or {world, ui} where ui sits
 // above the paper texture and vignette (use it for titles so they stay crisp)
 function renderThumbnail() {
   if (typeof drawThumbnail !== 'function') throw new Error('this topic has no drawThumbnail()');
+  VOL_N = 0;
+  document.getElementById('v').style.filter = '';
   const r = drawThumbnail();
   document.getElementById('world').innerHTML = typeof r === 'string' ? r : r.world;
   document.getElementById('ui').innerHTML = typeof r === 'string' ? '' : r.ui || '';
