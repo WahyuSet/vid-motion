@@ -1,0 +1,19 @@
+# manfaat-puasa — sources
+
+Topik: apa yang terjadi di dalam tubuh saat berpuasa (ganti bahan bakar / *metabolic switching* & daur ulang sel / *autofagi*). Format `mitos-fakta` (vonis atas klaim "puasa bikin tubuh kehabisan energi/mogok": MITOS).
+
+| klaim di naskah | bukti (kutipan / angka) | sumber |
+|---|---|---|
+| Tubuh tidak langsung kehabisan energi saat puasa; tubuh punya cadangan glikogen (gula simpanan di hati) dan lemak | "After hours without food, the body exhausts its sugar stores and starts burning fat. He refers to this as metabolic switching." | Johns Hopkins Medicine, *Intermittent Fasting: What is it, and how does it work?* (Mark Mattson, Ph.D.) |
+| Selama 8–12 jam pertama tanpa makan, tubuh memakai glukosa dan glikogen di hati; setelah ~12 jam, tubuh beralih membakar lemak menjadi keton untuk energi | "Glucose and fatty acids are the main sources of energy for cells. After meals, glucose is used for energy, and fat is stored in adipose tissue as triglycerides. During periods of fasting, triglycerides are broken down to fatty acids and glycerol, which are used for energy. The liver converts fatty acids to ketone bodies, which provide a major source of energy for many tissues, especially the brain, during fasting." · "In humans, ketone-body levels begin to rise within 8 to 12 hours after the onset of fasting..." | de Cabo R. & Mattson M.P. (2019), *Effects of Intermittent Fasting on Health, Aging, and Disease*, N Engl J Med 381:2541–2551; NIH / National Institute on Aging |
+| Saat puasa, kadar hormon insulin turun sehingga cadangan lemak lebih mudah dilepas dan dipakai sebagai energi | "The entire idea of IF is to allow the insulin levels to go down far enough and for long enough that we burn off our fat." | Harvard Health Publishing / Harvard T.H. Chan School of Public Health |
+| Saat puasa/kekurangan nutrisi, sel tubuh melakukan autofagi: membungkus dan mendaur ulang bagian sel yang rusak untuk pembaruan sel (temuan Yoshinori Ohsumi, Nobel Kedokteran 2016) | "The Nobel Prize in Physiology or Medicine 2016 was awarded to Yoshinori Ohsumi 'for his discoveries of mechanisms for autophagy.'" · "Autophagy can rapidly provide fuel for energy and building blocks for renewal of cellular components, and is therefore essential for the cellular response to starvation and other types of stress." | The Nobel Assembly at Karolinska Institutet, Press Release 2016-10-03 |
+| Saat waktu makan, tetap cukupi cairan (air putih) dan makan bergizi seimbang tanpa berlebihan | "When you do eat, make every calorie count" · menjaga hidrasi dengan air putih dan porsi makan seimbang (tidak makan berlebihan setelah puasa) | Johns Hopkins Medicine; Harvard T.H. Chan School of Public Health |
+| Penderita kondisi medis seperti diabetes, gangguan lambung kronis, ibu hamil/menyusui perlu berkonsultasi ke dokter sebelum berpuasa | "People with certain medical conditions, including diabetes... should consult with a physician before starting intermittent fasting." | Johns Hopkins Medicine; NIA / NIH |
+
+## URL
+- Johns Hopkins Medicine, *Intermittent Fasting: What is it, and how does it work?*: https://www.hopkinsmedicine.org/health/wellness-and-prevention/intermittent-fasting-what-is-it-and-how-does-it-work
+- de Cabo R. & Mattson M.P. (2019), *Effects of Intermittent Fasting on Health, Aging, and Disease*, New England Journal of Medicine 381:2541–2551: https://www.nejm.org/doi/full/10.1056/NEJMra1905136
+- NIH / National Institute on Aging, *Research on intermittent fasting shows health benefits*: https://www.nia.nih.gov/news/research-intermittent-fasting-shows-health-benefits
+- The Nobel Prize in Physiology or Medicine 2016 (Yoshinori Ohsumi — Autophagy): https://www.nobelprize.org/prizes/medicine/2016/press-release/
+- Harvard T.H. Chan School of Public Health, *Diet Review: Intermittent Fasting*: https://nutritionsource.hsph.harvard.edu/healthy-weight/diet-reviews/intermittent-fasting/

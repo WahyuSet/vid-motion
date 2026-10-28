@@ -20,6 +20,7 @@ agent tidak pernah melewatinya sendiri.
 | ketindihan | cicaktahu | Badan nggak bisa gerak, ada sosok di kamar? (ketindihan & pareidolia menurut sains) | kok-bisa | video | diminta langsung lewat chat sebagai tes, topik "hantu menurut sains" (lewat gerbang ide & naskah); menjelaskan pengalaman, tidak membahas keyakinan; 53.3s, suara Edge; narasi di output/ketindihan-narasi.txt; tunggu ditonton → siap-upload |
 | madu-awet | cicaktahu | Madu nggak pernah kedaluwarsa? | mitos-fakta | video | diminta langsung lewat chat sebagai tes (lewat gerbang ide & naskah); 44.5s, 60 fps, suara Cartesia (rekaman utuh, voice/full.wav); cerita makam Mesir dibuang (tak terverifikasi); tunggu ditonton → siap-upload |
 | cicak-nempel | cicaktahu | Kok cicak nggak jatuh dari langit-langit? | mitos-fakta | video | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); 58.0s (1740 frame); pakai lensa xray, kartu, stiker; tunggu ditonton → siap-upload |
+| manfaat-puasa | cicaktahu | Puasa bikin tubuh kehabisan energi? Masa sih? | mitos-fakta | video | 57.8s, 10 adegan; saklar metabolisme (gula hati → lemak/keton) & autofagi (Nobel 2016); siap ditonton pengguna → siap-upload |
 
 ## Usulan
 

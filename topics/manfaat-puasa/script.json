@@ -1,0 +1,18 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Puasa bikin tubuh *kehabisan* energi? Masa sih?"},
+    {"vo": "Banyak yang kira, kalau nggak makan seharian, badan langsung *mogok*."},
+    {"vo": "Faktanya, itu *mitos*! Tubuh kita punya tangki *cadangan*.", "hold": 0.4},
+    {"vo": "Delapan sampai *12 jam* pertama, tubuh memakai gula simpanan di *hati*."},
+    {"vo": "Saat gula habis, saklar tubuh *berpindah*: giliran *lemak* dibakar jadi energi!", "hold": 0.4},
+    {"vo": "Hormon *insulin* ikut turun, jadi cadangan lemak makin mudah *dipakai*.", "hold": 0.3},
+    {"vo": "Saat puasa, sel tubuh juga *beres-beres* mendaur ulang bagian yang *rusak*."},
+    {"vo": "Proses *autofagi* ini bahkan meraih hadiah *Nobel* tahun 2016!", "hold": 0.4},
+    {"vo": "Saat waktunya makan, cukupi *air putih* dan jangan makan *berlebihan*.", "hold": 0.3},
+    {"vo": "Jadi puasa itu ganti *bahan bakar*. Punya maag atau diabetes, tanya *dokter* dulu!"}
+  ]
+}
