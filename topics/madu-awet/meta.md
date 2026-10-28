@@ -1,4 +1,4 @@
-# Metadata — madu-awet
+# Metadata: madu-awet
 
 ## Judul (pilih satu)
 1. **Madu Nggak Pernah Kedaluwarsa? Ini Faktanya!** (44 karakter)
@@ -14,7 +14,7 @@ Sumber:
 - Mandal & Mandal (2011), Honey: its medicinal property and antibacterial activity, Asian Pac J Trop Biomed: https://pmc.ncbi.nlm.nih.gov/articles/PMC3609166
 - CDC, Botulism prevention: https://www.cdc.gov/botulism/prevention/index.html
 
-Informasi umum, bukan pengganti saran dokter. Fakta unik tiap hari dari Si Cicak — Cicak Tahu (@cicaktahu).
+Informasi umum, bukan pengganti saran dokter. Fakta unik tiap hari dari Si Cicak di Cicak Tahu (@cicaktahu).
 
 ## Tag
 #shorts #mitosataufakta #faktaunik #madu #sains #cicaktahu

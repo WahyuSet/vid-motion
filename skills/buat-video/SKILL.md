@@ -46,6 +46,9 @@ Retention rules (from reviewing finished videos):
 - **No stretch over ~6 s** without a camera move, a new element or a headline change; inside a long zoom or
   lens, give each stage a camera push or a pop. Keep dimming (`spotlight`) light (≤ 0.3) and short.
 - **Ending**: the mascot big and central for the last line; don't walk it off and leave an empty set.
+- **Vary the composition** from the channel's last three videos: not always the mascot standing on the left
+  with the subject in the middle and a card at the bottom. Try the mascot as the subject, a close-up opening,
+  a wide establishing shot, a top-down view, a split screen, the mascot entering from off-frame.
   The end card ("Thank you for watching!") is added by the engine after the last word.
 - Nothing important cut off by the frame edge (lamps, signs half outside look like mistakes).
 
@@ -78,7 +81,10 @@ If you cannot view images with your tools, stop after this step and ask the huma
 ## 5. Metadata (`topics/<id>/meta.md`)
 
 - **Judul:** 3 options, ≤ 60 characters, curiosity without lying, Indonesian. e.g. "Kenapa Burung Gak Kesetrum di Kabel Listrik?"
-- **Deskripsi:** 2–3 sentences of summary, then "Sumber:" with the URLs from `sources.md`, then every
+  No hype words (luar biasa, mengejutkan, wajib tahu), no ALL-CAPS words beyond one short accent, no emoji, no em dash.
+- **Deskripsi:** 2–3 sentences of summary that state what the video shows (the same anti-slop rules as the
+  script in `skills/tulis-naskah/SKILL.md`: no invented specifics, sources named, no filler or generic send-off),
+  then "Sumber:" with the URLs from `sources.md`, then every
   disclaimer the channel's `RULES.md` requires (finance: "Konten edukasi, bukan ajakan investasi…";
   health: "Informasi umum, bukan pengganti saran dokter.").
 - **Hashtag:** `#shorts` plus 3–4 specific ones (`#faktaunik`, `#mitosataufakta`, topic tags).

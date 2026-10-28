@@ -1,4 +1,4 @@
-# Metadata — ketindihan
+# Metadata: ketindihan
 
 ## Judul (pilih satu)
 1. **Ketindihan Itu Apa Sih? Ini Penjelasan Sains** (45 karakter)
@@ -16,7 +16,7 @@ Sumber:
 - Sharpless & Barber (2011), Lifetime prevalence rates of sleep paralysis, Sleep Medicine Reviews, doi:10.1016/j.smrv.2011.01.007
 - Wardle dkk. (2020), Rapid and dynamic processing of face pareidolia in the human brain, Nature Communications, doi:10.1038/s41467-020-18325-8
 
-Informasi umum, bukan pengganti saran dokter. Fakta unik tiap hari dari Si Cicak — Cicak Tahu (@cicaktahu).
+Informasi umum, bukan pengganti saran dokter. Fakta unik tiap hari dari Si Cicak di Cicak Tahu (@cicaktahu).
 
 ## Tag
 #shorts #faktaunik #ketindihan #sains #otak #cicaktahu
