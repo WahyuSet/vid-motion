@@ -13,6 +13,9 @@ or override per run with environment variables TTS_PROVIDER / TTS_VOICE.
   azure       Azure AI Speech, same neural voices, official   (AZURE_SPEECH_KEY, AZURE_SPEECH_REGION)
   elevenlabs  ElevenLabs, "name" is the voice id             (ELEVENLABS_API_KEY; optional "model")
   file        your own recordings: topics/<topic>/voice/scene1.wav (or .mp3/.m4a/...), aligned by Whisper
+              or ONE recording of the whole script, topics/<topic>/voice/full.wav (or .mp3/...): Whisper times
+              every word once and it is cut into lines in the pauses (split_full). A full recording is used
+              automatically, without setting the provider.
 """
 import asyncio
 import base64
@@ -20,6 +23,7 @@ import difflib
 import json
 import os
 import re
+import subprocess
 import urllib.request
 from pathlib import Path
 
@@ -48,8 +52,8 @@ def voice_for(i, text, cfg, cache_dir, topic_dir):
     if cfg["provider"] != "edge":  # keeps caches made before providers existed valid
         key["provider"] = cfg["provider"]
     if cfg["provider"] == "file":
-        src = recording(topic_dir, i)
-        key["source"] = [src.name, src.stat().st_size, src.stat().st_mtime_ns]
+        src = full_recording(topic_dir) or recording(topic_dir, i)
+        key["source"] = stamp(src)
     if meta.exists():
         m = json.loads(meta.read_text(encoding="utf-8"))
         audio = cache_dir / m.get("audio", f"scene{i + 1}.mp3")
@@ -150,6 +154,76 @@ def elevenlabs(text, cfg):
     return base64.b64decode(res["audio_base64"]), ".mp3", words
 
 
+def stamp(path):
+    return [path.name, path.stat().st_size, path.stat().st_mtime_ns]
+
+
+def full_recording(topic_dir):
+    """topics/<topic>/voice/full.* (one take of the whole script), or None."""
+    for ext in AUDIO_EXTS:
+        p = topic_dir / "voice" / f"full{ext}"
+        if p.exists():
+            return p
+    return None
+
+
+def split_full(texts, cfg, cache_dir, topic_dir):
+    """Cut one recording of the whole script into one clip per line, written to the voice cache exactly as if
+    every line had been recorded alone (sceneN.wav + sceneN.json). Whisper hears the take once; the script's
+    words get its times; each line is cut from just before its first word to the middle of the pause after it.
+    Skipped while the recording and the texts are unchanged."""
+    src = full_recording(topic_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    marker, want = cache_dir / "full.json", {"source": stamp(src), "texts": texts}
+    if marker.exists() and json.loads(marker.read_text(encoding="utf-8")) == want:
+        return
+    print(f"  aligning {src.name} with Whisper ...", flush=True)
+    words = align_to_script(" ".join(texts), whisper_words(src))
+    lines, k = [], 0
+    for text in texts:
+        n = len(text.split())
+        lines.append(words[k: k + n])
+        k += n
+    # Whisper's edges are loose (a line's first word often swallows the silence before it), so each line's
+    # first word starts where the sound really starts, and its last word ends where the sound really stops
+    import numpy as np
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(src), "-f", "f32le", "-ac", "1", "-ar", "16000", "-"],
+                         capture_output=True, check=True).stdout
+    hop = 160  # 10 ms steps at 16 kHz
+    x = np.frombuffer(raw, np.float32)
+    env = np.abs(x[: len(x) // hop * hop]).reshape(-1, hop).max(axis=1)
+    loud = env > 0.06 * env.max()
+    for i, ws in enumerate(lines):
+        lo = int(max(0.0, ws[0]["t"] - 0.6) * 100)
+        if i:
+            lo = max(lo, int((lines[i - 1][-1]["t"] + lines[i - 1][-1]["d"]) * 100))
+        hit = np.flatnonzero(loud[lo: int((ws[0]["t"] + ws[0]["d"]) * 100) + 1])
+        if hit.size:
+            on = (lo + hit[0]) / 100
+            ws[0]["d"] = max(0.05, ws[0]["t"] + ws[0]["d"] - on)
+            ws[0]["t"] = on
+        end = ws[-1]["t"] + ws[-1]["d"]
+        hi = int(min((lines[i + 1][0]["t"] if i + 1 < len(lines) else end + 0.8), end + 0.8) * 100)
+        lo2 = int(max(ws[-1]["t"], end - 0.4) * 100)
+        hit = np.flatnonzero(loud[lo2: hi])
+        if hit.size:
+            ws[-1]["d"] = max(0.05, (lo2 + hit[-1] + 1) / 100 - ws[-1]["t"])
+    ends = [w[-1]["t"] + w[-1]["d"] for w in lines]
+    for i, (text, ws) in enumerate(zip(texts, lines)):
+        a = max(0.0, ws[0]["t"] - 0.06)
+        b = (ends[i] + lines[i + 1][0]["t"]) / 2 if i + 1 < len(lines) else ends[i] + 0.5
+        if i:
+            a = max(a, (ends[i - 1] + ws[0]["t"]) / 2)
+        clip = cache_dir / f"scene{i + 1}.wav"
+        subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{a:.3f}", "-to", f"{b:.3f}", "-i", str(src),
+                        "-ac", "1", "-ar", "48000", str(clip)], check=True)
+        key = {"text": text, "voice": cfg["name"], "rate": cfg["rate"], "provider": "file", "source": stamp(src)}
+        local = [{**w, "t": round(w["t"] - a, 3)} for w in ws]
+        (cache_dir / f"scene{i + 1}.json").write_text(
+            json.dumps({**key, "audio": clip.name, "start": round(a, 3), "words": local}, ensure_ascii=False, indent=1), encoding="utf-8")
+    marker.write_text(json.dumps(want, ensure_ascii=False), encoding="utf-8")
+
+
 def recording(topic_dir, i):
     folder = topic_dir / "voice"
     for ext in AUDIO_EXTS:
@@ -174,28 +248,46 @@ def whisper_words(audio):
 
 
 def align_to_script(text, heard):
-    """Give every word of the script a time, taken from what Whisper heard.
-    Words Whisper got wrong (or wrote differently, e.g. numbers) are interpolated from their neighbours."""
+    """Give every word of the script a time, taken from what Whisper heard. Matched letter by letter, so words
+    Whisper spelled differently, glued together or split ("kedaluarsah", "Masasih", "pelan -pelan") still get
+    their own times; words with no matching letters at all (often numbers) are interpolated from neighbours."""
     tokens = text.split()
-    a, b = [norm(t) for t in tokens], [norm(h["w"]) for h in heard]
-    times = [None] * len(tokens)
+    # one entry per letter: which script word it belongs to / the time Whisper heard it at
+    a_word = [i for i, tok in enumerate(tokens) for _ in norm(tok)]
+    a = "".join(norm(tok) for tok in tokens)
+    b, b_time = "", []
+    for h in heard:
+        letters = norm(h["w"])
+        for k, ch in enumerate(letters):
+            b += ch
+            b_time.append(h["t"] + h["d"] * k / max(1, len(letters)))
+        if letters:
+            b_time[-1] = (b_time[-1], h["t"] + h["d"])  # the last letter also carries the word's end
+    first, last = [None] * len(tokens), [None] * len(tokens)
     for blk in difflib.SequenceMatcher(None, a, b, autojunk=False).get_matching_blocks():
         for k in range(blk.size):
-            times[blk.a + k] = (heard[blk.b + k]["t"], heard[blk.b + k]["d"])
-    known = [i for i, x in enumerate(times) if x]
+            i, bt = a_word[blk.a + k], b_time[blk.b + k]
+            t0, t1 = bt if isinstance(bt, tuple) else (bt, bt)
+            first[i] = t0 if first[i] is None else min(first[i], t0)
+            last[i] = t1 if last[i] is None else max(last[i], t1)
+    known = [i for i in range(len(tokens)) if first[i] is not None]
     if not known:
         raise SystemExit("Whisper could not match the recording to the script text")
-    for i in range(len(tokens)):
+    times = [(first[i], max(0.05, last[i] - first[i])) if first[i] is not None else None for i in range(len(tokens))]
+    i = 0
+    while i < len(tokens):  # runs of unmatched words share the gap between their neighbours by length
         if times[i]:
+            i += 1
             continue
-        prev = max((k for k in known if k < i), default=None)
-        nxt = min((k for k in known if k > i), default=None)
-        if prev is None:
-            t = times[nxt][0] - 0.3 * (nxt - i)
-        elif nxt is None:
-            t = sum(times[prev]) + 0.3 * (i - prev - 1)
-        else:
-            t0, t1 = sum(times[prev]), times[nxt][0]
-            t = t0 + (t1 - t0) * (i - prev) / (nxt - prev)
-        times[i] = (max(0.0, t), 0.25)
+        j = i
+        while j < len(tokens) and not times[j]:
+            j += 1
+        weights = [max(1, len(norm(tokens[k]))) for k in range(i, j)]
+        t0 = sum(times[i - 1]) if i else max(0.0, times[j][0] - 0.3 * sum(weights) / 5)
+        t1 = times[j][0] if j < len(tokens) else t0 + 0.3 * sum(weights) / 5
+        span, acc = max(0.05, t1 - t0), 0
+        for k, wt in zip(range(i, j), weights):
+            times[k] = (t0 + span * acc / sum(weights), span * wt / sum(weights))
+            acc += wt
+        i = j
     return [{"w": re.sub(r"[,.:;?!]+$", "", tok), "t": t, "d": d} for tok, (t, d) in zip(tokens, times)]

@@ -70,6 +70,7 @@ Diatur di `script.json` (`"voice"`) atau lewat environment variable:
 | `azure` | Resmi Microsoft, suara sama. `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`, paket `requirements-extra.txt`. |
 | `elevenlabs` | Suara paling natural. `ELEVENLABS_API_KEY`, isi `"name"` dengan voice id. |
 | `file` | Rekaman suara sendiri di `topics/<topik>/voice/scene1.wav`, dst. Waktu tiap kata dicari otomatis dengan Whisper. |
+| rekaman utuh | Satu file berisi seluruh naskah di `topics/<topik>/voice/full.mp3` (dari ElevenLabs, rekaman sendiri, dsb.). Otomatis dipakai, dicocokkan dengan Whisper, lalu dipotong per baris. Isi suara harus sama dengan `script.json`. Butuh `pip install faster-whisper`. |
 
 Contoh: `TTS_PROVIDER=azure python build_video.py burung-listrik`
 

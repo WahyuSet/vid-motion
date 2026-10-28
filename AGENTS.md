@@ -297,10 +297,13 @@ function cues(D) { return []; }
 | `azure` | `pip install -r requirements-extra.txt`, `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | from the service |
 | `elevenlabs` | `ELEVENLABS_API_KEY`, `"name"` = voice id | from the service |
 | `file` | recordings `topics/<topic>/voice/scene1.wav`…, `faster-whisper` | Whisper, matched to the script |
+| one take | `topics/<topic>/voice/full.mp3` (or `.wav`, `.m4a`…): the whole script in one recording, made anywhere (ElevenLabs, a studio, your phone); `faster-whisper` | Whisper once, matched letter by letter to the script, cut into lines in the pauses; used automatically when the file exists |
 
 Whisper model: `WHISPER_MODEL` (default `small`), language `WHISPER_LANG` (default `id`),
 device `WHISPER_DEVICE` (default `cpu`; `cuda` needs the CUDA 12 libraries).
 The voice cache in `build/<topic>/tts/` is reused until the text or voice settings change.
+For a one-take recording the narration must say exactly what `script.json` says (captions come from the script);
+the pause between lines becomes the usual 0.35 s plus `hold`. Never put recordings in `build/` (it is regenerated).
 
 ## Troubleshooting
 

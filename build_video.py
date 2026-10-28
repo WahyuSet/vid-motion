@@ -240,6 +240,10 @@ def synth_sfx(kind):
 def timeline(script, topic_dir):
     SCENES = script["scenes"]
     voice = tts.voice_config(script)
+    if tts.full_recording(topic_dir) and not os.environ.get("TTS_PROVIDER"):
+        # one take of the whole script in topics/<topic>/voice/full.*: cut it into lines first
+        voice["provider"] = "file"
+        tts.split_full([sc["vo"].replace("*", "") for sc in SCENES], voice, BUILD / "tts", topic_dir)
     channel = load_channel(script.get("channel", DEFAULT_CHANNEL))
     t = LEAD_IN
     clips = []
