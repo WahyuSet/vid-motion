@@ -8,7 +8,7 @@
 // Objects:  bulb, coin, banknote, phone, glass, box, plate, riceBowl, pot, stove, bottle, fan, wallClock, windowFrame, umbrella
 // Shared:   jar, wallCalendar, bedSide, socket, germ
 // Money:    wallet, piggyBank, calculator, chart, building, docPaper, newsMic
-// Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump
+// Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump, atmCard, goldBar, safeBox
 // Body:     heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush (schematic only)
 
 const tone = (col, k) => k > 0 ? mix(col, '#FFFFFF', k) : mix(col, C.ink, -k);
@@ -975,5 +975,46 @@ function fuelPump(x, y, s = 1, { fuel = 'BENSIN', price = 'Rp10.000/L', col = C.
   for (let k = 0; k < 3; k++) g += detail(`M-50,${-136 + k * 20} L50,${-136 + k * 20}`, '#5A6170', 3);
   g += detail('M100,-150 C150,-120 150,-40 112,-40', '#2B2F3F', 12);
   g += vol('M96,-60 L126,-66 L132,-34 L104,-28 Z', col, { depth: 4, w: 4 }) + detail('M112,-28 L106,-6', '#6B7078', 8);
+  return G(T(x, y, s), 1, g);
+}
+
+// atmCard(x, y, s, opts): a generic bank card centred on (x, y) with a chip and contactless waves;
+// no bank name or card network logo
+function atmCard(x, y, s = 1, { col = '#2F5E9E', digits = '1234', rot = -8 } = {}) {
+  let g = shadow(0, 124, 170, 0.14) + vol(rectD(-170, -107, 340, 214, 18), col, { depth: 8, w: 5, rot });
+  g += `<path d="M-170,40 C-60,0 60,90 170,20 L170,89 Q170,107 152,107 L-152,107 Q-170,107 -170,89 Z" fill="${tone(col, 0.18)}" opacity="0.6"/>`;
+  g += vol(rectD(-136, -58, 58, 44, 8), '#E8C55A', { depth: 3, w: 3 }) + detail('M-136,-36 L-78,-36 M-107,-58 L-107,-14 M-122,-58 L-122,-36 M-92,-36 L-92,-14', tone('#E8C55A', -0.35), 2.5);
+  for (let k = 0; k < 3; k++) g += detail(`M${-54 + k * 12},-52 q10,16 0,32`, '#FFFFFF', 4, 0.85);
+  const num = `•••• •••• •••• ${digits}`;
+  g += bodyText(num, -136, 30, fitSize(num, 28, 270), '#FFFFFF', 'start') + `<rect x="-136" y="62" width="120" height="10" rx="5" fill="#FFFFFF" opacity="0.6"/>`;
+  return G(T(x, y, s, rot), 1, g);
+}
+
+// goldBar(x, y, s, opts): gold bullion standing on (x, y), seen a little from above; n 1 or 3 (a stack of 2 + 1)
+function goldBar(x, y, s = 1, { n = 1, label = 'EMAS' } = {}) {
+  const gold = '#E8B93A', bar = (bx, by) => G(T(bx, by), 1,
+    vol('M-110,0 L110,0 L90,-60 L-90,-60 Z', gold, { depth: 6, w: 5 }) + vol('M-90,-60 L90,-60 L70,-90 L-70,-90 Z', tone(gold, 0.3), { depth: 3, w: 5 }) +
+    bodyText(label, 0, -75, fitSize(label, 22, 110), tone(gold, -0.5), 'middle') + detail('M-70,-14 L60,-14', tone(gold, 0.5), 4, 0.7));
+  let g = shadow(0, 2, n === 3 ? 230 : 120, 0.15);
+  g += n === 3 ? bar(-105, 0) + bar(105, 0) + bar(0, -90) : bar(0, 0);
+  return G(T(x, y, s), 1, g);
+}
+
+// safeBox(x, y, s, opts): a safe standing on (x, y) with a combination dial; open 0..1 swings the door
+// out on its left hinge. inside: SVG drawn with (0, 0) on the floor of the open safe
+function safeBox(x, y, s = 1, { open = 0, col = '#5A6170', inside = '' } = {}) {
+  const o = clamp(open), c = Math.cos(o * 100 * Math.PI / 180);
+  let g = shadow(0, 2, 170, 0.16);
+  g += vol(rectD(-130, -22, 40, 22, 4), tone(col, -0.3), { depth: 3, w: 4 }) + vol(rectD(90, -22, 40, 22, 4), tone(col, -0.3), { depth: 3, w: 4 });
+  g += vol(rectD(-150, -320, 300, 300, 18), col, { depth: 14 });
+  const room = o > 0.01 ? vol(rectD(-122, -292, 244, 244, 10), '#2B2F3F', { depth: 4, w: 4, shine: false }) + detail('M-122,-170 L122,-170', '#3A3F4E', 4) : '';
+  const stuff = o > 0.01 && inside ? G(T(0, -60), 1, inside) : '';
+  let door = vol(rectD(-150, -320, 300, 300, 18), tone(col, 0.08), { depth: 10 });
+  door += `<rect x="-128" y="-298" width="256" height="256" rx="10" fill="none" stroke="${tone(col, -0.25)}" stroke-width="4"/>`;
+  door += vol(circleD(10, -170, 46), '#C9CCD2', { depth: 6, w: 5 }) + vol(circleD(10, -170, 14), tone(col, -0.2), { depth: 3, w: 3 });
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; door += detail(`M${f(10 + 36 * Math.cos(a))},${f(-170 + 36 * Math.sin(a))} L${f(10 + 42 * Math.cos(a))},${f(-170 + 42 * Math.sin(a))}`, '#6B7078', 2.5); }
+  door += vol(rectD(84, -222, 22, 104, 10), '#C9CCD2', { depth: 4, w: 4 });
+  door = G(`translate(-150 0) scale(${f(c)} 1) translate(150 0)`, 1, door);
+  g += o < 0.5 ? room + stuff + door : room + door + stuff;
   return G(T(x, y, s), 1, g);
 }

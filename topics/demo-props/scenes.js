@@ -11,6 +11,7 @@ function setup(D) {
     s3: s[2].start,
     s4: s[2].start + (s[2].end - s[2].start) * 0.58,
     s5: s[3].start, s6: s[4].start, s7: s[5].start, s8: s[6].start,
+    v9: s[6].start + (s[6].end - s[6].start) * 0.55,
   };
   setCamera([
     { x: 0, y: 0, z: 1 },
@@ -21,6 +22,7 @@ function setup(D) {
     { at: K.s6, dur: 0.9, x: 0, y: -9500, z: 1 },
     { at: K.s7, dur: 0.9, x: 0, y: -11400, z: 1 },
     { at: K.s8, dur: 0.9, x: 0, y: -13300, z: 1 },
+    { at: K.v9, dur: 0.9, x: 0, y: -15200, z: 1 },
   ]);
   setHeadlines([
     { at: 0.2, end: K.s2 - 0.1, text: 'PUSTAKA\n*ALAM*' },
@@ -30,12 +32,13 @@ function setup(D) {
     { at: K.s5 + 0.3, end: K.s6 - 0.1, text: 'DARI\n*TOPIK LAMA*' },
     { at: K.s6 + 0.3, end: K.s7 - 0.1, text: 'UANG &\n*BERITA*' },
     { at: K.s7 + 0.3, end: K.s8 - 0.1, text: 'TUBUH &\n*KESEHATAN*' },
-    { at: K.s8 + 0.3, end: D.total, text: 'SI TIKUS\n*UANG*' },
+    { at: K.s8 + 0.3, end: K.v9 - 0.1, text: 'SI TIKUS\n*UANG*' },
+    { at: K.v9 + 0.25, end: D.total, text: 'SI TIKUS\n*EKONOMI*' },
   ]);
   setChapters([]);
 }
 
-function cues(D) { return [[K.s2, 'whoosh'], [K.s3, 'whoosh'], [K.s4, 'whoosh'], [K.s5, 'whoosh'], [K.s6, 'whoosh'], [K.s7, 'whoosh'], [K.s8, 'whoosh']]; }
+function cues(D) { return [[K.s2, 'whoosh'], [K.s3, 'whoosh'], [K.s4, 'whoosh'], [K.s5, 'whoosh'], [K.s6, 'whoosh'], [K.s7, 'whoosh'], [K.s8, 'whoosh'], [K.v9, 'whoosh']]; }
 
 function phoneScreen() {  // a little chat on the phone's screen
   return `<rect x="0" y="0" width="200" height="40" fill="${C.cool}"/>` + txt('Si Cicak', 100, 22, 18, '#fff', 900) +
@@ -44,7 +47,7 @@ function phoneScreen() {  // a little chat on the phone's screen
 }
 
 function drawWorld(t) {
-  let s = `<rect x="-2000" y="-15200" width="4000" height="16400" fill="${C.bg}"/>`;
+  let s = `<rect x="-2000" y="-17100" width="4000" height="18300" fill="${C.bg}"/>`;
   // view 1: nature
   s += leaf(-430, -300, 260, -18) + leaf(-420, -290, 180, -60, { col: '#8CC152' });
   s += ground(-700, 700, 340, 400, t);
@@ -91,5 +94,9 @@ function drawWorld(t) {
   s += woodPlank(-520, -13300, 1040, 44);
   s += savingsBook(-360, -13020, 0.6) + priceLabel(-60, -13010, 0.75, { label: 'Rp12.500' }) + fuelPump(330, -12880, 0.55, { t });
   s += woodPlank(-520, -12880, 1040, 44);
+  // view 9: Si Tikus, economy (atmCard, goldBar, safeBox)
+  s += atmCard(330, -15420, 0.6) + goldBar(30, -15200, 0.55, { n: 3 });
+  s += safeBox(-300, -15200, 0.6, { open: P(t, K.v9 + 0.8, 0.8, E.outCubic), inside: savingsBook(0, -70, 0.45, { rot: 0 }) });
+  s += woodPlank(-520, -15200, 1040, 44);
   return s;
 }

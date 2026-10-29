@@ -30,6 +30,9 @@ CASES = {
                    "checkBoard(0, 0, 1, { rows: Array.from({ length: 6 }, (_, i) => ({ text: 'BARIS ' + i })) })"],
     "priceLabel": ["priceLabel(0, 0, 1)", "priceLabel(0, 0, 1, { label: 'Rp1.250.000' })"],
     "fuelPump": ["fuelPump(0, 0, 1)", "fuelPump(0, 0, 1, { fuel: 'SOLAR', price: 'Rp6.800/L', t: 3 })"],
+    "atmCard": ["atmCard(0, 0, 1)", "atmCard(0, 0, 1, { col: '#8A5A36', digits: '9876', rot: 0 })"],
+    "goldBar": ["goldBar(0, 0, 1)", "goldBar(0, 0, 1, { n: 3 })"],
+    "safeBox": ["safeBox(0, 0, 1)", "safeBox(0, 0, 1, { open: 0.7, inside: goldBar(0, 0, 0.5) })", "safeBox(0, 0, 1, { open: 2 })"],
 }
 
 # extra substrings a case must contain
