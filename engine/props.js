@@ -884,8 +884,12 @@ function toothbrush(x, y, s = 1, { col = '#5FB3E0', rot = -10, paste = true } = 
 
 // ---------- batch C: Si Tikus (finance, economy, news); generic, never a real bank, brand, media or party ----------
 
-// fitSize(s, size, maxW): the font size (at most size) at which s fits maxW in the theme's body font
-const fitSize = (s, size, maxW) => { const [font, w] = bodyFont(); return Math.min(size, size * maxW / Math.max(1, measure(String(s), size, w, font))); };
+// fitSize(s, size, maxW, spacing): the font size (at most size) at which s fits maxW in the theme's body font,
+// counting letter-spacing (px per character) too
+const fitSize = (s, size, maxW, spacing = 0) => {
+  const [font, w] = bodyFont(), str = String(s), n = [...str].length;
+  return Math.min(size, size * (maxW - spacing * n) / Math.max(1, measure(str, size, w, font)));
+};
 
 // savingsBook(x, y, s, opts): a bank savings book centred on (x, y), with a darker spine and a gold "Rp" seal
 function savingsBook(x, y, s = 1, { title = 'TABUNGAN', col = '#2F5E9E', rot = -6 } = {}) {
@@ -893,7 +897,7 @@ function savingsBook(x, y, s = 1, { title = 'TABUNGAN', col = '#2F5E9E', rot = -
   g += vol(rectD(-95, -125, 190, 250, 10), col, { depth: 10, w: 5, rot });
   g += `<rect x="-95" y="-125" width="22" height="250" fill="${tone(col, -0.3)}"/>`;
   g += vol(circleD(10, -50, 30), '#E8C55A', { depth: 4, w: 4 }) + bodyText('Rp', 10, -50, 26, tone('#E8C55A', -0.6), 'middle');
-  g += bodyText('BUKU', 10, 20, 38, '#FFFFFF', 'middle') + bodyText(title, 10, 62, fitSize(title, 30, 150), '#FFFFFF', 'middle');
+  g += bodyText('BUKU', 10, 20, 38, '#FFFFFF', 'middle') + bodyText(String(title), 10, 62, fitSize(title, 30, 150), '#FFFFFF', 'middle');
   return G(T(x, y, s, rot), 1, g);
 }
 
@@ -902,7 +906,7 @@ const SHIELD_D = 'M0,-115 C55,-92 85,-100 100,-102 L100,8 C100,70 52,104 0,122 C
 function shieldBadge(x, y, s = 1, { label = 'AMAN', col = C.cool } = {}) {
   let g = vol(SHIELD_D, col, { depth: 12, w: 5 });
   g += `<path d="${SHIELD_D}" transform="scale(0.82)" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.8"/>`;
-  return G(T(x, y, s), 1, g + bodyText(label, 0, 2, fitSize(label, 86, 150), '#FFFFFF', 'middle'));
+  return G(T(x, y, s), 1, g + bodyText(String(label), 0, 2, fitSize(label, 86, 150), '#FFFFFF', 'middle'));
 }
 
 // hangSign(x, y, s, opts): a sign hanging on two strings from a hook at (x, y); from t0 it swings and settles
@@ -911,7 +915,7 @@ function hangSign(x, y, s = 1, { label = 'TUTUP', col = C.accent, t = 0, t0 = nu
   let g = detail('M-60,0 L-120,72 M60,0 L120,72', '#6B7078', 5);
   g += vol(circleD(-60, 0, 8), '#8A8E96', { depth: 2, w: 3 }) + vol(circleD(60, 0, 8), '#8A8E96', { depth: 2, w: 3 });
   g += vol(rectD(-180, 72, 360, 130, 10), col, { depth: 10, w: 5 }) + `<rect x="-166" y="86" width="332" height="102" fill="none" stroke="#FFFFFF" stroke-width="4"/>`;
-  g += bodyText(label, 0, 137, fitSize(label, 84, 260), '#FFFFFF', 'middle', null, 'letter-spacing="8"');
+  g += bodyText(String(label), 0, 137, fitSize(label, 84, 300, 8), '#FFFFFF', 'middle', null, 'letter-spacing="8"');
   return G(`translate(${f(x)} ${f(y)}) rotate(${f(sw)}) scale(${f(s)})`, 1, g);
 }
 
@@ -922,14 +926,14 @@ function levelGauge(x, y, s = 1, { level = 0.5, limit = null, label = '', value 
   const heat = limit == null ? 0 : clamp((lv - limit) / 0.15), liq = mix(col, hot, heat);
   let g = shadow(0, 2, 140, 0.15);
   g += vol(rectD(-110, -80, 220, 80, 12), '#3A3F4E', { depth: 8, w: 5 });
-  if (label) g += bodyText(label, 0, -40, fitSize(label, 34, 190), '#FFFFFF', 'middle');
+  if (label) g += bodyText(String(label), 0, -40, fitSize(label, 34, 190), '#FFFFFF', 'middle');
   g += vol(rectD(-52, -642, 104, 566, 52), '#FFFFFF', { depth: 8, w: 5 });
   g += `<defs><clipPath id="${id}"><path d="${rectD(-40, -630, 80, H, 40)}"/></clipPath></defs>`;
   if (lv > 0.01) g += `<g clip-path="url(#${id})"><rect x="-40" y="${f(yl)}" width="80" height="${f(bot - yl)}" fill="${liq}"/>` +
     `<path d="M-40,${f(yl)} q20,${f(-6 * Math.sin(t * 5))} 40,0 t40,0 L40,${f(yl + 8)} L-40,${f(yl + 8)} Z" fill="${mix(liq, '#FFFFFF', 0.35)}"/>` +
     `<rect x="-28" y="${f(yl + 12)}" width="10" height="${f(Math.max(0, bot - yl - 24))}" rx="5" fill="#FFFFFF" opacity="0.3"/></g>`;
   for (let k = 1; k < 8; k++) g += detail(`M22,${f(bot - H * k / 8)} L40,${f(bot - H * k / 8)}`, '#8A8E96', 3, 0.7);
-  if (value && lv > 0.15) g += bodyText(value, 0, Math.min(bot - 30, yl + 34), fitSize(value, 30, 74), '#FFFFFF', 'middle');
+  if (value && lv > 0.15) g += bodyText(String(value), 0, Math.min(bot - 30, yl + 34), fitSize(value, 30, 74), '#FFFFFF', 'middle');
   if (limit != null) g += `<path d="M-78,${f(bot - clamp(limit) * H)} L78,${f(bot - clamp(limit) * H)}" fill="none" stroke="${C.accent}" stroke-width="7" stroke-linecap="round" stroke-dasharray="16 10"/>`;
   return G(T(x, y, s), 1, g);
 }
@@ -940,14 +944,14 @@ function checkBoard(x, y, s = 1, { title = 'SYARAT', rows = [], active = -1 } = 
   const rs = rows.slice(0, 4), top = -730, rh = 544 / Math.max(1, rs.length), k = Math.min(1, rh / 180);
   let g = shadow(0, 2, 340, 0.16) + detail('M-220,-100 L-240,0 M220,-100 L240,0', '#7C6A55', 14);
   g += vol(rectD(-310, top, 620, 640, 14), '#FFFFFF', { depth: 10, w: 5 });
-  g += `<rect x="-310" y="${top}" width="620" height="96" fill="${C.accent}"/>` + bodyText(title, 0, top + 50, fitSize(title, 62, 520), '#FFFFFF', 'middle', null, 'letter-spacing="4"');
+  g += `<rect x="-310" y="${top}" width="620" height="96" fill="${C.accent}"/>` + bodyText(String(title), 0, top + 50, fitSize(title, 62, 520, 4), '#FFFFFF', 'middle', null, 'letter-spacing="4"');
   rs.forEach((r, i) => {
     const cy = top + 96 + rh * (i + 0.5), c = clamp(r.check || 0);
     if (i === active) g += `<rect x="-294" y="${f(cy - rh / 2 + 8)}" width="588" height="${f(rh - 16)}" fill="${C.yellow}" opacity="0.45"/>`;
     if (i) g += detail(`M-280,${f(cy - rh / 2)} L280,${f(cy - rh / 2)}`, C.line, 3);
     if (r.icon) g += G(T(-195, cy, k), 1, r.icon);
-    g += bodyText(r.text || '', -125, cy - (r.sub ? 18 : 0) * k, fitSize(r.text || '', 44 * k, 400), C.ink, 'start');
-    if (r.sub) g += bodyText(r.sub, -125, cy + 32 * k, fitSize(r.sub, 30 * k, 400), C.muted, 'start');
+    g += bodyText(String(r.text ?? ''), -125, cy - (r.sub ? 18 : 0) * k, fitSize(String(r.text ?? ''), 44 * k, 400), C.ink, 'start');
+    if (r.sub) g += bodyText(String(r.sub), -125, cy + 32 * k, fitSize(r.sub, 30 * k, 400), C.muted, 'start');
     if (c > 0) g += G(T(-234, cy + 44 * k, k), 1, vol(circleD(0, 0, 28), C.leaf, { depth: 5, w: 4 }) +
       `<path d="M-13,1 L-4,11 L14,-10" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="44" stroke-dashoffset="${f(44 * (1 - c))}"/>`);
   });
@@ -959,7 +963,7 @@ function priceLabel(x, y, s = 1, { label = 'Rp10.000', col = '#FFFFFF', rot = -6
   let g = shadow(0, 86, 120, 0.12) + detail('M-92,0 C-130,-40 -150,-90 -120,-130', '#8A8E96', 4);
   g += vol('M-120,-60 L80,-60 L130,0 L80,60 L-120,60 Z', col, { depth: 8, w: 5, rot });
   g += `<circle cx="-92" cy="0" r="12" fill="${C.bg}" stroke="${tone(col, -0.35)}" stroke-width="3"/>`;
-  return G(T(x, y, s, rot), 1, g + bodyText(label, 18, 4, fitSize(label, 64, 160), C.ink, 'middle'));
+  return G(T(x, y, s, rot), 1, g + bodyText(String(label), 18, 4, fitSize(label, 64, 160), C.ink, 'middle'));
 }
 
 // fuelPump(x, y, s, opts): a generic fuel dispenser standing on (x, y) with a display, hose and nozzle;
@@ -970,7 +974,7 @@ function fuelPump(x, y, s = 1, { fuel = 'BENSIN', price = 'Rp10.000/L', col = C.
   g += vol(rectD(-100, -340, 200, 310, 20), '#F1F1EE', { depth: 12 });
   g += vol('M-100,-294 L-100,-320 Q-100,-340 -80,-340 L80,-340 Q100,-340 100,-320 L100,-294 Z', col, { depth: 5, w: 5 }) + bodyText('SPBU', 0, -317, 28, '#FFFFFF', 'middle');
   g += vol(rectD(-80, -276, 160, 92, 10), '#18223A', { depth: 4, w: 4, shine: false });
-  g += bodyText(fuel, 0, -250, fitSize(fuel, 24, 140), '#F5D04C', 'middle') + bodyText(price, 0, -212, fitSize(price, 22, 140), '#8CD19D', 'middle');
+  g += bodyText(String(fuel), 0, -250, fitSize(fuel, 24, 140), '#F5D04C', 'middle') + bodyText(String(price), 0, -212, fitSize(price, 22, 140), '#8CD19D', 'middle');
   g += `<circle cx="66" cy="-268" r="5" fill="${Math.floor(t * 2) % 2 ? '#8CD19D' : '#3A4A3E'}"/>`;
   g += vol(rectD(-70, -160, 140, 90, 12), '#3A3F4E', { depth: 6, w: 5 });
   for (let k = 0; k < 3; k++) g += detail(`M-50,${-136 + k * 20} L50,${-136 + k * 20}`, '#5A6170', 3);
@@ -995,7 +999,7 @@ function atmCard(x, y, s = 1, { col = '#2F5E9E', digits = '1234', rot = -8 } = {
 function goldBar(x, y, s = 1, { n = 1, label = 'EMAS' } = {}) {
   const gold = '#E8B93A', bar = (bx, by) => G(T(bx, by), 1,
     vol('M-110,0 L110,0 L90,-60 L-90,-60 Z', gold, { depth: 6, w: 5 }) + vol('M-90,-60 L90,-60 L70,-90 L-70,-90 Z', tone(gold, 0.3), { depth: 3, w: 5 }) +
-    bodyText(label, 0, -75, fitSize(label, 22, 110), tone(gold, -0.5), 'middle') + detail('M-70,-14 L60,-14', tone(gold, 0.5), 4, 0.7));
+    bodyText(String(label), 0, -75, fitSize(label, 22, 110), tone(gold, -0.5), 'middle') + detail('M-70,-14 L60,-14', tone(gold, 0.5), 4, 0.7));
   let g = shadow(0, 2, n === 3 ? 230 : 120, 0.15);
   g += n === 3 ? bar(-105, 0) + bar(105, 0) + bar(0, -90) : bar(0, 0);
   return G(T(x, y, s), 1, g);
@@ -1051,7 +1055,7 @@ function oilBarrel(x, y, s = 1, { col = '#2F5E9E', label = 'MINYAK' } = {}) {
   g += vol(rectD(-110, -300, 220, 300, 18), col, { depth: 12 });
   [-210, -90].forEach(ry => g += detail(`M-108,${ry} L108,${ry}`, tone(col, -0.3), 6) + detail(`M-108,${ry + 8} L108,${ry + 8}`, tone(col, 0.3), 3, 0.7));
   g += vol(rectD(-116, -310, 232, 18, 8), tone(col, -0.15), { depth: 3, w: 4 }) + vol(rectD(40, -326, 30, 16, 4), '#8A8E96', { depth: 2, w: 3 });
-  if (label) g += vol(rectD(-74, -176, 148, 52, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(label, 0, -150, fitSize(label, 30, 128), C.ink, 'middle');
+  if (label) g += vol(rectD(-74, -176, 148, 52, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(String(label), 0, -150, fitSize(label, 30, 128), C.ink, 'middle');
   return G(T(x, y, s), 1, g);
 }
 
@@ -1065,7 +1069,7 @@ function lpgTank(x, y, s = 1, { col = '#5FA84A', label = '3 kg' } = {}) {
   g += vol(rectD(-62, -322, 124, 50, 16), tone(col, -0.1), { depth: 5, w: 5 });
   g += `<rect x="-44" y="-310" width="30" height="20" rx="6" fill="${tone(col, -0.5)}"/><rect x="14" y="-310" width="30" height="20" rx="6" fill="${tone(col, -0.5)}"/>`;
   g += vol(rectD(-16, -344, 32, 26, 6), '#B9BCC2', { depth: 3, w: 4 });
-  if (label) g += bodyText(label, 0, -200, fitSize(label, 44, 150), '#FFFFFF', 'middle');
+  if (label) g += bodyText(String(label), 0, -200, fitSize(label, 44, 150), '#FFFFFF', 'middle');
   return G(T(x, y, s), 1, g);
 }
 
@@ -1076,7 +1080,7 @@ function house(x, y, s = 1, { col = '#E9D8B8', roof = '#C2593A', door = '#8A5A36
   g += vol('M-210,-220 L0,-380 L210,-220 Z', roof, { depth: 10 });
   g += vol(rectD(-35, -130, 70, 130, 6), door, { depth: 6, w: 5 }) + vol(circleD(20, -64, 6), '#E8C55A', { depth: 2, w: 3 });
   [-140, 70].forEach(wx => g += vol(rectD(wx, -170, 70, 60, 6), '#CFE8F7', { depth: 4, w: 5 }) + detail(`M${wx + 35},-170 L${wx + 35},-110 M${wx},-140 L${wx + 70},-140`, tone(col, -0.4), 4));
-  if (label) g += vol(rectD(-64, -312, 128, 48, 8), '#FFFFFF', { depth: 4, w: 4 }) + bodyText(label, 0, -288, fitSize(label, 32, 108), C.ink, 'middle');
+  if (label) g += vol(rectD(-64, -312, 128, 48, 8), '#FFFFFF', { depth: 4, w: 4 }) + bodyText(String(label), 0, -288, fitSize(label, 32, 108), C.ink, 'middle');
   return G(T(x, y, s), 1, g);
 }
 
@@ -1087,7 +1091,7 @@ function newspaper(x, y, s = 1, { headline = 'BERITA HARI INI', rot = -4 } = {})
   let g = G(T(12, 10), 1, vol(rectD(-210, -150, 420, 300, 6), tone(paper, -0.08), { depth: 4, w: 5, rot }));
   g += vol(rectD(-210, -150, 420, 300, 6), paper, { depth: 6, w: 5, rot });
   g += bodyText('KORAN', 0, -120, 40, C.ink, 'middle') + detail('M-190,-96 L190,-96', ln, 3) + detail('M-190,-90 L190,-90', ln, 1.5);
-  g += bodyText(headline, 0, -64, fitSize(headline, 34, 380), C.ink, 'middle');
+  g += bodyText(String(headline), 0, -64, fitSize(headline, 34, 380), C.ink, 'middle');
   g += `<rect x="-190" y="-36" width="170" height="116" fill="${tone(paper, -0.12)}"/>`;
   for (let k = 0; k < 9; k++) g += detail(`M${-190 + k * 20},80 L${-170 + k * 20},-36`, tone(paper, -0.3), 2, 0.6);
   for (let k = 0; k < 7; k++) g += `<rect x="0" y="${-34 + k * 18}" width="${190 - (k % 3) * 24}" height="7" rx="3" fill="${ln}"/>`;
@@ -1103,8 +1107,8 @@ function chatBubble(x, y, s = 1, { lines = ['Katanya bank tutup,', 'uang hilang 
   g += vol(`M${-190 * sd},60 L${-236 * sd},124 L${-140 * sd},88 Z`, '#FFFFFF', { depth: 4, w: 5 });
   g += vol(rectD(-220, -90, 440, 180, 30), '#FFFFFF', { depth: 8, w: 5 });
   g += detail('M-196,-62 L-176,-62 C-166,-62 -160,-56 -160,-48 M-170,-72 L-160,-62 L-170,-52', C.muted, 3.5);
-  g += bodyText(tag, -148, -60, fitSize(tag, 22, 340), C.muted, 'start');
-  ls.forEach((l, i) => g += bodyText(l, -196, -22 + i * 40 + (3 - ls.length) * 20, fitSize(l, 34, 392), C.ink, 'start'));
+  g += bodyText(String(tag), -148, -60, fitSize(tag, 22, 340), C.muted, 'start');
+  ls.forEach((l, i) => g += bodyText(String(l), -196, -22 + i * 40 + (3 - ls.length) * 20, fitSize(l, 34, 392), C.ink, 'start'));
   return G(T(x, y, s), 1, g);
 }
 
@@ -1134,6 +1138,6 @@ function ballotBox(x, y, s = 1, { label = 'KOTAK SUARA', p = 0 } = {}) {
   [[-110, -60, 10], [-20, -48, -8], [60, -64, 14]].forEach(([bx, by, r]) => g += G(T(bx, by, 1, r), 0.7, `<rect x="0" y="0" width="70" height="44" rx="3" fill="#FFFFFF" stroke="#B9BCC2" stroke-width="2.5"/>`));
   g += detail('M-128,-236 L-128,-20', '#FFFFFF', 6, 0.7);
   g += vol(rectD(-162, -284, 324, 30, 8), '#BFD3DE', { depth: 4, w: 5 }) + `<rect x="-60" y="-275" width="120" height="10" rx="5" fill="#2B2F3F"/>`;
-  g += vol(rectD(-100, -170, 200, 50, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(label, 0, -145, fitSize(label, 28, 180), C.ink, 'middle');
+  g += vol(rectD(-100, -170, 200, 50, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(String(label), 0, -145, fitSize(label, 28, 180), C.ink, 'middle');
   return G(T(x, y, s), 1, g);
 }

@@ -43,10 +43,43 @@ CASES = {
     "ballotBox": ["ballotBox(0, 0, 1)", "ballotBox(0, 0, 1, { p: 0.5 })", "ballotBox(0, 0, 1, { p: -1 })"],
 }
 
+# numbers where text is expected (a price, a percentage) must render, not throw
+NUMBERS = {
+    "savingsBook": "savingsBook(0, 0, 1, { title: 2026 })", "shieldBadge": "shieldBadge(0, 0, 1, { label: 3 })",
+    "hangSign": "hangSign(0, 0, 1, { label: 404 })", "levelGauge": "levelGauge(0, 0, 1, { level: 0.6, label: 7, value: 4.5 })",
+    "checkBoard": "checkBoard(0, 0, 1, { title: 3, rows: [{ text: 5, sub: 6 }] })", "priceLabel": "priceLabel(0, 0, 1, { label: 10000 })",
+    "fuelPump": "fuelPump(0, 0, 1, { fuel: 90, price: 10000 })", "atmCard": "atmCard(0, 0, 1, { digits: 1234 })",
+    "goldBar": "goldBar(0, 0, 1, { label: 24 })", "oilBarrel": "oilBarrel(0, 0, 1, { label: 200 })", "lpgTank": "lpgTank(0, 0, 1, { label: 3 })",
+    "house": "house(0, 0, 1, { label: 36 })", "newspaper": "newspaper(0, 0, 1, { headline: 2026 })",
+    "chatBubble": "chatBubble(0, 0, 1, { lines: [5, 6], tag: 7 })", "ballotBox": "ballotBox(0, 0, 1, { label: 1 })",
+}
+for _name, _expr in NUMBERS.items():
+    CASES[_name].append(_expr)
+
 # extra substrings a case must contain
 MUST = {
     CASES["levelGauge"][0]: ['id="g1"', 'id="g2"'],
 }
+
+# (expression, text, max width): the rendered <text> with that content must fit inside its frame, in local units
+FIT = [
+    ("hangSign(0, 0, 1, { label: 'BANK DITUTUP' })", "BANK DITUTUP", 326),
+    ("hangSign(0, 0, 1, { label: 'WWWWWWWWWWWW' })", "WWWWWWWWWWWW", 326),
+    ("checkBoard(0, 0, 1, { title: 'SYARAT PENJAMINAN SIMPANAN LPS' })", "SYARAT PENJAMINAN SIMPANAN LPS", 580),
+    ("priceLabel(0, 0, 1, { label: 'Rp1.250.000' })", "Rp1.250.000", 190),
+]
+
+# global helpers of batch C that must stay unique too
+HELPERS = ["fitSize", "SHIELD_D", "BASKET_ITEM"]
+
+TEXT_WIDTH = """([svg, text]) => {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  el.setAttribute('width', 2000); el.setAttribute('height', 2000);
+  document.body.appendChild(el); el.innerHTML = svg;
+  const node = [...el.querySelectorAll('text')].find(n => n.textContent === text);
+  const w = node ? node.getBBox().width : -1;
+  el.remove(); return w;
+}"""
 
 BAD = ("NaN", "undefined", "Infinity", "[object")
 
@@ -54,7 +87,7 @@ BAD = ("NaN", "undefined", "Infinity", "[object")
 def check_names(names):
     """Errors for prop names that are not defined exactly once, in engine/props.js."""
     # topics/<topic>/hf/engine/ holds the pipeline's git-ignored copies of the engine for HyperFrames inserts
-    topics = [p for p in (ROOT / "topics").rglob("*.js") if "hf/engine" not in p.as_posix()]
+    topics = [p for ext in ("*.js", "*.html") for p in (ROOT / "topics").rglob(ext) if "hf/engine" not in p.as_posix()]
     files = topics + list((ROOT / "engine").glob("*.js")) + list((ROOT / "brand").glob("*.js"))
     texts = {p: p.read_text(encoding="utf-8", errors="replace") for p in files}
     errors = []
@@ -71,7 +104,7 @@ def norm(svg):
 
 
 def main():
-    errors = check_names(CASES)
+    errors = check_names(list(CASES) + HELPERS)
     topic_dir = ROOT / "topics" / "demo-props"
     bv.BUILD = ROOT / "build" / "demo-props"
     bv.BUILD.mkdir(parents=True, exist_ok=True)
@@ -95,6 +128,10 @@ def main():
                     if norm(a) != norm(b):
                         errors.append(f"{name} [{theme}]: not deterministic: {expr}")
                     errors += [f"{name} [{theme}]: missing {m}: {expr}" for m in MUST.get(expr, []) if m not in a]
+            for expr, text, max_w in FIT:
+                w = page.evaluate(TEXT_WIDTH, [page.evaluate(f"() => {expr}"), text])
+                if w < 0 or w > max_w:
+                    errors.append(f"[{theme}] text '{text}' is {w:.0f} wide (max {max_w}): {expr}")
         browser.close()
     if errors:
         print("\n".join(errors))
