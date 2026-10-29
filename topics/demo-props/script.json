@@ -31,6 +31,10 @@
     {
       "vo": "Untuk tubuh ada *jantung*, paru-paru, lambung, otak, sel, termometer, stetoskop, dan sikat gigi.",
       "hold": 0.8
+    },
+    {
+      "vo": "Untuk Si Tikus ada *buku tabungan*, perisai, papan, meteran, label harga, dan pompa bensin.",
+      "hold": 0.6
     }
   ]
 }

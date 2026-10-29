@@ -8,6 +8,7 @@
 // Objects:  bulb, coin, banknote, phone, glass, box, plate, riceBowl, pot, stove, bottle, fan, wallClock, windowFrame, umbrella
 // Shared:   jar, wallCalendar, bedSide, socket, germ
 // Money:    wallet, piggyBank, calculator, chart, building, docPaper, newsMic
+// Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump
 // Body:     heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush (schematic only)
 
 const tone = (col, k) => k > 0 ? mix(col, '#FFFFFF', k) : mix(col, C.ink, -k);
@@ -878,4 +879,101 @@ function toothbrush(x, y, s = 1, { col = '#5FB3E0', rot = -10, paste = true } = 
   for (let k = 0; k < 9; k++) g += `<rect x="${126 + k * 12}" y="-72" width="8" height="52" rx="3" fill="${k % 2 ? '#FFFFFF' : '#CFE8F7'}" ${stroke(2.5)}/>`;
   if (paste) g += vol('M126,-74 C150,-100 190,-96 214,-84 C236,-74 240,-62 230,-60 L126,-60 Z', '#FFFFFF', { depth: 4, w: 4 }) + detail('M146,-80 C170,-90 196,-86 214,-76', '#7FC8E8', 6);
   return G(T(x, y, s, rot), 1, g);
+}
+
+// ---------- batch C: Si Tikus (finance, economy, news); generic, never a real bank, brand, media or party ----------
+
+// fitSize(s, size, maxW): the font size (at most size) at which s fits maxW in the theme's body font
+const fitSize = (s, size, maxW) => { const [font, w] = bodyFont(); return Math.min(size, size * maxW / Math.max(1, measure(String(s), size, w, font))); };
+
+// savingsBook(x, y, s, opts): a bank savings book centred on (x, y), with a darker spine and a gold "Rp" seal
+function savingsBook(x, y, s = 1, { title = 'TABUNGAN', col = '#2F5E9E', rot = -6 } = {}) {
+  let g = shadow(0, 130, 120, 0.15);
+  g += vol(rectD(-95, -125, 190, 250, 10), col, { depth: 10, w: 5, rot });
+  g += `<rect x="-95" y="-125" width="22" height="250" fill="${tone(col, -0.3)}"/>`;
+  g += vol(circleD(10, -50, 30), '#E8C55A', { depth: 4, w: 4 }) + bodyText('Rp', 10, -50, 26, tone('#E8C55A', -0.6), 'middle');
+  g += bodyText('BUKU', 10, 20, 38, '#FFFFFF', 'middle') + bodyText(title, 10, 62, fitSize(title, 30, 150), '#FFFFFF', 'middle');
+  return G(T(x, y, s, rot), 1, g);
+}
+
+const SHIELD_D = 'M0,-115 C55,-92 85,-100 100,-102 L100,8 C100,70 52,104 0,122 C-52,104 -100,70 -100,8 L-100,-102 C-85,-100 -55,-92 0,-115 Z';
+// shieldBadge(x, y, s, opts): a protection shield centred on (x, y) with a white inner line and a label
+function shieldBadge(x, y, s = 1, { label = 'AMAN', col = C.cool } = {}) {
+  let g = vol(SHIELD_D, col, { depth: 12, w: 5 });
+  g += `<path d="${SHIELD_D}" transform="scale(0.82)" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.8"/>`;
+  return G(T(x, y, s), 1, g + bodyText(label, 0, 2, fitSize(label, 86, 150), '#FFFFFF', 'middle'));
+}
+
+// hangSign(x, y, s, opts): a sign hanging on two strings from a hook at (x, y); from t0 it swings and settles
+function hangSign(x, y, s = 1, { label = 'TUTUP', col = C.accent, t = 0, t0 = null } = {}) {
+  const u = t0 == null ? 0 : Math.max(0, t - t0), sw = 9 * Math.exp(-3 * u) * Math.sin(11 * u);
+  let g = detail('M-60,0 L-120,72 M60,0 L120,72', '#6B7078', 5);
+  g += vol(circleD(-60, 0, 8), '#8A8E96', { depth: 2, w: 3 }) + vol(circleD(60, 0, 8), '#8A8E96', { depth: 2, w: 3 });
+  g += vol(rectD(-180, 72, 360, 130, 10), col, { depth: 10, w: 5 }) + `<rect x="-166" y="86" width="332" height="102" fill="none" stroke="#FFFFFF" stroke-width="4"/>`;
+  g += bodyText(label, 0, 137, fitSize(label, 84, 260), '#FFFFFF', 'middle', null, 'letter-spacing="8"');
+  return G(`translate(${f(x)} ${f(y)}) rotate(${f(sw)}) scale(${f(s)})`, 1, g);
+}
+
+// levelGauge(x, y, s, opts): a glass tube standing on (x, y), filled to level (0..1) with a dashed limit line;
+// the liquid turns hot above limit. Give every gauge in one frame its own id (clipPath)
+function levelGauge(x, y, s = 1, { level = 0.5, limit = null, label = '', value = '', col = '#58AEE8', hot = '#E0522F', t = 0, id = 'lg' } = {}) {
+  const lv = clamp(level), H = 542, bot = -88, yl = bot - lv * H;
+  const heat = limit == null ? 0 : clamp((lv - limit) / 0.15), liq = mix(col, hot, heat);
+  let g = shadow(0, 2, 140, 0.15);
+  g += vol(rectD(-110, -80, 220, 80, 12), '#3A3F4E', { depth: 8, w: 5 });
+  if (label) g += bodyText(label, 0, -40, fitSize(label, 34, 190), '#FFFFFF', 'middle');
+  g += vol(rectD(-52, -642, 104, 566, 52), '#FFFFFF', { depth: 8, w: 5 });
+  g += `<defs><clipPath id="${id}"><path d="${rectD(-40, -630, 80, H, 40)}"/></clipPath></defs>`;
+  if (lv > 0.01) g += `<g clip-path="url(#${id})"><rect x="-40" y="${f(yl)}" width="80" height="${f(bot - yl)}" fill="${liq}"/>` +
+    `<path d="M-40,${f(yl)} q20,${f(-6 * Math.sin(t * 5))} 40,0 t40,0 L40,${f(yl + 8)} L-40,${f(yl + 8)} Z" fill="${mix(liq, '#FFFFFF', 0.35)}"/>` +
+    `<rect x="-28" y="${f(yl + 12)}" width="10" height="${f(Math.max(0, bot - yl - 24))}" rx="5" fill="#FFFFFF" opacity="0.3"/></g>`;
+  for (let k = 1; k < 8; k++) g += detail(`M22,${f(bot - H * k / 8)} L40,${f(bot - H * k / 8)}`, '#8A8E96', 3, 0.7);
+  if (value && lv > 0.15) g += bodyText(value, 0, Math.min(bot - 30, yl + 34), fitSize(value, 30, 74), '#FFFFFF', 'middle');
+  if (limit != null) g += `<path d="M-78,${f(bot - clamp(limit) * H)} L78,${f(bot - clamp(limit) * H)}" fill="none" stroke="${C.accent}" stroke-width="7" stroke-linecap="round" stroke-dasharray="16 10"/>`;
+  return G(T(x, y, s), 1, g);
+}
+
+// checkBoard(x, y, s, opts): a white board on legs standing on (x, y) with a title band and up to four rows
+// {text, sub, icon (SVG around (0, 0), about ±60), check (0..1 draws a green tick)}; row `active` is highlighted
+function checkBoard(x, y, s = 1, { title = 'SYARAT', rows = [], active = -1 } = {}) {
+  const rs = rows.slice(0, 4), top = -730, rh = 544 / Math.max(1, rs.length), k = Math.min(1, rh / 180);
+  let g = shadow(0, 2, 340, 0.16) + detail('M-220,-100 L-240,0 M220,-100 L240,0', '#7C6A55', 14);
+  g += vol(rectD(-310, top, 620, 640, 14), '#FFFFFF', { depth: 10, w: 5 });
+  g += `<rect x="-310" y="${top}" width="620" height="96" fill="${C.accent}"/>` + bodyText(title, 0, top + 50, fitSize(title, 62, 520), '#FFFFFF', 'middle', null, 'letter-spacing="4"');
+  rs.forEach((r, i) => {
+    const cy = top + 96 + rh * (i + 0.5), c = clamp(r.check || 0);
+    if (i === active) g += `<rect x="-294" y="${f(cy - rh / 2 + 8)}" width="588" height="${f(rh - 16)}" fill="${C.yellow}" opacity="0.45"/>`;
+    if (i) g += detail(`M-280,${f(cy - rh / 2)} L280,${f(cy - rh / 2)}`, C.line, 3);
+    if (r.icon) g += G(T(-195, cy, k), 1, r.icon);
+    g += bodyText(r.text || '', -125, cy - (r.sub ? 18 : 0) * k, fitSize(r.text || '', 44 * k, 400), C.ink, 'start');
+    if (r.sub) g += bodyText(r.sub, -125, cy + 32 * k, fitSize(r.sub, 30 * k, 400), C.muted, 'start');
+    if (c > 0) g += G(T(-234, cy + 44 * k, k), 1, vol(circleD(0, 0, 28), C.leaf, { depth: 5, w: 4 }) +
+      `<path d="M-13,1 L-4,11 L14,-10" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="44" stroke-dashoffset="${f(44 * (1 - c))}"/>`);
+  });
+  return G(T(x, y, s), 1, g);
+}
+
+// priceLabel(x, y, s, opts): a price tag centred on (x, y) with a string hole on the left
+function priceLabel(x, y, s = 1, { label = 'Rp10.000', col = '#FFFFFF', rot = -6 } = {}) {
+  let g = shadow(0, 86, 120, 0.12) + detail('M-92,0 C-130,-40 -150,-90 -120,-130', '#8A8E96', 4);
+  g += vol('M-120,-60 L80,-60 L130,0 L80,60 L-120,60 Z', col, { depth: 8, w: 5, rot });
+  g += `<circle cx="-92" cy="0" r="12" fill="${C.bg}" stroke="${tone(col, -0.35)}" stroke-width="3"/>`;
+  return G(T(x, y, s, rot), 1, g + bodyText(label, 18, 4, fitSize(label, 64, 160), C.ink, 'middle'));
+}
+
+// fuelPump(x, y, s, opts): a generic fuel dispenser standing on (x, y) with a display, hose and nozzle;
+// a small light on the display blinks with t
+function fuelPump(x, y, s = 1, { fuel = 'BENSIN', price = 'Rp10.000/L', col = C.accent, t = 0 } = {}) {
+  let g = shadow(0, 2, 170, 0.16);
+  g += vol(rectD(-140, -30, 280, 30, 8), '#B9BCC2', { depth: 5, w: 5 });
+  g += vol(rectD(-100, -340, 200, 310, 20), '#F1F1EE', { depth: 12 });
+  g += vol('M-100,-294 L-100,-320 Q-100,-340 -80,-340 L80,-340 Q100,-340 100,-320 L100,-294 Z', col, { depth: 5, w: 5 }) + bodyText('SPBU', 0, -317, 28, '#FFFFFF', 'middle');
+  g += vol(rectD(-80, -276, 160, 92, 10), '#18223A', { depth: 4, w: 4, shine: false });
+  g += bodyText(fuel, 0, -250, fitSize(fuel, 24, 140), '#F5D04C', 'middle') + bodyText(price, 0, -212, fitSize(price, 22, 140), '#8CD19D', 'middle');
+  g += `<circle cx="66" cy="-268" r="5" fill="${Math.floor(t * 2) % 2 ? '#8CD19D' : '#3A4A3E'}"/>`;
+  g += vol(rectD(-70, -160, 140, 90, 12), '#3A3F4E', { depth: 6, w: 5 });
+  for (let k = 0; k < 3; k++) g += detail(`M-50,${-136 + k * 20} L50,${-136 + k * 20}`, '#5A6170', 3);
+  g += detail('M100,-150 C150,-120 150,-40 112,-40', '#2B2F3F', 12);
+  g += vol('M96,-60 L126,-66 L132,-34 L104,-28 Z', col, { depth: 4, w: 4 }) + detail('M112,-28 L106,-6', '#6B7078', 8);
+  return G(T(x, y, s), 1, g);
 }

@@ -10,7 +10,7 @@ function setup(D) {
     s2: s[1].start,
     s3: s[2].start,
     s4: s[2].start + (s[2].end - s[2].start) * 0.58,
-    s5: s[3].start, s6: s[4].start, s7: s[5].start,
+    s5: s[3].start, s6: s[4].start, s7: s[5].start, s8: s[6].start,
   };
   setCamera([
     { x: 0, y: 0, z: 1 },
@@ -20,6 +20,7 @@ function setup(D) {
     { at: K.s5, dur: 0.9, x: 0, y: -7600, z: 1 },
     { at: K.s6, dur: 0.9, x: 0, y: -9500, z: 1 },
     { at: K.s7, dur: 0.9, x: 0, y: -11400, z: 1 },
+    { at: K.s8, dur: 0.9, x: 0, y: -13300, z: 1 },
   ]);
   setHeadlines([
     { at: 0.2, end: K.s2 - 0.1, text: 'PUSTAKA\n*ALAM*' },
@@ -28,12 +29,13 @@ function setup(D) {
     { at: K.s4 + 0.25, end: K.s5 - 0.1, text: 'CUACA &\n*BUAH*' },
     { at: K.s5 + 0.3, end: K.s6 - 0.1, text: 'DARI\n*TOPIK LAMA*' },
     { at: K.s6 + 0.3, end: K.s7 - 0.1, text: 'UANG &\n*BERITA*' },
-    { at: K.s7 + 0.3, end: D.total, text: 'TUBUH &\n*KESEHATAN*' },
+    { at: K.s7 + 0.3, end: K.s8 - 0.1, text: 'TUBUH &\n*KESEHATAN*' },
+    { at: K.s8 + 0.3, end: D.total, text: 'SI TIKUS\n*UANG*' },
   ]);
   setChapters([]);
 }
 
-function cues(D) { return [[K.s2, 'whoosh'], [K.s3, 'whoosh'], [K.s4, 'whoosh'], [K.s5, 'whoosh'], [K.s6, 'whoosh'], [K.s7, 'whoosh']]; }
+function cues(D) { return [[K.s2, 'whoosh'], [K.s3, 'whoosh'], [K.s4, 'whoosh'], [K.s5, 'whoosh'], [K.s6, 'whoosh'], [K.s7, 'whoosh'], [K.s8, 'whoosh']]; }
 
 function phoneScreen() {  // a little chat on the phone's screen
   return `<rect x="0" y="0" width="200" height="40" fill="${C.cool}"/>` + txt('Si Cicak', 100, 22, 18, '#fff', 900) +
@@ -42,7 +44,7 @@ function phoneScreen() {  // a little chat on the phone's screen
 }
 
 function drawWorld(t) {
-  let s = `<rect x="-2000" y="-12800" width="4000" height="14000" fill="${C.bg}"/>`;
+  let s = `<rect x="-2000" y="-15200" width="4000" height="16400" fill="${C.bg}"/>`;
   // view 1: nature
   s += leaf(-430, -300, 260, -18) + leaf(-420, -290, 180, -60, { col: '#8CC152' });
   s += ground(-700, 700, 340, 400, t);
@@ -80,5 +82,14 @@ function drawWorld(t) {
   s += heartOrgan(-300, -11640, 0.62, { t }) + lungs(20, -11620, 0.62, { t }) + brain(300, -11650, 0.62);
   s += stomach(-300, -11260, 0.62, { t }) + bodyCell(10, -11280, 0.62, { t }) + thermometer(240, -11100, 0.62) + stethoscope(400, -11090, 0.48);
   s += toothbrush(-60, -11020, 0.6);
+  // view 8: Si Tikus, money (savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump)
+  const pass = G(T(0, 0, 0.42), 1, savingsBook(0, 0, 1, { rot: 0 }));
+  s += checkBoard(-250, -13300, 0.5, { title: 'SYARAT 3T', active: 1, rows: [{ text: 'TERCATAT', sub: 'di bank', icon: pass, check: 1 },
+    { text: 'BUNGA WAJAR', sub: 'maks. bunga LPS', check: P(t, K.s8 + 1.2, 0.4) }, { text: 'BANK SEHAT' }] });
+  s += hangSign(270, -13700, 0.5, { t, t0: K.s8 + 0.6 }) + shieldBadge(400, -13450, 0.5);
+  s += levelGauge(100, -13300, 0.45, { level: 0.78, limit: 0.5, label: 'BUNGA', value: '4,5%', t, id: 'demoG' });
+  s += woodPlank(-520, -13300, 1040, 44);
+  s += savingsBook(-360, -13020, 0.6) + priceLabel(-60, -13010, 0.75, { label: 'Rp12.500' }) + fuelPump(330, -12880, 0.55, { t });
+  s += woodPlank(-520, -12880, 1040, 44);
   return s;
 }
