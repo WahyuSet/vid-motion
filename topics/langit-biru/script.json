@@ -1,0 +1,63 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {
+    "words": 5,
+    "line": 34
+  },
+  "tail": 1.6,
+  "scenes": [
+    {
+      "vo": "Langit itu biru karena memantulkan warna *laut*."
+    },
+    {
+      "vo": "Kedengarannya masuk akal. Tapi sains bilang itu *mitos*.",
+      "hold": 0.3
+    },
+    {
+      "vo": "Cahaya matahari sebenarnya campuran *semua warna* pelangi."
+    },
+    {
+      "vo": "Di udara, cahaya itu menabrak molekul gas yang *super kecil*."
+    },
+    {
+      "vo": "Warna biru gelombangnya pendek, jadi paling banyak *terpental* ke segala arah.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Ke mana pun kamu menoleh, biru itulah yang sampai ke *matamu*."
+    },
+    {
+      "vo": "Ungu sebenarnya terpental lebih banyak, tapi mata kita lebih *peka* ke biru."
+    },
+    {
+      "vo": "Waktu senja di Pantai Kuta, cahaya menempuh udara yang jauh lebih *tebal*."
+    },
+    {
+      "vo": "Birunya habis terpental di jalan, tinggal *merah* dan jingga yang sampai.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Jadi yang mewarnai langit itu *udara*, bukan laut."
+    },
+    {
+      "vo": "Laut malah punya birunya sendiri, karena air *menyerap* warna merah."
+    }
+  ],
+  "inserts": [
+    {
+      "file": "hf/renders/hambur.webm",
+      "from": 3,
+      "until": 6,
+      "lead": 1.2,
+      "tail": 1.2
+    },
+    {
+      "file": "hf/renders/senja.webm",
+      "from": 8,
+      "until": 9,
+      "lead": 1.0,
+      "tail": 1.2
+    }
+  ]
+}

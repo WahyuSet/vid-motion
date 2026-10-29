@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="id" data-resolution="portrait">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <!-- HyperFrames insert for lps-jamin-hf, line 3: the LPS dome. Drawn in world coordinates with the engine's
+       props and the topic's own drawings, moved by the pipeline's camera (timeline.js), animated with GSAP. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MotionPathPlugin.min.js"></script>
+  <style>
+    @font-face { font-family: 'Nunito'; src: url('engine/fonts/nunito/Nunito-Variable.ttf') format('truetype'); font-weight: 200 1000; font-display: block; }
+    @font-face { font-family: 'Oswald'; src: url('engine/fonts/oswald/Oswald-Variable.ttf') format('truetype'); font-weight: 200 700; font-display: block; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+    #root { position: relative; width: 1080px; height: 1920px; }
+    #stage { position: absolute; inset: 0; }
+  </style>
+  <script src="timeline.js"></script>
+  <script src="engine/lib.js"></script>
+  <script src="engine/faces.js"></script>
+  <script src="engine/tikus.js"></script>
+  <script src="engine/props.js"></script>
+  <script>
+    // the channel theme, set by hand: applyTheme() needs the engine page's static layers
+    TH = THEMES[TL.theme]; Object.assign(C, PAPER, TH.palette || {});
+  </script>
+  <script src="engine/scenes.js"></script>
+</head>
+<body>
+  <div data-hf-id="hf-6hy6" id="root" data-composition-id="perisai" data-start="0" data-duration="9" data-width="1080" data-height="1920">
+    <svg data-hf-id="hf-ze8b" id="stage" class="clip" data-start="0" data-duration="9" data-track-index="0" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+      <g data-hf-id="hf-y1p0" id="cam"></g>
+    </svg>
+  </div>
+  <script>
+  (() => {  // own scope: scenes.js and lib.js already own names like K and at
+    // the renderer reads data-duration from the markup (9 s); the insert window from timeline.js must fit in it
+    const INS = TL.inserts[0], T0 = INS.start, DUR = 9;
+    if (INS.end - INS.start > DUR) throw new Error(`insert window ${(INS.end - INS.start).toFixed(2)} s is longer than data-duration`);
+    // second (local to this clip) at which a word of a line is spoken, like D.scenes[i].at() in scenes.js
+    const at = (line, word, delta = 0) => {
+      const key = word.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const w = TL.scenes[line - 1].words.find(x => x.w.toLowerCase().replace(/[^a-z0-9]/g, '').startsWith(key));
+      return w.t - 0.06 - T0 + delta;
+    };
+    const K = { lps: at(3, 'lps'), lembaga: at(3, 'lembaga'), simpanan: at(3, 'simpanan'), menjamin: at(3, 'menjamin'),
+      tab: at(3, 'tabungan'), depo: at(3, 'deposito') };
+    const BX = 1500, GROUND = 380;
+
+    gsap.registerPlugin(MotionPathPlugin);
+    const tl = gsap.timeline({ paused: true });
+    window.__timelines = window.__timelines || {};
+    window.__timelines['perisai'] = tl;
+
+    // the world, built once; GSAP moves wrappers (never the engine's own transformed groups)
+    const LBL = 'LEMBAGA PENJAMIN SIMPANAN', LS = 34;
+    let letters = '', lx = 0;
+    const widths = [...LBL].map(ch => measure(ch, LS, 700, 'Oswald')), total = widths.reduce((a, b) => a + b, 0);
+    [...LBL].forEach((ch, i) => {
+      letters += `<g class="ch" transform="translate(${f(-total / 2 + lx + widths[i] / 2)} 2)"><g class="chIn">${newsText(ch, 0, 0, LS, '#fff')}</g></g>`;
+      lx += widths[i];
+    });
+    const domeD = `M${BX - 280},${GROUND} A280,470 0 0 1 ${BX + 280},${GROUND}`;
+    const note = (id) => `<g id="${id}" class="note">${banknote(0, 0, 0.36, { value: '100.000', col: C.note })}</g>`;
+    document.getElementById('cam').innerHTML =
+      `<g id="domeFill" opacity="0"><path d="${domeD} Z" fill="${C.cool}" opacity="0.12"/></g>` +
+      `<g id="notes">${note('n1')}${note('n2')}${note('n3')}</g>` +
+      `<g transform="translate(1400 261)"><g id="pb">${passbook(0, 0, 0.95)}</g></g>` +
+      `<g transform="translate(1610 260)"><g id="dp">${docPaper(0, 0, 0.7, { title: 'DEPOSITO', rot: 5 })}</g></g>` +
+      `<path id="domeLine" d="${domeD}" pathLength="1" fill="none" ${stroke(6, C.cool)} stroke-dasharray="1 2" stroke-dashoffset="1"/>` +
+      `<path id="shine" d="M${BX - 218},${GROUND - 258} A241,404 0 0 1 ${BX - 98},${GROUND - 423}" pathLength="1" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-dasharray="1 2" stroke-dashoffset="1" opacity="0.7"/>` +
+      `<g transform="translate(${BX} -40)"><ellipse id="ring" rx="120" ry="30" fill="none" ${stroke(6, C.cool)} opacity="0"/></g>` +
+      `<g transform="translate(${BX} -150)"><g id="em">${emblem(0, 0, 0.9)}</g></g>` +
+      `<g transform="translate(${BX} -10)"><g id="lbl"><rect id="lblBox" x="${f(-total / 2 - 16)}" y="-25" width="${f(total + 32)}" height="50" fill="${C.ink}"/>${letters}</g></g>` +
+      [[-250, -180], [260, -260], [-120, -420], [300, 60], [-300, 120]].map(([x, y], i) =>
+        `<g transform="translate(${BX + x} ${y})"><g class="spark" opacity="0">${sparkle(0, 0, 26 - i * 2, C.yellow)}</g></g>`).join('');
+
+    // camera: the pipeline's own camera for every frame of this clip, so the dome sits on the street
+    const fps = TL.fps, f0 = Math.round(T0 * fps), nF = Math.round(DUR * fps);
+    gsap.set('#cam', { attr: { transform: `translate(540 900) scale(${TL.camera[f0][2]}) translate(${-TL.camera[f0][0]} ${-TL.camera[f0][1]})` } });
+    for (let k = 0; k <= nF; k++) {
+      const [x, y, z] = TL.camera[Math.min(TL.camera.length - 1, f0 + k)];
+      tl.set('#cam', { attr: { transform: `translate(540 900) scale(${z}) translate(${-x} ${-y})` } }, k / fps);
+    }
+
+    // 1. "LPS": the shield drops onto the dome top, squashes and settles; the dome draws itself after it
+    tl.fromTo('#em', { y: -640, rotation: -14, scaleX: 0.9, scaleY: 1.12, svgOrigin: '0 110' },
+      { y: 0, rotation: 0, scaleX: 1, scaleY: 1, duration: 0.42, ease: 'power3.in' }, K.lps - 0.32);
+    tl.to('#em', { keyframes: [{ scaleX: 1.16, scaleY: 0.8, duration: 0.07, ease: 'power2.out' },
+      { scaleX: 0.95, scaleY: 1.06, duration: 0.14, ease: 'power2.inOut' }, { scaleX: 1, scaleY: 1, duration: 0.5, ease: 'elastic.out(1, 0.35)' }],
+      svgOrigin: '0 110' }, K.lps + 0.1);
+    tl.fromTo('#ring', { opacity: 0.9, scale: 0.4, svgOrigin: '0 0' }, { opacity: 0, scale: 2.4, duration: 0.6, ease: 'power2.out' }, K.lps + 0.1);
+    tl.to('#domeLine', { attr: { 'stroke-dashoffset': 0 }, duration: 0.9, ease: 'power2.inOut' }, K.lps + 0.2);
+    tl.to('#domeFill', { opacity: 1, duration: 0.6, ease: 'power1.out' }, K.lps + 0.6);
+    tl.to('#shine', { attr: { 'stroke-dashoffset': 0 }, duration: 0.6, ease: 'power2.out' }, K.lps + 0.9);
+
+    // 2. "Lembaga Penjamin Simpanan": the label bar wipes open, letters bounce up one after another
+    tl.fromTo('#lblBox', { scaleX: 0, svgOrigin: '0 0' }, { scaleX: 1, duration: 0.35, ease: 'power3.out' }, K.lembaga - 0.15);
+    tl.fromTo('.chIn', { y: 22, opacity: 0, scale: 0.6, svgOrigin: '0 10' },
+      { y: 0, opacity: 1, scale: 1, duration: 0.32, ease: 'back.out(2.4)', stagger: 0.022 }, K.lembaga);
+
+    // 3. "Simpanan": the banknotes from line 1 swoop back in along curves and land inside the dome
+    const swoops = [
+      [[1060, -260], [1200, -380], [1380, -120], [1470, 340]],
+      [[1960, -330], [1820, -420], [1640, -100], [1520, 352]],
+      [[1120, 80], [1250, -210], [1450, -60], [1498, 326]],
+    ];
+    ['#n1', '#n2', '#n3'].forEach((id, i) => {
+      const pts = swoops[i].map(([x, y]) => ({ x, y }));
+      gsap.set(id, { x: pts[0].x, y: pts[0].y, opacity: 0, rotation: -30 + i * 25 });
+      tl.to(id, { opacity: 1, duration: 0.15 }, K.simpanan + i * 0.12);
+      tl.to(id, { motionPath: { path: pts, curviness: 1.3 }, rotation: (i - 1) * 8, duration: 0.95, ease: 'power2.inOut' }, K.simpanan + i * 0.12);
+    });
+
+    // 4. "menjamin": the dome pulses once and sparkles pop around it
+    tl.to('#domeLine', { keyframes: [{ attr: { 'stroke-width': 14 }, duration: 0.12 }, { attr: { 'stroke-width': 6 }, duration: 0.4, ease: 'power2.out' }] }, K.menjamin);
+    tl.to('#em', { keyframes: [{ y: -26, duration: 0.16, ease: 'power2.out' }, { y: 0, duration: 0.3, ease: 'bounce.out' }] }, K.menjamin);
+    tl.fromTo('.spark', { scale: 0, opacity: 1, rotation: -40, svgOrigin: '0 0' },
+      { scale: 1, rotation: 20, duration: 0.3, ease: 'back.out(3)', stagger: 0.06 }, K.menjamin + 0.05);
+    tl.to('.spark', { scale: 0, opacity: 0, duration: 0.25, ease: 'power2.in', stagger: 0.06 }, K.menjamin + 0.55);
+
+    // 5. "tabungan" / "deposito": the passbook springs up from the street, the slip slides out from behind it
+    tl.fromTo('#pb', { scaleY: 0, scaleX: 1.3, rotation: -10, svgOrigin: '0 119' },
+      { scaleY: 1, scaleX: 1, rotation: 0, duration: 0.55, ease: 'elastic.out(1, 0.45)' }, K.tab - 0.08);
+    tl.fromTo('#dp', { x: -210, rotation: -18, opacity: 0, svgOrigin: '0 119' },
+      { x: 0, rotation: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.8)' }, K.depo - 0.08);
+    gsap.set('#dp', { opacity: 0 });
+    gsap.set('#pb', { scaleY: 0, svgOrigin: '0 119' });
+
+    tl.set({}, {}, DUR);  // the timeline spans the whole clip
+  })();
+  </script>
+</body>
+</html>

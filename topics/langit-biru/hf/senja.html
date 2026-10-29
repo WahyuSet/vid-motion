@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="id" data-resolution="portrait">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <!-- Insert 2 of langit-biru, lines 8-9: at sunset the light crosses far more air than at noon; the blue peels
+       off along the way and only red and orange reach Pantai Kuta. Drawn in world coordinates over zone C. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MotionPathPlugin.min.js"></script>
+  <style>
+    @font-face { font-family: 'Nunito'; src: url('engine/fonts/nunito/Nunito-Variable.ttf') format('truetype'); font-weight: 200 1000; font-display: block; }
+    @font-face { font-family: 'Lilita One'; src: url('engine/fonts/lilita-one/LilitaOne-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+    #root { position: relative; width: 1080px; height: 1920px; }
+    #stage { position: absolute; inset: 0; }
+  </style>
+  <script src="timeline.js"></script>
+  <script src="engine/lib.js"></script>
+  <script src="engine/faces.js"></script>
+  <script src="engine/cicak.js"></script>
+  <script src="engine/props.js"></script>
+  <script src="engine/scenes.js"></script>
+  <script src="rig.js"></script>
+</head>
+<body>
+  <div id="root" data-composition-id="senja" data-start="0" data-duration="14" data-width="1080" data-height="1920">
+    <svg id="stage" class="clip" data-start="0" data-duration="14" data-track-index="0" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+      <g id="cam"></g>
+    </svg>
+  </div>
+  <script>
+  (() => {
+    const { tl, at } = RIG.open(1, 'senja', 14);
+    window.__timelines['senja'] = tl;  // (RIG.open registers it too; the linter looks for it here)
+    const K = { senja: at(8, 'senja'), pantai: at(8, 'pantai'), menempuh: at(8, 'menempuh'), tebal: at(8, 'tebal'),
+      birunya: at(9, 'birunya'), mental: at(9, 'terpental'), jalan: at(9, 'jalan'), merah: at(9, 'merah'), jingga: at(9, 'jingga') };
+    gsap.registerPlugin(MotionPathPlugin);
+
+    const A = [3370, -40], B = [PIN.x - 30, 300], N0 = [PIN.x, -270], N1 = [PIN.x, 290];
+    const ang = Math.atan2(B[1] - A[1], B[0] - A[0]) * 180 / Math.PI, along = s => [A[0] + (B[0] - A[0]) * s, A[1] + (B[1] - A[1]) * s];
+    let w = `<defs><linearGradient id="beamG" gradientUnits="userSpaceOnUse" x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}">` +
+      `<stop id="g0" offset="0" stop-color="#FFFBEA"/><stop id="g1" offset="0.45" stop-color="#FFFBEA"/><stop id="g2" offset="1" stop-color="#FFFBEA"/></linearGradient>` +
+      `<linearGradient id="warm" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="${C.orange}" stop-opacity="0.75"/><stop offset="1" stop-color="${C.red}" stop-opacity="0.15"/></linearGradient></defs>`;
+    w += `<rect id="glow" x="3200" y="${BAND.top}" width="1300" height="${BAND.ground - BAND.top}" fill="url(#warm)" opacity="0"/>`;
+    const beam = (id, p, q, fill) => `<path id="${id}E" d="M${p[0]},${p[1]} L${q[0]},${q[1]}" pathLength="1" fill="none" stroke="${C.ink}" stroke-width="44" stroke-linecap="round" stroke-dasharray="1 2" stroke-dashoffset="1" opacity="0.18"/>` +
+      `<path id="${id}" d="M${p[0]},${p[1]} L${q[0]},${q[1]}" pathLength="1" fill="none" stroke="${fill}" stroke-width="34" stroke-linecap="round" stroke-dasharray="1 2" stroke-dashoffset="1"/>`;
+    w += beam('noon', N0, N1, '#FFFBEA') + beam('dusk', A, B, 'url(#beamG)');
+    // measuring brackets: the stretch of air each beam crosses
+    w += `<g id="brN" opacity="0"><path d="M${PIN.x + 70},${BAND.top} L${PIN.x + 90},${BAND.top} L${PIN.x + 90},${BAND.ground - 10} L${PIN.x + 70},${BAND.ground - 10}" fill="none" ${stroke(6, C.cool)}/></g>`;
+    w += `<g transform="translate(${PIN.x - 210} 40)"><g id="tagN" opacity="0">${pill('siang: tipis', 0, 0, 34, C.cool, '#fff')}</g></g>`;
+    const mid = along(0.5);
+    w += `<g transform="translate(${f(mid[0] - 40)} ${f(mid[1] - 90)}) rotate(${f(ang)})"><g id="tagD" opacity="0">${pill('senja: jauh lebih tebal', 0, 0, 38, C.accent, '#fff')}</g></g>`;
+    for (let i = 0; i < 18; i++) w += `<g class="bd" id="b${i}" opacity="0"><circle r="18" fill="${C.blueL}" opacity="0.25"/><circle r="9" fill="${i % 4 ? C.blueL : C.violet}" ${stroke(3)}/></g>`;
+    w += `<g transform="translate(${PIN.x} 300)"><circle id="ring" r="40" fill="none" ${stroke(8, C.orange)} opacity="0"/></g>`;
+    document.getElementById('cam').innerHTML = w;
+
+    // line 8: the short noon path first, then the long low sunset path through the air
+    tl.to(['#noon', '#noonE'], { attr: { 'stroke-dashoffset': 0 }, duration: 0.5, ease: 'power2.out' }, K.senja);
+    tl.to(['#dusk', '#duskE'], { attr: { 'stroke-dashoffset': 0 }, duration: 1.4, ease: 'power1.inOut' }, K.menempuh - 0.2);
+    tl.fromTo('#brN', { opacity: 0 }, { opacity: 1, duration: 0.3 }, K.tebal - 0.3);
+    tl.fromTo('#tagN', { opacity: 0, scale: 0.4, svgOrigin: '0 0' }, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2.5)' }, K.tebal - 0.25);
+    tl.fromTo('#tagD', { opacity: 0, scale: 0.4, svgOrigin: '0 0' }, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.5)' }, K.tebal);
+    tl.to(['#noon', '#noonE', '#brN', '#tagN'], { opacity: 0.25, duration: 0.5 }, K.birunya - 0.2);
+
+    // line 9: blue peels off along the way, the beam turns gold then red by the time it reaches the beach
+    for (let i = 0; i < 18; i++) {
+      const s = 0.06 + 0.82 * (i / 17), p = along(s), a = -Math.PI / 2 + (rnd(i * 7 + 1) - 0.5) * 2.2, r = 220 + 160 * rnd(i * 3 + 2);
+      const q = [p[0] + Math.cos(a) * r, p[1] + Math.sin(a) * r], t0 = K.birunya + s * 1.6;
+      gsap.set(`#b${i}`, { x: p[0], y: p[1], opacity: 0 });
+      tl.to(`#b${i}`, { opacity: 1, duration: 0.08 }, t0);
+      tl.to(`#b${i}`, { motionPath: { path: [{ x: p[0], y: p[1] }, { x: (p[0] + q[0]) / 2 + 40, y: (p[1] + q[1]) / 2 - 30 }, { x: q[0], y: q[1] }], curviness: 1 },
+        duration: 1.1, ease: 'power2.out' }, t0);
+      tl.to(`#b${i}`, { opacity: 0, duration: 0.4 }, t0 + 0.8);
+    }
+    tl.to('#g1', { attr: { 'stop-color': '#F5C842' }, duration: 1.4, ease: 'power1.inOut' }, K.birunya + 0.2);
+    tl.to('#g2', { attr: { 'stop-color': '#E0522F' }, duration: 1.4, ease: 'power1.inOut' }, K.birunya + 0.6);
+    tl.to('#glow', { opacity: 0.75, duration: 1.2, ease: 'power1.inOut' }, K.merah - 0.3);
+    tl.fromTo('#ring', { opacity: 0.9, scale: 0.5, svgOrigin: '0 0' }, { opacity: 0, scale: 2.6, duration: 0.8, ease: 'power2.out', repeat: 2 }, K.merah);
+  })();
+  </script>
+</body>
+</html>

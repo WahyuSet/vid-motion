@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="id" data-resolution="portrait">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920" />
+  <!-- Insert 1 of langit-biru, lines 3-6: sunlight of all colours hits air molecules, blue scatters everywhere
+       and reaches the eye from every side. Drawn in world coordinates over zone B's panel. -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/MotionPathPlugin.min.js"></script>
+  <style>
+    @font-face { font-family: 'Nunito'; src: url('engine/fonts/nunito/Nunito-Variable.ttf') format('truetype'); font-weight: 200 1000; font-display: block; }
+    @font-face { font-family: 'Lilita One'; src: url('engine/fonts/lilita-one/LilitaOne-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+    #root { position: relative; width: 1080px; height: 1920px; }
+    #stage { position: absolute; inset: 0; }
+  </style>
+  <script src="timeline.js"></script>
+  <script src="engine/lib.js"></script>
+  <script src="engine/faces.js"></script>
+  <script src="engine/cicak.js"></script>
+  <script src="engine/props.js"></script>
+  <script src="engine/scenes.js"></script>
+  <script src="rig.js"></script>
+</head>
+<body>
+  <div id="root" data-composition-id="hambur" data-start="0" data-duration="22" data-width="1080" data-height="1920">
+    <svg id="stage" class="clip" data-start="0" data-duration="22" data-track-index="0" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+      <g id="cam"></g>
+    </svg>
+  </div>
+  <script>
+  (() => {
+    const { tl, at } = RIG.open(0, 'hambur', 22);
+    window.__timelines['hambur'] = tl;  // (RIG.open registers it too; the linter looks for it here)
+    const K = { cahaya: at(3, 'cahaya'), semua: at(3, 'semua'), pelangi: at(3, 'pelangi'), udara: at(4, 'udara'), molekul: at(4, 'molekul'),
+      kecil: at(4, 'super'), biru: at(5, 'biru'), pendek: at(5, 'pendek'), mental: at(5, 'terpental'), segala: at(5, 'segala'),
+      menoleh: at(6, 'menoleh'), sampai: at(6, 'sampai'), mata: at(6, 'matamu') };
+    gsap.registerPlugin(MotionPathPlugin);
+
+    // geometry: the beam runs from the sun in the panel's top-left corner to its bottom-right
+    const S = [1440, -235], E = [2110, 300], dx = E[0] - S[0], dy = E[1] - S[1], L = Math.hypot(dx, dy);
+    const ux = dx / L, uy = dy / L, nx = -uy, ny = ux, on = s => [S[0] + dx * s, S[1] + dy * s];
+    const COLS = ['#E0522F', '#F29A3A', '#F5C842', '#5FA548', '#3D8FE0', '#4B5BC9', '#8E5CC9'];
+    const strand = (k, spread) => {
+      const o = (k - 3) * 11 * spread;
+      return `M${f(S[0] + nx * o * 0.15)},${f(S[1] + ny * o * 0.15)} L${f(E[0] + nx * o * 2.2)},${f(E[1] + ny * o * 2.2)}`;
+    };
+    const HITS = [0.32, 0.5, 0.66, 0.8].map(on);
+    const MOLS = [...HITS, [1350, 40], [1480, 250], [1530, -300], [1830, -150], [2070, -150], [2060, -60], [1540, -60], [1900, 300], [1360, -120], [2000, 60]];
+    const EYE = [1640, 250];
+    const mol = (x, y, i) => `<g transform="translate(${f(x)} ${f(y)})"><g class="mol" id="m${i}">` +
+      vol(circleD(-12, 0, 17), '#fff', { depth: 4, w: 5 }) + vol(circleD(12, 0, 17), '#fff', { depth: 4, w: 5 }) + `</g></g>`;
+    const wave = (id, y, col, amp, lam, label) => {
+      let d = `M1680,${y}`;
+      for (let x = 0; x < 200; x += lam / 2) d += ` q${lam / 4},${(x / (lam / 2)) % 2 ? amp : -amp} ${lam / 2},0`;
+      return `<g id="${id}" opacity="0"><path class="wv" d="${d}" pathLength="1" fill="none" ${stroke(7, col)} stroke-dasharray="1 2" stroke-dashoffset="1"/>` +
+        txt(label, 1900, y + 2, 34, col, 900, 'start') + `</g>`;
+    };
+    const eye = `<g transform="translate(${EYE[0]} ${EYE[1]})"><g id="eye">` +
+      vol('M-80,0 Q0,-62 80,0 Q0,62 -80,0 Z', '#fff', { depth: 6, w: 7 }) + vol(circleD(0, 0, 30), C.blueL, { depth: 5, w: 5 }) +
+      `<circle r="12" fill="${C.ink}"/><circle cx="-9" cy="-10" r="6" fill="#fff"/></g></g>`;
+
+    let w = `<defs><clipPath id="pan"><path d="${rectD(PAN.x + 4, PAN.y + 4, PAN.w - 8, PAN.h - 8, 30)}"/></clipPath>` +
+      `<linearGradient id="skyFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.sky}"/><stop offset="1" stop-color="${C.skyHi}"/></linearGradient></defs>`;
+    w += `<g clip-path="url(#pan)">`;
+    w += `<rect id="tint" x="${PAN.x}" y="${PAN.y}" width="${PAN.w}" height="${PAN.h}" fill="url(#skyFill)" opacity="0"/>`;
+    w += `<path id="white" d="${strand(3, 0)}" pathLength="1" fill="none" stroke="#FFFBEA" stroke-width="58" stroke-linecap="round" stroke-dasharray="1 2" stroke-dashoffset="1"/>`;
+    w += `<path id="whiteEdge" d="${strand(3, 0)}" pathLength="1" fill="none" stroke="${C.ink}" stroke-width="66" stroke-linecap="round" stroke-dasharray="1 2" stroke-dashoffset="1" opacity="0.15"/>`;
+    COLS.forEach((c, k) => w += `<path class="str" id="s${k}" d="${strand(k, 0)}" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round" opacity="0"/>`);
+    MOLS.forEach(([x, y], i) => w += mol(x, y, i));
+    for (let i = 0; i < 26; i++) w += `<g class="ph" id="p${i}" opacity="0"><circle r="20" fill="${C.blueL}" opacity="0.25"/><circle r="10" fill="${C.blueL}" ${stroke(3)}/></g>`;
+    w += wave('wB', -320, C.blueL, 22, 40, 'pendek') + wave('wR', -240, C.red, 22, 100, 'panjang');
+    w += `</g>`;
+    w += `<g transform="translate(${HITS[0][0]} ${HITS[0][1]})"><g id="lens" opacity="0"><circle r="86" fill="#fff" fill-opacity="0.25" ${stroke(9)}/><path d="M60,60 L120,120" ${stroke(20)}/></g></g>`;
+    w += `<g transform="translate(1560 150)"><g id="tagAll" opacity="0">${pill('semua warna', 0, 0, 40, C.ink, '#fff')}</g></g>`;
+    w += `<g transform="translate(${HITS[0][0]} ${HITS[0][1] - 150})"><g id="tagMol" opacity="0">${pill('molekul gas, super kecil', 0, 0, 38, C.accent, '#fff')}</g></g>`;
+    w += eye;
+    [[-150, -90], [150, -80], [0, -150], [-190, 40], [190, 50]].forEach(([x, y], i) =>
+      w += `<g transform="translate(${EYE[0] + x} ${EYE[1] + y})"><g class="spk" opacity="0">${sparkle(0, 0, 24, C.yellow)}</g></g>`);
+    document.getElementById('cam').innerHTML = w;
+
+    // line 3: a white beam shoots out of the sun, then shows it is every colour at once
+    tl.to(['#white', '#whiteEdge'], { attr: { 'stroke-dashoffset': 0 }, duration: 0.7, ease: 'power2.out' }, K.cahaya);
+    tl.to('.str', { opacity: 1, duration: 0.3, stagger: 0.05 }, K.semua - 0.1);
+    COLS.forEach((c, k) => tl.to(`#s${k}`, { attr: { d: strand(k, 1) }, duration: 0.8, ease: 'back.out(1.6)' }, K.semua - 0.05 + k * 0.04));
+    tl.to(['#white', '#whiteEdge'], { opacity: 0, duration: 0.5 }, K.semua + 0.2);
+    tl.fromTo('#tagAll', { opacity: 0, scale: 0.4, svgOrigin: '0 0' }, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2.5)' }, K.pelangi);
+    tl.to('#tagAll', { opacity: 0, duration: 0.3 }, K.udara);
+
+    // line 4: tiny gas molecules pop up all over the air and bob; the lens finds one on the beam
+    gsap.set('.mol', { scale: 0, svgOrigin: '0 0' });
+    tl.to('.mol', { scale: 1, duration: 0.45, ease: 'back.out(3)', stagger: { each: 0.05, from: 'random' } }, K.molekul - 0.1);
+    MOLS.forEach((_, i) => tl.to(`#m${i}`, { y: '+=10', rotation: i % 2 ? 12 : -12, duration: 0.9 + 0.1 * (i % 3), ease: 'sine.inOut', yoyo: true, repeat: 14, svgOrigin: '0 0' }, K.molekul + 0.4));
+    tl.fromTo('#lens', { opacity: 0, scale: 0.3, svgOrigin: '0 0' }, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, K.kecil - 0.1);
+    tl.fromTo('#tagMol', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power3.out' }, K.kecil + 0.1);
+    tl.to(['#lens', '#tagMol'], { opacity: 0, scale: 0.6, duration: 0.3, svgOrigin: '0 0' }, K.biru - 0.1);
+
+    // line 5: blue's short wave vs red's long one, then blue bounces off the molecules in every direction
+    tl.to('#wB', { opacity: 1, duration: 0.2 }, K.biru);
+    tl.to('#wB .wv', { attr: { 'stroke-dashoffset': 0 }, duration: 0.6, ease: 'power1.inOut' }, K.biru);
+    tl.to('#wR', { opacity: 1, duration: 0.2 }, K.pendek + 0.2);
+    tl.to('#wR .wv', { attr: { 'stroke-dashoffset': 0 }, duration: 0.6, ease: 'power1.inOut' }, K.pendek + 0.2);
+    const R = i => rnd(i * 17 + 3), out = i => {
+      const a = R(i) * Math.PI * 2;
+      return [1700 + 520 * Math.cos(a), -10 + 460 * Math.sin(a)];
+    };
+    for (let i = 0; i < 26; i++) {
+      const h = HITS[i % 4], m = MOLS[4 + (i * 3) % 10], o = out(i), t0 = K.mental - 0.15 + (i % 13) * 0.12 + (i >= 13 ? 1.1 : 0);
+      gsap.set(`#p${i}`, { x: h[0], y: h[1], opacity: 0 });
+      tl.to(`#p${i}`, { opacity: 1, duration: 0.08 }, t0);
+      tl.to(`#p${i}`, { motionPath: { path: [{ x: h[0], y: h[1] }, { x: m[0], y: m[1] }, { x: o[0], y: o[1] }], curviness: 0.4 }, duration: 1.3, ease: 'power1.in' }, t0);
+    }
+    tl.to(['#s4', '#s5', '#s6'], { opacity: 0.25, duration: 0.8 }, K.mental + 0.3);
+    tl.to('.mol', { keyframes: [{ scale: 1.25, duration: 0.1 }, { scale: 1, duration: 0.35, ease: 'elastic.out(1, 0.4)' }], stagger: 0.05, svgOrigin: '0 0' }, K.mental);
+
+    // line 6: the panel fills with sky blue, and blue arrives at the eye from every side
+    tl.to(['#wB', '#wR'], { opacity: 0, duration: 0.3 }, K.menoleh - 0.3);
+    tl.to('#tint', { opacity: 0.75, duration: 1.2, ease: 'power1.inOut' }, K.menoleh - 0.2);
+    gsap.set('#eye', { scale: 0, svgOrigin: '0 0' });
+    tl.to('#eye', { scale: 1, duration: 0.5, ease: 'back.out(2.2)' }, K.menoleh);
+    for (let i = 0; i < 26; i++) {
+      const o = out(i + 40), t0 = K.menoleh + 0.3 + (i % 13) * 0.1 + (i >= 13 ? 0.7 : 0);
+      tl.set(`#p${i}`, { x: o[0], y: o[1], opacity: 0 }, t0 - 0.01);
+      tl.to(`#p${i}`, { opacity: 1, duration: 0.1 }, t0);
+      tl.to(`#p${i}`, { x: EYE[0], y: EYE[1], duration: 0.8, ease: 'power2.in' }, t0);
+      tl.to(`#p${i}`, { opacity: 0, duration: 0.08 }, t0 + 0.78);
+    }
+    tl.to('#eye', { keyframes: [{ scaleY: 0.1, duration: 0.08 }, { scaleY: 1, duration: 0.12 }], svgOrigin: '0 0' }, K.sampai);
+    tl.to('#eye', { keyframes: [{ scale: 1.2, duration: 0.12 }, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.35)' }], svgOrigin: '0 0' }, K.mata);
+    gsap.set('.spk', { scale: 0, svgOrigin: '0 0' });
+    tl.to('.spk', { opacity: 1, scale: 1, rotation: 30, duration: 0.3, ease: 'back.out(3)', stagger: 0.06, svgOrigin: '0 0' }, K.mata + 0.05);
+    tl.to('.spk', { opacity: 0, scale: 0, duration: 0.3, stagger: 0.06, svgOrigin: '0 0' }, K.mata + 0.7);
+  })();
+  </script>
+</body>
+</html>

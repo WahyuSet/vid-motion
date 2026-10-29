@@ -1,0 +1,56 @@
+{
+  "channel": "tikus",
+  "style": "paper",
+  "captions": {
+    "words": 5,
+    "line": 34
+  },
+  "tail": 1.6,
+  "scenes": [
+    {
+      "vo": "Bank tempat kamu nabung *tutup*. Uangmu ikut hilang?"
+    },
+    {
+      "vo": "Banyak yang takut begitu. Anggapan itu *menyesatkan*.",
+      "hold": 0.3
+    },
+    {
+      "vo": "Ada *LPS*, Lembaga Penjamin Simpanan, yang menjamin tabungan dan deposito."
+    },
+    {
+      "vo": "Batasnya sampai *2 miliar* rupiah per nasabah, di tiap bank.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Tapi ada syaratnya, namanya *3T*."
+    },
+    {
+      "vo": "Satu, simpananmu *tercatat* di pembukuan bank."
+    },
+    {
+      "vo": "Dua, bunganya *tidak melebihi* bunga penjaminan LPS."
+    },
+    {
+      "vo": "Saat ini, batasnya *3,75 persen* untuk bank umum.",
+      "hold": 0.3
+    },
+    {
+      "vo": "Tiga, kamu tidak ikut bikin bank *gagal*, misalnya lewat kredit macet."
+    },
+    {
+      "vo": "Jadi, bunga yang terlalu *tinggi* justru bisa bikin simpananmu *tidak dijamin*.",
+      "hold": 0.4
+    },
+    {
+      "vo": "Coba cek bunga tabunganmu. Masih di bawah *batas LPS*?"
+    }
+  ],
+  "inserts": [
+    {
+      "file": "hf/renders/perisai.webm",
+      "from": 3,
+      "lead": 1.2,
+      "tail": 1.2
+    }
+  ]
+}

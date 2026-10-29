@@ -21,6 +21,8 @@ agent tidak pernah melewatinya sendiri.
 | madu-awet | cicaktahu | Madu nggak pernah kedaluwarsa? | mitos-fakta | video | diminta langsung lewat chat sebagai tes (lewat gerbang ide & naskah); 44.5s, 60 fps, suara Cartesia (rekaman utuh, voice/full.wav); cerita makam Mesir dibuang (tak terverifikasi); tunggu ditonton → siap-upload |
 | cicak-nempel | cicaktahu | Kok cicak nggak jatuh dari langit-langit? | mitos-fakta | video | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); 58.0s (1740 frame); pakai lensa xray, kartu, stiker; tunggu ditonton → siap-upload |
 | manfaat-puasa | cicaktahu | Puasa bikin tubuh kehabisan energi? Masa sih? | mitos-fakta | video | 57.8s, 10 adegan; saklar metabolisme (gula hati → lemak/keton) & autofagi (Nobel 2016); siap ditonton pengguna → siap-upload |
+| lps-jamin | tikus | Bank tutup, uangmu ikut hilang? (LPS & syarat 3T) | cek fakta | video | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); edukasi keuangan, TBP per 1 Okt 2026–31 Jan 2027; 56.5s (3390 frame, 60 fps), suara Edge; tunggu ditonton → siap-upload |
+| langit-biru | cicaktahu | Langit biru karena memantulkan laut? | mitos-fakta | siap-upload | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); uji coba hybrid HyperFrames: 2 sisipan (hamburan cahaya baris 3-6, senja baris 8-9); 55.1s; ditonton dan disetujui pengguna |
 
 ## Usulan
 
