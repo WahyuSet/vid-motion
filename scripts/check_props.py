@@ -53,7 +53,9 @@ BAD = ("NaN", "undefined", "Infinity", "[object")
 
 def check_names(names):
     """Errors for prop names that are not defined exactly once, in engine/props.js."""
-    files = list((ROOT / "topics").rglob("*.js")) + list((ROOT / "engine").glob("*.js")) + list((ROOT / "brand").glob("*.js"))
+    # topics/<topic>/hf/engine/ holds the pipeline's git-ignored copies of the engine for HyperFrames inserts
+    topics = [p for p in (ROOT / "topics").rglob("*.js") if "hf/engine" not in p.as_posix()]
+    files = topics + list((ROOT / "engine").glob("*.js")) + list((ROOT / "brand").glob("*.js"))
     texts = {p: p.read_text(encoding="utf-8", errors="replace") for p in files}
     errors = []
     for n in names:
