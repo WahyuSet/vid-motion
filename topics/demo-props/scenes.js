@@ -1,6 +1,7 @@
 // Showcase of engine/props.js: plants and surfaces (first view), everyday objects (second view),
 // kitchen and home (third view), weather, animals and fruit (fourth view), props shared from topics (fifth),
-// money and news (sixth), body and health (seventh).
+// money and news (sixth), body and health (seventh), and batch C for Si Tikus: money (eighth), economy (ninth),
+// news (tenth).
 // Render it with another "theme" in script.json to see the newsprint (soft) and notebook (doodle) looks.
 let K = {};
 
