@@ -219,7 +219,7 @@ its silence is trimmed and its loudness matched to the sound it replaces. Record
 | `vol(d, fill, opts)`, `circleD`, `rectD` | draws a shape (path `d`) with volume in the theme's style: cel shadow + highlight + ink outline (paper), round gradient (newsprint), hatched shadow (notebook) (`{depth, w, shine}`). Use it for every prop instead of a flat `fill` |
 | `cutaway(t, t0, shell, opts)` | lifts a cover (`shell` SVG) off from `t0` to show what is drawn under it, back from `t1` (`{t1, dx, dy, rot, dur, cx, cy}`) |
 | `sparkle`, `snowflake`, `mix(hexA, hexB, p)`, `rnd(i)`, `lerp`, `clamp`, `measure` | small utilities |
-| `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (top-down view, crawls any direction with `rot`; `walk = t * 11` animates legs). See "Mascots" below |
+| `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (stands upright facing the viewer; `rot` turns it onto a wall or ceiling; `walk = t * 11` animates legs). See "Mascots" below |
 | `face(kind, geometry, t)`, `eye`, `eyePair`, `magnifier` | shared expressions and props (`engine/faces.js`) for drawing new characters |
 
 ## Prop library (`engine/props.js`)
@@ -260,8 +260,8 @@ All mascots share one API: `name(x, y, s, pose, t, rot = 0, walk = null, faceKin
 
 | mascot | file | channel | art style |
 |---|---|---|---|
-| `cicak` — Si Cicak, house gecko | `engine/cicak.js` | **@cicaktahu** (this channel) | **flat ink**: thick ink outlines, flat colours, warm paper |
-| `tikus` — Si Tikus, news-analyst mouse | `engine/tikus.js` | another channel | **editorial cartoon**: grey mouse, thin navy lines, halftone-dot shading like newsprint, rolled-up shirt, glasses, no tie |
+| `cicak` — Si Cicak, house gecko | `engine/cicak.js` | **@cicaktahu** (this channel) | **flat ink**: thick ink outlines, flat colours, warm paper; an upright gecko with big eyes on the sides of its head, after `docs/mascots/cicak.png` |
+| `tikus` — Si Tikus, news-analyst mouse | `engine/tikus.js` | another channel | **editorial cartoon**: grey mouse with a long snout, round glasses, a dark suit with an open collar (never a tie), halftone-dot shading like newsprint, after `docs/mascots/tikus.png` |
 | `stickman` — stick figure with a green head | `engine/stickman.js` | another channel | **doodle**: wobbly double pen lines that boil 8×/s, marker fill off the outline, hatching, lined notebook |
 
 Each channel's videos must match its mascot's style: props drawn for a Si Tikus video get flat colours, thin

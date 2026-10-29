@@ -126,14 +126,14 @@ async function renderOutfits() {
   await setupCanvas(W, H, { light: false, texture: false });
   let s = `<rect width="${W}" height="${H}" fill="#E9E5DC"/>`, ui = '';
   ui += titleText('PILIHAN *PAKAIAN* SI TIKUS', 1300, 100, 84, 1600, 14);
-  const opts = [['analis', 'analis', 'default: kemeja, kacamata, pulpen'], ['reporter', 'reporter', 'kartu PERS + tali'],
-    ['profesor', 'profesor', 'rompi rajut'], ['eksekutif', 'eksekutif', 'jas, kerah terbuka, tanpa dasi'], ['kacamata', 'kacamata', '']];
+  const opts = [['eksekutif', 'eksekutif', 'default: jas, kerah terbuka, tanpa dasi'], ['reporter', 'reporter', 'jas + kartu PERS'],
+    ['analis', 'analis', 'kemeja, lengan digulung, pulpen'], ['profesor', 'profesor', 'rompi rajut'], ['kacamata', 'kacamata', '']];
   opts.forEach(([key, label, note], i) => {
     const cx = 290 + i * 505;
     s += `<rect x="${cx - 230}" y="200" width="460" height="1120" rx="34" fill="#fff" opacity="0.6"/>`;
     s += tikus(cx, 520, 0.95, 'point', 1.3, 0, null, 'smile', key);
     s += tikus(cx, 1010, 0.95, 'verdict', 1.3, 0, null, 'smug', key);
-    ui += pill(label.toUpperCase(), cx, 1230, 34, key === 'analis' ? C.accent : '#34416A');
+    ui += pill(label.toUpperCase(), cx, 1230, 34, key === 'eksekutif' ? C.accent : '#34416A');
     if (note) ui += hand(note, cx, 1290, 34, C.muted);
   });
   put(s, ui);

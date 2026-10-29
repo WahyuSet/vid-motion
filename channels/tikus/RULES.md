@@ -20,10 +20,11 @@ These topics carry legal and reputational risk. The rules below are stricter tha
   "diduga" claims need a named, reputable source. No insults, nicknames or mockery of real people.
 - Do **not** use the mascot or the word "tikus" as a joke about corruption or about any real person or office
   (in Indonesia "tikus" is slang for a corrupt official); Si Tikus is a friendly explainer.
-- Si Tikus is drawn as a **news analyst** in an editorial-cartoon style (grey mouse, thin navy lines, halftone
-  shading) and wears the **analis** outfit by default (rolled-up shirt, glasses, a pen in the pocket, no tie:
-  `tikus(..., outfit)`, default in `MOUSE.outfit`). It never wears a necktie: a mouse in a suit and tie echoes
-  the "tikus berdasi" (koruptor) meme (`eksekutif` is a blazer with an open collar). Keep it reading as a friendly analyst: never draw it with money bags, cash under the table, a mask, bars or a prison,
+- Si Tikus is drawn as a **news analyst** after the model sheet `docs/mascots/tikus.png` (grey mouse with a long
+  snout, round glasses, editorial-cartoon lines and halftone shading) and wears the **eksekutif** outfit by default
+  (dark suit, white shirt, open collar, no tie: `tikus(..., outfit)`, default in `MOUSE.outfit`; `analis` is the
+  rolled-up shirt with a pen). It never wears a necktie, even where the model sheet shows one: a mouse in a suit
+  and tie echoes the "tikus berdasi" (koruptor) meme. Keep it reading as a friendly analyst: never draw it with money bags, cash under the table, a mask, bars or a prison,
   sneaking or grabbing poses, or next to officials, parliament or party symbols; keep its faces friendly
   (`smile`, `skeptical`, `smug`, `wow`), never sly or greedy. For `cek fakta` videos the `reporter` outfit
   (PERS card on a lanyard) fits better; `profesor` (knitted vest) works for long explainers.
