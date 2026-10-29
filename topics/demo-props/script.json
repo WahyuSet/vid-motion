@@ -35,6 +35,10 @@
     {
       "vo": "Untuk Si Tikus ada *buku tabungan*, perisai, papan, meteran, label harga, dan pompa bensin.",
       "hold": 0.6
+    },
+    {
+      "vo": "Juga *koran*, pesan berantai, palu hakim, dan kotak suara.",
+      "hold": 0.8
     }
   ]
 }

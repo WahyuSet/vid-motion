@@ -37,6 +37,10 @@ CASES = {
     "oilBarrel": ["oilBarrel(0, 0, 1)", "oilBarrel(0, 0, 1, { col: '#3A3F4E', label: '' })"],
     "lpgTank": ["lpgTank(0, 0, 1)", "lpgTank(0, 0, 1, { col: '#3E7FC4', label: '12 kg' })"],
     "house": ["house(0, 0, 1)", "house(0, 0, 1, { label: 'KPR' })"],
+    "newspaper": ["newspaper(0, 0, 1)", "newspaper(0, 0, 1, { headline: 'HARGA BERAS NAIK DI 20 PROVINSI MENURUT DATA BPS' })"],
+    "chatBubble": ["chatBubble(0, 0, 1)", "chatBubble(0, 0, 1, { side: -1, lines: ['a', 'b', 'c', 'd', 'e'] })"],
+    "gavel": ["gavel(0, 0, 1)", "gavel(0, 0, 1, { t: 0.5, t0: 1 })", "gavel(0, 0, 1, { t: 1.06, t0: 1 })", "gavel(0, 0, 1, { t: 1000, t0: 1 })"],
+    "ballotBox": ["ballotBox(0, 0, 1)", "ballotBox(0, 0, 1, { p: 0.5 })", "ballotBox(0, 0, 1, { p: -1 })"],
 }
 
 # extra substrings a case must contain

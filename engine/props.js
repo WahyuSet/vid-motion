@@ -9,7 +9,7 @@
 // Shared:   jar, wallCalendar, bedSide, socket, germ
 // Money:    wallet, piggyBank, calculator, chart, building, docPaper, newsMic
 // Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump, atmCard, goldBar, safeBox,
-//           shoppingBasket, oilBarrel, lpgTank, house
+//           shoppingBasket, oilBarrel, lpgTank, house, newspaper, chatBubble, gavel, ballotBox
 // Body:     heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush (schematic only)
 
 const tone = (col, k) => k > 0 ? mix(col, '#FFFFFF', k) : mix(col, C.ink, -k);
@@ -1077,5 +1077,63 @@ function house(x, y, s = 1, { col = '#E9D8B8', roof = '#C2593A', door = '#8A5A36
   g += vol(rectD(-35, -130, 70, 130, 6), door, { depth: 6, w: 5 }) + vol(circleD(20, -64, 6), '#E8C55A', { depth: 2, w: 3 });
   [-140, 70].forEach(wx => g += vol(rectD(wx, -170, 70, 60, 6), '#CFE8F7', { depth: 4, w: 5 }) + detail(`M${wx + 35},-170 L${wx + 35},-110 M${wx},-140 L${wx + 70},-140`, tone(col, -0.4), 4));
   if (label) g += vol(rectD(-64, -312, 128, 48, 8), '#FFFFFF', { depth: 4, w: 4 }) + bodyText(label, 0, -288, fitSize(label, 32, 108), C.ink, 'middle');
+  return G(T(x, y, s), 1, g);
+}
+
+// newspaper(x, y, s, opts): a folded newspaper centred on (x, y) with a plain "KORAN" masthead, a headline,
+// a hatched photo and text columns; never a real paper's name or layout
+function newspaper(x, y, s = 1, { headline = 'BERITA HARI INI', rot = -4 } = {}) {
+  const paper = '#FDFCF8', ln = tone(paper, -0.3);
+  let g = G(T(12, 10), 1, vol(rectD(-210, -150, 420, 300, 6), tone(paper, -0.08), { depth: 4, w: 5, rot }));
+  g += vol(rectD(-210, -150, 420, 300, 6), paper, { depth: 6, w: 5, rot });
+  g += bodyText('KORAN', 0, -120, 40, C.ink, 'middle') + detail('M-190,-96 L190,-96', ln, 3) + detail('M-190,-90 L190,-90', ln, 1.5);
+  g += bodyText(headline, 0, -64, fitSize(headline, 34, 380), C.ink, 'middle');
+  g += `<rect x="-190" y="-36" width="170" height="116" fill="${tone(paper, -0.12)}"/>`;
+  for (let k = 0; k < 9; k++) g += detail(`M${-190 + k * 20},80 L${-170 + k * 20},-36`, tone(paper, -0.3), 2, 0.6);
+  for (let k = 0; k < 7; k++) g += `<rect x="0" y="${-34 + k * 18}" width="${190 - (k % 3) * 24}" height="7" rx="3" fill="${ln}"/>`;
+  for (let k = 0; k < 3; k++) g += `<rect x="-190" y="${94 + k * 16}" width="${380 - (k % 2) * 60}" height="7" rx="3" fill="${ln}"/>`;
+  return G(T(x, y, s, rot), 1, g);
+}
+
+// chatBubble(x, y, s, opts): a generic forwarded-message bubble centred on (x, y) with a small tag and a
+// forward arrow above it; up to three lines; tail on the left (side 1) or right (side -1). Not any app's UI
+function chatBubble(x, y, s = 1, { lines = ['Katanya bank tutup,', 'uang hilang semua!'], tag = 'PESAN BERANTAI', side = 1 } = {}) {
+  const sd = side < 0 ? -1 : 1, ls = lines.slice(0, 3);
+  let g = shadow(0, 120, 200, 0.12);
+  g += vol(`M${-190 * sd},60 L${-236 * sd},124 L${-140 * sd},88 Z`, '#FFFFFF', { depth: 4, w: 5 });
+  g += vol(rectD(-220, -90, 440, 180, 30), '#FFFFFF', { depth: 8, w: 5 });
+  g += detail('M-196,-62 L-176,-62 C-166,-62 -160,-56 -160,-48 M-170,-72 L-160,-62 L-170,-52', C.muted, 3.5);
+  g += bodyText(tag, -148, -60, fitSize(tag, 22, 340), C.muted, 'start');
+  ls.forEach((l, i) => g += bodyText(l, -196, -22 + i * 40 + (3 - ls.length) * 20, fitSize(l, 34, 392), C.ink, 'start'));
+  return G(T(x, y, s), 1, g);
+}
+
+// gavel(x, y, s, opts): a judge's wooden gavel over its sound block, standing on (x, y). With t0 the gavel
+// is raised before t0, strikes in 0.12 s and settles with a small bounce; without t0 it rests on the block
+function gavel(x, y, s = 1, { t = 0, t0 = null } = {}) {
+  let a = 0;
+  if (t0 != null) {
+    const u = t - t0, v = u - 0.12;
+    a = u < 0 ? 35 : u < 0.12 ? 35 * (1 - E.inCubic(u / 0.12)) : 5 * Math.exp(-9 * v) * Math.abs(Math.sin(18 * v));
+  }
+  const wood = '#9A6B43';
+  let g = shadow(0, 2, 140, 0.16) + vol(rectD(-120, -40, 240, 40, 12), tone(wood, -0.15), { depth: 6, w: 5 });
+  let h = vol(rectD(-200, -10, 200, 20, 10), wood, { depth: 4, w: 4 });
+  h += vol(rectD(-270, -40, 90, 80, 14), wood, { depth: 8, w: 5 }) + detail('M-256,-40 L-256,40 M-194,-40 L-194,40', tone(wood, -0.35), 4);
+  g += G(`translate(150 -80) rotate(${f(a)})`, 1, h);
+  return G(T(x, y, s), 1, g);
+}
+
+// ballotBox(x, y, s, opts): a clear ballot box standing on (x, y) with a plain label; p 0..1 slides a folded
+// ballot down into the slot. No election body or party logo
+function ballotBox(x, y, s = 1, { label = 'KOTAK SUARA', p = 0 } = {}) {
+  const q = clamp(p), py = -400 + q * 110;
+  let g = shadow(0, 2, 170, 0.16);
+  g += vol(rectD(-45, py, 90, 70, 4), '#FFFFFF', { depth: 3, w: 4 }) + detail(`M-45,${f(py + 35)} L45,${f(py + 35)}`, '#B9BCC2', 2.5);
+  g += vol(rectD(-150, -260, 300, 260, 10), '#E3EEF4', { depth: 10 });
+  [[-110, -60, 10], [-20, -48, -8], [60, -64, 14]].forEach(([bx, by, r]) => g += G(T(bx, by, 1, r), 0.7, `<rect x="0" y="0" width="70" height="44" rx="3" fill="#FFFFFF" stroke="#B9BCC2" stroke-width="2.5"/>`));
+  g += detail('M-128,-236 L-128,-20', '#FFFFFF', 6, 0.7);
+  g += vol(rectD(-162, -284, 324, 30, 8), '#BFD3DE', { depth: 4, w: 5 }) + `<rect x="-60" y="-275" width="120" height="10" rx="5" fill="#2B2F3F"/>`;
+  g += vol(rectD(-100, -170, 200, 50, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(label, 0, -145, fitSize(label, 28, 180), C.ink, 'middle');
   return G(T(x, y, s), 1, g);
 }
