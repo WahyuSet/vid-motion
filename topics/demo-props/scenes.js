@@ -94,9 +94,11 @@ function drawWorld(t) {
   s += woodPlank(-520, -13300, 1040, 44);
   s += savingsBook(-360, -13020, 0.6) + priceLabel(-60, -13010, 0.75, { label: 'Rp12.500' }) + fuelPump(330, -12880, 0.55, { t });
   s += woodPlank(-520, -12880, 1040, 44);
-  // view 9: Si Tikus, economy (atmCard, goldBar, safeBox)
+  // view 9: Si Tikus, economy (atmCard, goldBar, safeBox, house, shoppingBasket, oilBarrel, lpgTank)
   s += atmCard(330, -15420, 0.6) + goldBar(30, -15200, 0.55, { n: 3 });
   s += safeBox(-300, -15200, 0.6, { open: P(t, K.v9 + 0.8, 0.8, E.outCubic), inside: savingsBook(0, -70, 0.45, { rot: 0 }) });
   s += woodPlank(-520, -15200, 1040, 44);
+  s += house(-330, -14780, 0.55, { label: 'KPR' }) + shoppingBasket(-40, -14780, 0.55) + oilBarrel(170, -14780, 0.5) + lpgTank(350, -14780, 0.5);
+  s += woodPlank(-520, -14780, 1040, 44);
   return s;
 }

@@ -8,7 +8,8 @@
 // Objects:  bulb, coin, banknote, phone, glass, box, plate, riceBowl, pot, stove, bottle, fan, wallClock, windowFrame, umbrella
 // Shared:   jar, wallCalendar, bedSide, socket, germ
 // Money:    wallet, piggyBank, calculator, chart, building, docPaper, newsMic
-// Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump, atmCard, goldBar, safeBox
+// Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump, atmCard, goldBar, safeBox,
+//           shoppingBasket, oilBarrel, lpgTank, house
 // Body:     heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush (schematic only)
 
 const tone = (col, k) => k > 0 ? mix(col, '#FFFFFF', k) : mix(col, C.ink, -k);
@@ -1016,5 +1017,65 @@ function safeBox(x, y, s = 1, { open = 0, col = '#5A6170', inside = '' } = {}) {
   door += vol(rectD(84, -222, 22, 104, 10), '#C9CCD2', { depth: 4, w: 4 });
   door = G(`translate(-150 0) scale(${f(c)} 1) translate(150 0)`, 1, door);
   g += o < 0.5 ? room + stuff + door : room + door + stuff;
+  return G(T(x, y, s), 1, g);
+}
+
+// basket items for shoppingBasket, each standing on its slot's (0, 0) at the basket rim; plain, no brands
+const BASKET_ITEM = {
+  beras: () => vol('M-60,0 L-55,-100 Q-40,-120 -20,-110 L20,-110 Q40,-120 55,-100 L60,0 Z', '#F4F1EA', { depth: 6, w: 5 }) +
+    detail('M-24,-104 L24,-104', '#B9BCC2', 4) + bodyText('BERAS', 0, -52, 22, '#7C6A55', 'middle'),
+  telur: () => [[-30, -20], [30, -20], [0, -38]].map(([ex, ey]) => vol(`M${ex - 22},${ey} a22,28 0 1 0 44,0 a22,28 0 1 0 -44,0 Z`, '#F3E2C7', { depth: 4, w: 4 })).join(''),
+  minyak: () => vol(rectD(-22, -130, 44, 130, 12), '#F2C230', { depth: 5, w: 4 }) + vol(rectD(-12, -150, 24, 22, 4), '#E0522F', { depth: 3, w: 4 }) +
+    `<rect x="-22" y="-80" width="44" height="34" fill="#FFFFFF" opacity="0.85"/>`,
+  sayur: () => leaf(0, 0, 110, -112) + leaf(0, 0, 120, -90, { col: PLANT.leafDark }) + leaf(0, 0, 110, -68),
+};
+
+// shoppingBasket(x, y, s, opts): a woven plastic market basket standing on (x, y) with items peeking out;
+// items: any of 'beras', 'telur', 'minyak', 'sayur' (others are ignored), up to three
+function shoppingBasket(x, y, s = 1, { col = '#E0522F', items = ['beras', 'telur', 'minyak'] } = {}) {
+  const known = items.filter(k => BASKET_ITEM[k]).slice(0, 3), slots = [[-90], [-50, 50], [-90, 0, 90]][Math.max(0, known.length - 1)];
+  let g = shadow(0, 2, 170, 0.16) + detail('M-150,-190 C-150,-300 -40,-300 -40,-190 M40,-190 C40,-300 150,-300 150,-190', tone(col, -0.15), 14);
+  known.forEach((k, i) => g += G(T(slots[i], -180), 1, BASKET_ITEM[k]()));
+  g += vol('M-170,-180 L170,-180 L140,0 L-140,0 Z', col, { depth: 12 });
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) {
+    const ry = -148 + r * 48, sh = r * 10;
+    g += `<rect x="${f(-128 + sh + c * (226 - 2 * sh) / 5 - 14)}" y="${ry}" width="28" height="30" rx="8" fill="${tone(col, -0.35)}" opacity="0.8"/>`;
+  }
+  g += vol(rectD(-180, -198, 360, 28, 10), tone(col, -0.08), { depth: 4, w: 5 });
+  return G(T(x, y, s), 1, g);
+}
+
+// oilBarrel(x, y, s, opts): a 200-litre steel drum standing on (x, y) with two rings and a plain label
+function oilBarrel(x, y, s = 1, { col = '#2F5E9E', label = 'MINYAK' } = {}) {
+  let g = shadow(0, 2, 130, 0.16);
+  g += vol(rectD(-110, -300, 220, 300, 18), col, { depth: 12 });
+  [-210, -90].forEach(ry => g += detail(`M-108,${ry} L108,${ry}`, tone(col, -0.3), 6) + detail(`M-108,${ry + 8} L108,${ry + 8}`, tone(col, 0.3), 3, 0.7));
+  g += vol(rectD(-116, -310, 232, 18, 8), tone(col, -0.15), { depth: 3, w: 4 }) + vol(rectD(40, -326, 30, 16, 4), '#8A8E96', { depth: 2, w: 3 });
+  if (label) g += vol(rectD(-74, -176, 148, 52, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(label, 0, -150, fitSize(label, 30, 128), C.ink, 'middle');
+  return G(T(x, y, s), 1, g);
+}
+
+// lpgTank(x, y, s, opts): a round gas cylinder standing on (x, y) with a foot ring, carry collar and valve; no logo
+function lpgTank(x, y, s = 1, { col = '#5FA84A', label = '3 kg' } = {}) {
+  let g = shadow(0, 2, 120, 0.16);
+  g += vol(rectD(-80, -44, 160, 44, 10), tone(col, -0.15), { depth: 5, w: 5 });
+  [-46, 0, 46].forEach(hx => g += `<rect x="${hx - 12}" y="-30" width="24" height="16" rx="6" fill="${tone(col, -0.45)}"/>`);
+  g += vol('M-110,-150 C-110,-250 -60,-280 0,-280 C60,-280 110,-250 110,-150 C110,-60 70,-36 0,-36 C-70,-36 -110,-60 -110,-150 Z', col, { depth: 14 });
+  g += detail('M-108,-160 C-60,-150 60,-150 108,-160', tone(col, -0.25), 4);
+  g += vol(rectD(-62, -322, 124, 50, 16), tone(col, -0.1), { depth: 5, w: 5 });
+  g += `<rect x="-44" y="-310" width="30" height="20" rx="6" fill="${tone(col, -0.5)}"/><rect x="14" y="-310" width="30" height="20" rx="6" fill="${tone(col, -0.5)}"/>`;
+  g += vol(rectD(-16, -344, 32, 26, 6), '#B9BCC2', { depth: 3, w: 4 });
+  if (label) g += bodyText(label, 0, -200, fitSize(label, 44, 150), '#FFFFFF', 'middle');
+  return G(T(x, y, s), 1, g);
+}
+
+// house(x, y, s, opts): a one-storey house standing on (x, y) with a gable roof; label: a small sign on the roof
+function house(x, y, s = 1, { col = '#E9D8B8', roof = '#C2593A', door = '#8A5A36', label = '' } = {}) {
+  let g = shadow(0, 2, 220, 0.16);
+  g += vol(rectD(-170, -230, 340, 230, 6), col, { depth: 12 });
+  g += vol('M-210,-220 L0,-380 L210,-220 Z', roof, { depth: 10 });
+  g += vol(rectD(-35, -130, 70, 130, 6), door, { depth: 6, w: 5 }) + vol(circleD(20, -64, 6), '#E8C55A', { depth: 2, w: 3 });
+  [-140, 70].forEach(wx => g += vol(rectD(wx, -170, 70, 60, 6), '#CFE8F7', { depth: 4, w: 5 }) + detail(`M${wx + 35},-170 L${wx + 35},-110 M${wx},-140 L${wx + 70},-140`, tone(col, -0.4), 4));
+  if (label) g += vol(rectD(-64, -312, 128, 48, 8), '#FFFFFF', { depth: 4, w: 4 }) + bodyText(label, 0, -288, fitSize(label, 32, 108), C.ink, 'middle');
   return G(T(x, y, s), 1, g);
 }
