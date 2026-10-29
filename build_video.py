@@ -34,6 +34,7 @@ import math
 import multiprocessing
 import os
 import re
+import shutil
 import subprocess
 import sys
 import wave
@@ -534,6 +535,37 @@ def render_segment(job):
     return str(seg)
 
 
+def insert_window(ins, data):
+    """Seconds an insert covers: from `lead` s before line `from` starts to `tail` s after line `until` ends."""
+    sc = data["scenes"]
+    start = max(0.0, sc[ins["from"] - 1]["start"] - ins.get("lead", 0))
+    start = round(start * data["fps"]) / data["fps"]  # on a frame boundary, so insert frames line up with ours
+    end = min(data["total"], sc[ins.get("until", ins["from"]) - 1]["end"] + ins.get("tail", 0))
+    return {"start": round(start, 4), "end": round(end, 4)}
+
+
+def hf_timeline(topic_dir, script, data, page):
+    """For HyperFrames inserts (topics/<topic>/hf/): write hf/timeline.js with the spoken word times, the camera
+    of every frame and each insert's window, so a GSAP composition can anchor to words and draw in world space."""
+    hf = topic_dir / "hf"
+    if not hf.is_dir():
+        return
+    n = int(round(data["total"] * data["fps"]))
+    cam = page.evaluate("([n, fps]) => Array.from({length: n}, (_, i) => { const c = cameraAt(i / fps); "
+                        "return [+c.x.toFixed(2), +c.y.toFixed(2), +c.z.toFixed(5)]; })", [n, data["fps"]])
+    tl = {"total": data["total"], "fps": data["fps"], "theme": data["theme"], "camera": cam,
+          "inserts": [{**ins, **insert_window(ins, data)} for ins in script.get("inserts", [])],
+          "scenes": [{"vo": s["vo"], "start": s["start"], "end": s["end"], "words": [{"w": w["w"], "t": w["t"]} for w in s["words"]]}
+                     for s in data["scenes"]]}
+    (hf / "timeline.js").write_text("window.TL = " + json.dumps(tl, ensure_ascii=False) + ";\n", encoding="utf-8")
+    # HyperFrames only serves files inside its project: copy the engine scripts, fonts and the topic's scenes.js in
+    eng = hf / "engine"
+    shutil.copytree(ROOT / "engine" / "fonts", eng / "fonts", dirs_exist_ok=True)
+    for js in (ROOT / "engine").glob("*.js"):
+        shutil.copy2(js, eng / js.name)
+    shutil.copy2(topic_dir / "scenes.js", eng / "scenes.js")
+
+
 def main():
     global BUILD
     args = sys.argv[1:]
@@ -558,6 +590,7 @@ def main():
     with sync_playwright() as p:
         browser, page, shot = open_page(p, topic_dir, data)
         cues = page.evaluate("getCues()")
+        hf_timeline(topic_dir, script, data, page)
 
         if "check" in args[1:]:
             check_report(data, page.evaluate("qaInfo()"))
@@ -597,9 +630,20 @@ def main():
         segs = pool.map(render_segment, jobs)
     concat = seg_dir / "list.txt"
     concat.write_text("".join(f"file '{Path(s).as_posix()}'\n" for s in segs), encoding="utf-8")
+    # HyperFrames inserts: transparent clips laid over the picture from their start (needs a re-encode)
+    ins_in, video = [], ["-map", "0:v", "-c:v", "copy"]
+    inserts = [{**ins, **insert_window(ins, data)} for ins in script.get("inserts", [])]
+    if inserts:
+        chain, last = [], "0:v"
+        for k, ins in enumerate(inserts):
+            ins_in += ["-c:v", "libvpx-vp9", "-i", str(topic_dir / ins["file"])]
+            chain.append(f"[{k + 2}:v]setpts=PTS-STARTPTS+{ins['start']:.3f}/TB[i{k}];[{last}][i{k}]overlay=eof_action=pass[v{k}]")
+            last = f"v{k}"
+        video = ["-filter_complex", ";".join(chain), "-map", f"[{last}]",
+                 "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p"]
     subprocess.run(
-        ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(concat), "-i", str(wav),
-         "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+        ["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", str(concat), "-i", str(wav), *ins_in,
+         *video, "-map", "1:a",
          "-af", loudnorm_filter(wav), "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
          "-movflags", "+faststart", "-shortest", str(OUT)], check=True)
     for s in segs:
