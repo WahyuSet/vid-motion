@@ -220,6 +220,7 @@ its silence is trimmed and its loudness matched to the sound it replaces. Record
 | `hype(text, t, t0, x, y, opts)` | "hypermotion" title: slams in skewed at `t0` with a short shake, 3D extrusion, an outline echo that pulses out (`{size, tOut, skew, depth, col, shake}`). For the one or two words that must hit hardest; headlines take `{hype: true}` |
 | `invertFlash(t, ts, dur)` | the whole frame flips to its negative for ~2 frames at `ts`; a hard accent, once or twice per video |
 | `vol(d, fill, opts)`, `circleD`, `rectD` | draws a shape (path `d`) with volume in the theme's style: cel shadow + highlight + ink outline (paper), round gradient (newsprint), hatched shadow (notebook) (`{depth, w, shine}`). Use it for every prop instead of a flat `fill` |
+| `serif(s, x, y, size, fill)`, `typed(...)`, `lg`, `rg`, `dropShadow`, `uid` | Playfair Display / Courier Prime text, SVG linear/radial gradients, soft blurred drop shadows, and deterministic id generator |
 | `cutaway(t, t0, shell, opts)` | lifts a cover (`shell` SVG) off from `t0` to show what is drawn under it, back from `t1` (`{t1, dx, dy, rot, dur, cx, cy}`) |
 | `sparkle`, `snowflake`, `mix(hexA, hexB, p)`, `rnd(i)`, `lerp`, `clamp`, `measure` | small utilities |
 | `cicak(x, y, s, pose, t, rot, walk, faceKind)` | Si Cicak (stands upright facing the viewer; `rot` turns it onto a wall or ceiling; `walk = t * 11` animates legs). See "Mascots" below |
@@ -245,6 +246,7 @@ world coordinates; plants take `t` for wind. See `topics/demo-props` (render it 
 | `wallet`, `piggyBank(…, {coin, t})`, `calculator(…, {display})`, `chart(x, y, w, h, {values, kind, p, labels})`, `building(…, {label})`, `docPaper(…, {title, stamp})`, `newsMic(…, {label})` | money and news for Si Tikus; generic, never a real banknote, bank or logo |
 | `savingsBook`, `shieldBadge`, `hangSign(…, {t, t0})`, `levelGauge(…, {level, limit, id})`, `checkBoard(…, {rows, active})`, `priceLabel`, `fuelPump`, `atmCard`, `goldBar(…, {n})`, `safeBox(…, {open, inside})`, `shoppingBasket(…, {items})`, `oilBarrel`, `lpgTank`, `house`, `newspaper`, `chatBubble`, `gavel(…, {t, t0})`, `ballotBox(…, {p})` | batch C for Si Tikus: savings, prices, fuel, gold, market, news and civic props; generic, never a real bank, brand, media or party. `python scripts/check_props.py` checks every prop in all three themes |
 | `heartOrgan`, `lungs`, `stomach`, `brain`, `bodyCell`, `thermometer(…, {temp})`, `stethoscope`, `toothbrush` | body and health for Stickman; schematic, never realistic or gory |
+| `raggedRect`, `sheet`, `pushPin`, `indexCard`, `waxSeal`, `photoFrame`, `candle`, `oldMap`, `timelineRibbon`, `compass`, `spyglass`, `tallShip`, `cannon`, `quillInk`, `sealedLetter`, `oldCoin`, `lantern`, `spiceSack` | history and archive props for channel Sejarah: parchment documents, wax seals, nautical instruments, oil lantern, and spice sacks. Realistic in the arsip theme or adapts through `vol` |
 
 Add a prop here (not in a topic) once two topics need it, and give it all three looks through `vol`.
 

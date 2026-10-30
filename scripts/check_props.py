@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 import build_video as bv  # noqa: E402
 from playwright.sync_api import sync_playwright  # noqa: E402
 
-THEMES = ["paper", "newsprint", "notebook"]
+THEMES = ["paper", "newsprint", "notebook", "arsip"]
 
 # prop name -> JS expressions that call it; batch C (Si Tikus)
 CASES = {
@@ -41,6 +41,25 @@ CASES = {
     "chatBubble": ["chatBubble(0, 0, 1)", "chatBubble(0, 0, 1, { side: -1, lines: ['a', 'b', 'c', 'd', 'e'] })"],
     "gavel": ["gavel(0, 0, 1)", "gavel(0, 0, 1, { t: 0.5, t0: 1 })", "gavel(0, 0, 1, { t: 1.06, t0: 1 })", "gavel(0, 0, 1, { t: 1000, t0: 1 })"],
     "ballotBox": ["ballotBox(0, 0, 1)", "ballotBox(0, 0, 1, { p: 0.5 })", "ballotBox(0, 0, 1, { p: -1 })"],
+    "raggedRect": ["raggedRect(400, 300)"],
+    "sheet": ["sheet(0, 0, 400, 300)", "sheet(0, 0, 400, 300, { rot: 4, seed: 3 })"],
+    "pushPin": ["pushPin(0, 0)", "pushPin(0, 0, { col: '#2F5E9E' })"],
+    "indexCard": ["indexCard(0, 0, 300, 180)", "indexCard(0, 0, 300, 180, { rot: -3, lines: [['ARSIP', 22], ['Catatan', 20]] })"],
+    "waxSeal": ["waxSeal(0, 0, 1)", "waxSeal(0, 0, 1, { label: 'VOC' })"],
+    "silhouette": ["silhouette(1)", "silhouette(2)"],
+    "photoFrame": ["photoFrame(0, 0, 260, 340)", "photoFrame(0, 0, 260, 340, { rot: 3, label: 'TOKOH' })"],
+    "candle": ["candle(0, 0, 1)", "candle(0, 0, 1, { t: 0.5, lit: true })"],
+    "oldMap": ["oldMap(0, 0, 600, 400)", "oldMap(0, 0, 600, 400, { seed: 5, rose: true })"],
+    "timelineRibbon": ["timelineRibbon(0, 400, 0, { p: 0.8, label: 'PERISTIWA', year: '1808' })"],
+    "compass": ["compass(0, 0, 1)", "compass(0, 0, 1, { angle: 45 })"],
+    "spyglass": ["spyglass(0, 0, 1)", "spyglass(0, 0, 1, { rot: -5 })"],
+    "tallShip": ["tallShip(0, 0, 1)", "tallShip(0, 0, 1, { rot: 2, waves: true })"],
+    "cannon": ["cannon(0, 0, 1)", "cannon(0, 0, 1, { rot: -4 })"],
+    "quillInk": ["quillInk(0, 0, 1)", "quillInk(0, 0, 1, { p: 0.7, rot: -8 })"],
+    "sealedLetter": ["sealedLetter(0, 0, 1)", "sealedLetter(0, 0, 1, { open: 0.6, label: 'RAHASIA' })"],
+    "oldCoin": ["oldCoin(0, 0, 1)", "oldCoin(0, 0, 1, { label: '1790', hole: false })", "oldCoin(0, 0, 1, { label: 'VOC', hole: true })"],
+    "lantern": ["lantern(0, 0, 1)", "lantern(0, 0, 1, { t: 0.5, lit: true, swing: 1 })"],
+    "spiceSack": ["spiceSack(0, 0, 1)", "spiceSack(0, 0, 1, { kind: 'pala' })", "spiceSack(0, 0, 1, { kind: 'lada' })"],
 }
 
 # numbers where text is expected (a price, a percentage) must render, not throw
@@ -52,6 +71,9 @@ NUMBERS = {
     "goldBar": "goldBar(0, 0, 1, { label: 24 })", "oilBarrel": "oilBarrel(0, 0, 1, { label: 200 })", "lpgTank": "lpgTank(0, 0, 1, { label: 3 })",
     "house": "house(0, 0, 1, { label: 36 })", "newspaper": "newspaper(0, 0, 1, { headline: 2026 })",
     "chatBubble": "chatBubble(0, 0, 1, { lines: [5, 6], tag: 7 })", "ballotBox": "ballotBox(0, 0, 1, { label: 1 })",
+    "waxSeal": "waxSeal(0, 0, 1, { label: 1806 })", "photoFrame": "photoFrame(0, 0, 260, 340, { label: 1871 })",
+    "oldCoin": "oldCoin(0, 0, 1, { label: 1790 })", "sealedLetter": "sealedLetter(0, 0, 1, { label: 1945 })",
+    "spiceSack": "spiceSack(0, 0, 1, { label: 100 })",
 }
 for _name, _expr in NUMBERS.items():
     CASES[_name].append(_expr)
@@ -67,10 +89,12 @@ FIT = [
     ("hangSign(0, 0, 1, { label: 'WWWWWWWWWWWW' })", "WWWWWWWWWWWW", 326),
     ("checkBoard(0, 0, 1, { title: 'SYARAT PENJAMINAN SIMPANAN LPS' })", "SYARAT PENJAMINAN SIMPANAN LPS", 580),
     ("priceLabel(0, 0, 1, { label: 'Rp1.250.000' })", "Rp1.250.000", 190),
+    ("oldCoin(0, 0, 1, { label: '1790' })", "1790", 68),
+    ("photoFrame(0, 0, 330, 420, { label: 'RADEN MAS IMAN SOEDJONO' })", "RADEN MAS IMAN SOEDJONO", 260),
 ]
 
 # global helpers of batch C that must stay unique too
-HELPERS = ["fitSize", "SHIELD_D", "BASKET_ITEM"]
+HELPERS = ["fitSize", "SHIELD_D", "BASKET_ITEM", "HIST", "nauticalCompass", "tallShipSilhouette", "cannonProp"]
 
 TEXT_WIDTH = """([svg, text]) => {
   const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -100,7 +124,9 @@ def check_names(names):
 
 
 def norm(svg):
-    return re.sub(r"vol\d+", "vol#", svg)
+    s = re.sub(r"vol\d+", "vol#", svg)
+    s = re.sub(r"uid_[a-zA-Z]+\d+", "uid_#", s)
+    return s
 
 
 def main():

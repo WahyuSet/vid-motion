@@ -1,0 +1,26 @@
+{
+  "channel": "sejarah",
+  "style": "paper",
+  "captions": {
+    "words": 5,
+    "line": 34
+  },
+  "tail": 1.6,
+  "scenes": [
+    {
+      "vo": "Di atas meja arsip, setiap benda menyimpan *catatan sejarah*."
+    },
+    {
+      "vo": "Pena bulu dan *surat rahasia* bersanding dengan koin kuno."
+    },
+    {
+      "vo": "Lentera minyak menerangi peta tua dan *kompas maritim*."
+    },
+    {
+      "vo": "Di pelabuhan, karung *rempah nusantara* siap berlayar."
+    },
+    {
+      "vo": "Semua jejak masa lalu terangkum dalam *arsip bangsa*."
+    }
+  ]
+}

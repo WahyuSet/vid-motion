@@ -888,9 +888,10 @@ function toothbrush(x, y, s = 1, { col = '#5FB3E0', rot = -10, paste = true } = 
 
 // fitSize(s, size, maxW, spacing): the font size (at most size) at which s fits maxW in the theme's body font,
 // counting letter-spacing (px per character) too
-const fitSize = (s, size, maxW, spacing = 0) => {
+const fitSize = (s, size, maxW, spacing = 0, fontOverride = null, weightOverride = null) => {
   const [font, w] = bodyFont(), str = String(s), n = [...str].length;
-  return Math.min(size, size * (maxW - spacing * n) / Math.max(1, measure(str, size, w, font)));
+  const fName = fontOverride || font, fWeight = weightOverride || w;
+  return Math.min(size, size * (maxW - spacing * n) / Math.max(1, measure(str, size, fWeight, fName)));
 };
 
 // savingsBook(x, y, s, opts): a bank savings book centred on (x, y), with a darker spine and a gold "Rp" seal
@@ -1291,12 +1292,12 @@ function waxSeal(x, y, sOrLabel = 1, optsOrS = {}) {
       `<path d="${d}" fill="url(#${g})"/>` +
       `<circle r="36" fill="none" stroke="${cols[2]}" stroke-width="4.5" opacity="0.75"/>` +
       `<circle r="36" fill="none" stroke="#fff" stroke-width="1.8" opacity="0.25" transform="translate(-2 -2)"/>` +
-      serif(String(label), 0, 2, fitSize(label, 34, 60), cols[2], 900));
+      serif(String(label), 0, 2, fitSize(label, 34, 60, 0, 'Playfair Display', 900), cols[2], 900));
   }
   return G(T(x, y, s), 1,
     vol(d, cols[1], { depth: 7, w: 4 }) +
     `<circle r="36" fill="none" stroke="${cols[2]}" stroke-width="4" opacity="0.7"/>` +
-    serif(String(label), 0, 2, fitSize(label, 34, 60), cols[2], 900));
+    serif(String(label), 0, 2, fitSize(label, 34, 60, 0, 'Playfair Display', 900), cols[2], 900));
 }
 
 // silhouette(kind): historic portrait silhouette (1: blangkon/beskap, 2: with collar ribbon)
@@ -1343,7 +1344,7 @@ function photoFrame(x, y, w = 330, h = 420, rotOrOpts = 0, kindArg = 1, labelArg
     s += G(T(0, h / 2 + 46), 1,
       `<rect x="-${w * 0.42}" y="-22" width="${w * 0.84}" height="44" rx="4" fill="${HIST.gold[1]}"/>` +
       `<rect x="-${w * 0.42}" y="-22" width="${w * 0.84}" height="10" rx="4" fill="#fff" opacity="0.3"/>` +
-      serif(String(label), 0, 2, fitSize(label, 24, w * 0.76), '#2A1A0A', 800));
+      serif(String(label), 0, 2, fitSize(label, 24, w * 0.76, 0, 'Playfair Display', 800), '#2A1A0A', 800));
   }
   return G(T(x, y, 1, rot), 1, s) + (pin ? pushPin(x, y - h / 2 + 14) : '');
 }
@@ -1655,7 +1656,7 @@ function oldCoin(x, y, s = 1, { label = '1790', hole = false, col = null, rot = 
   } else {
     // Classic coin with embossed rim & centered date / monogram
     b += `<circle r="46" fill="none" stroke="${tone(coinCol, 0.35)}" stroke-width="2"/>`;
-    b += serif(String(label), 0, 2, fitSize(label, 26, 68), tone(coinCol, 0.55), 900);
+    b += serif(String(label), 0, 2, fitSize(label, 26, 68, 0, 'Playfair Display', 900), tone(coinCol, 0.55), 900);
     b += `<path d="M-30,22 Q0,32 30,22" fill="none" stroke="${tone(coinCol, 0.4)}" stroke-width="2.5"/>`;
     b += `<path d="M-30,-22 Q0,-32 30,-22" fill="none" stroke="${tone(coinCol, 0.4)}" stroke-width="2.5"/>`;
   }
@@ -1774,7 +1775,7 @@ function spiceSack(x, y, s = 1, { kind = 'cengkih', label = '' } = {}) {
   const tag = label || (kind === 'cengkih' ? 'CENGKIH' : kind === 'pala' ? 'PALA' : 'LADA');
   b += G(T(0, 36, 1, -4), 0.75,
     `<rect x="-70" y="-18" width="140" height="36" rx="4" fill="none" stroke="#5E4524" stroke-width="2.5" stroke-dasharray="8 5"/>` +
-    serif(String(tag), 0, 2, fitSize(tag, 20, 120), '#422F19', 900, 'middle', 'letter-spacing="2"'));
+    serif(String(tag), 0, 2, fitSize(tag, 20, 120, 2, 'Playfair Display', 900), '#422F19', 900, 'middle', 'letter-spacing="2"'));
 
   return G(T(x, y, s), 1, b);
 }
