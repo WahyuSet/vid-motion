@@ -191,7 +191,16 @@ const THEMES = {
     palette: { bg: '#FCFCF7', ink: '#26262E', muted: '#7A7A84', line: '#BFD6EA', yellow: '#E4F05C', accent: '#E0522F', cool: '#2F6FB5', leaf: '#5DA544' },
     head: { mode: 'marker', font: 'Caveat', weight: 700 }, cap: { mode: 'hand', font: 'Caveat', weight: 700, size: 76 },
     stamp: 'circle', badge: 'sketch' },
+  // arsip = channel sejarah (no mascot): aged archive paper, sepia, serif titles on paper strips, typewriter
+  // captions, an oxblood archive stamp; props use soft gradients so realistic artefacts sit well on it
+  arsip: { texture: 'arsip', glow: false, vignette: true, fx: 'soft',
+    texBlot: 0.06, texEdge: 0.14, grade: { sat: 0.9, contrast: 1.03 },
+    palette: { bg: '#F4ECDA', ink: '#2A1F16', muted: '#6B5844', line: '#D8C8A6', yellow: '#E2B04A', accent: '#8C2B1F', cool: '#2E4A5C', leaf: '#4F6B3A' },
+    head: { mode: 'news', font: 'Playfair Display', weight: 800, strip: '#F7EFDC' }, cap: { mode: 'bar', font: 'Courier Prime', weight: 700, size: 50 },
+    uiFont: 'Courier Prime', card: '#FAF3E2', stamp: 'seal', badge: 'square' },
 };
+// font for small interface text (cite, cards, stickers, handle) in the soft themes: Oswald unless the theme names one
+const uiFont = () => TH.uiFont || 'Oswald';
 let TH = THEMES.paper;
 
 // a line of text drawn in pieces, so *highlighted* pieces can get their own colour or marker
@@ -238,7 +247,7 @@ function titleText(text, cx, cy, size, maxW = 780, outline = 15, anim = null) {
         if (mode === 'news') {
           const pad = size * 0.28, hh = size * 1.12;
           body += `<rect x="${f(x - pad + 8)}" y="${f(y - hh / 2 + 8)}" width="${f(width + 2 * pad)}" height="${f(hh)}" fill="${C.ink}" opacity="0.2"/>` +
-            `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(width + 2 * pad)}" height="${f(hh)}" fill="#fff"/>` +
+            `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(width + 2 * pad)}" height="${f(hh)}" fill="${TH.head.strip || '#fff'}"/>` +
             `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(size * 0.12)}" height="${f(hh)}" fill="${C.accent}"/>`;
         }
         parts.forEach(p => {
@@ -292,7 +301,7 @@ function titleText(text, cx, cy, size, maxW = 780, outline = 15, anim = null) {
         const stripP = anim.stripProgress !== undefined ? anim.stripProgress : 1;
         const totalStripW = (info.width + 2 * pad) * stripP;
         body += `<rect x="${f(x - pad + 8)}" y="${f(y - hh / 2 + 8)}" width="${f(totalStripW)}" height="${f(hh)}" fill="${C.ink}" opacity="0.2"/>` +
-          `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(totalStripW)}" height="${f(hh)}" fill="#fff"/>` +
+          `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(totalStripW)}" height="${f(hh)}" fill="${TH.head.strip || '#fff'}"/>` +
           `<rect x="${f(x - pad)}" y="${f(y - hh / 2)}" width="${f(Math.min(size * 0.12, totalStripW))}" height="${f(hh)}" fill="${C.accent}"/>`;
       }
       info.words.forEach(w => {
@@ -527,7 +536,7 @@ function outroCard(t) {
   if (o <= 0.01) return '';
   let s = titleText(D.outro, 540, 880, 124, 880, 18);
   if (D.watermark) {
-    const [wf, ww] = TH.cap.mode === 'bar' ? ['Oswald', 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
+    const [wf, ww] = TH.cap.mode === 'bar' ? [uiFont(), 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
     s += `<text x="540" y="1080" font-family="${wf}" font-weight="${ww}" font-size="${TH.cap.mode === 'hand' ? 64 : 48}" fill="#fff" text-anchor="middle" dominant-baseline="central" stroke="${C.ink}" stroke-width="10" stroke-linejoin="round" paint-order="stroke">${esc(D.watermark)}</text>`;
   }
   return `<rect width="1080" height="1920" fill="${C.ink}" opacity="${f(0.45 * o)}"/>` +
@@ -565,6 +574,15 @@ function stamp(label, t, ts, x, y, col = C.accent, rot = -8, size = 130) {
       `<rect x="${f(-fw / 2 + 10)}" y="${f(-h / 2 + 10)}" width="${f(fw - 20)}" height="${f(h - 20)}" fill="none" stroke="#fff" stroke-width="4"/>` +
       `<text x="0" y="4" font-family="Oswald" font-weight="700" font-size="${f(size * 0.9)}" fill="#fff" text-anchor="middle" dominant-baseline="central" letter-spacing="6">${esc(label.toUpperCase())}</text>`);
   }
+  if (TH.stamp === 'seal') {  // arsip: an oxblood archive stamp in serif capitals, a little worn
+    const lab = label.toUpperCase(), fs = size * 0.78, fw = measure(lab, fs, 800, TH.head.font) + fs * 0.12 * lab.length + 100, sh = size * 1.35;
+    let worn = '';
+    for (let k = 0; k < 26; k++) worn += `<circle cx="${f((rnd(k * 7 + 1) - 0.5) * fw)}" cy="${f((rnd(k * 11 + 3) - 0.5) * sh)}" r="${f(2 + 6 * rnd(k * 5))}" fill="${C.bg}" opacity="0.8"/>`;
+    return out + G(T(x, y, s, rot), o * 0.92,
+      `<rect x="${f(-fw / 2)}" y="${f(-sh / 2)}" width="${f(fw)}" height="${f(sh)}" rx="10" fill="${C.bg}" fill-opacity="0.55" stroke="${col}" stroke-width="10"/>` +
+      `<rect x="${f(-fw / 2 + 16)}" y="${f(-sh / 2 + 16)}" width="${f(fw - 32)}" height="${f(sh - 32)}" rx="6" fill="none" stroke="${col}" stroke-width="3"/>` +
+      `<text x="0" y="${f(fs * 0.06)}" font-family="${TH.head.font}" font-weight="800" font-size="${f(fs)}" fill="${col}" text-anchor="middle" dominant-baseline="central" letter-spacing="${f(fs * 0.12)}">${esc(lab)}</text>` + worn);
+  }
   if (TH.stamp === 'circle') {  // notebook: the word written in red marker and circled twice
     const cw = measure(label, size * 1.2, 700, 'Caveat') * 0.62 + 70;
     return out + G(T(x, y, s, rot), o,
@@ -584,10 +602,10 @@ function cite(text, t, t0, t1, y = 1395) {
   const o = P(t, t0, 0.3) * (1 - P(t, t1, 0.3));
   if (o <= 0) return '';
   if (TH.cap.mode === 'bar') {
-    const w = measure(text, 26, 500, 'Oswald') + 44;
+    const w = measure(text, 26, 500, uiFont()) + 44;
     return G('', o, `<rect x="${f(540 - w / 2)}" y="${y - 22}" width="${f(w)}" height="44" fill="#fff" opacity="0.92"/>` +
       `<rect x="${f(540 - w / 2)}" y="${y - 22}" width="8" height="44" fill="${C.accent}"/>` +
-      `<text x="544" y="${y + 1}" font-family="Oswald" font-weight="500" font-size="26" fill="${C.ink}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`);
+      `<text x="544" y="${y + 1}" font-family="${uiFont()}" font-weight="500" font-size="26" fill="${C.ink}" text-anchor="middle" dominant-baseline="central">${esc(text)}</text>`);
   }
   if (TH.cap.mode === 'hand') return G('', o, hand(text, 540, y, 38, C.muted));
   const size = 26, w = measure(text, size, 800) + 40;
@@ -608,6 +626,7 @@ function paperTexture(w, h, seed = 7, kind = 'paper') {
     paper: { blot: [140, 110, 70, 0.06], blots: 70, fibre: 'rgba(120,95,60,0.07)', fibres: 500, grain: 24 },
     newsprint: { blot: [70, 76, 90, 0.07], blots: 90, fibre: 'rgba(60,66,82,0.08)', fibres: 900, grain: 34 },
     notebook: { blot: [120, 130, 150, 0.025], blots: 20, fibre: 'rgba(90,100,120,0.03)', fibres: 150, grain: 10 },
+    arsip: { blot: [120, 82, 36, (TH.texBlot ?? 0.11)], blots: 120, fibre: 'rgba(100,70,35,0.10)', fibres: 1100, grain: 32 },
   }[kind] || {};
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const g = cv.getContext('2d');
@@ -628,6 +647,20 @@ function paperTexture(w, h, seed = 7, kind = 'paper') {
     for (let y = 118; y < h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
     g.strokeStyle = '#F2A7A7'; g.lineWidth = 3;
     g.beginPath(); g.moveTo(96, 0); g.lineTo(96, h); g.stroke();
+  }
+  if (kind === 'arsip') {  // old archive sheet: tea-stain rings, two fold creases and edges darkened by age
+    for (let i = 0; i < 5; i++) {
+      const x = rand() * w, y = rand() * h, r = 60 + rand() * 120;
+      g.strokeStyle = `rgba(115,75,30,${0.05 + rand() * 0.05})`; g.lineWidth = 4 + rand() * 8;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2 * (0.7 + rand() * 0.3)); g.stroke();
+    }
+    [[0, h * 0.34, w, h * 0.35], [w * 0.5, 0, w * 0.51, h]].forEach(([x0, y0, x1, y1]) => {
+      g.strokeStyle = 'rgba(90,60,25,0.10)'; g.lineWidth = 5; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+      g.strokeStyle = 'rgba(255,250,235,0.35)'; g.lineWidth = 2; g.beginPath(); g.moveTo(x0 + 3, y0 + 3); g.lineTo(x1 + 3, y1 + 3); g.stroke();
+    });
+    const eg = g.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.72);
+    eg.addColorStop(0, 'rgba(110,70,25,0)'); eg.addColorStop(1, `rgba(110,70,25,${TH.texEdge ?? 0.32})`);
+    g.fillStyle = eg; g.fillRect(0, 0, w, h);
   }
   const img = g.getImageData(0, 0, w, h), d = img.data;
   for (let i = 0; i < d.length; i += 4) { const n = (rand() - 0.5) * look.grain; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
@@ -808,7 +841,7 @@ function toScreen(cam, x, y) {
 // ---------- Paket C helpers: data cards, scramble, sound stickers, x-ray, cutaway ----------
 
 // body font of the theme, for card text and data: [font, weight, weight for mono data]
-const bodyFont = () => TH.fx === 'soft' ? ['Oswald', 500, 600] : TH.fx === 'doodle' ? ['Caveat', 700, 700] : [FONT, 800, 900];
+const bodyFont = () => TH.fx === 'soft' ? [uiFont(), 500, 600] : TH.fx === 'doodle' ? ['Caveat', 700, 700] : [FONT, 800, 900];
 function bodyText(s, x, y, size, fill = C.ink, anchor = 'start', weight = null, extra = '') {
   const [font, w] = bodyFont();
   return `<text x="${f(x)}" y="${f(y)}" font-family="${font}" font-weight="${weight || w}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
@@ -850,9 +883,9 @@ function card(t, t0, x, y, w, h, inner, { title = '', tOut = Infinity, col = C.a
   let s = '';
   if (TH.fx === 'soft') {
     s += `<rect x="${f(L + 6)}" y="${f(Tp + 14)}" width="${f(w)}" height="${f(h)}" rx="18" fill="${C.ink}" opacity="0.14"/>` +
-      `<rect x="${f(L)}" y="${f(Tp)}" width="${f(w)}" height="${f(h)}" rx="18" fill="#fff"/>` +
+      `<rect x="${f(L)}" y="${f(Tp)}" width="${f(w)}" height="${f(h)}" rx="18" fill="${TH.card || '#fff'}"/>` +
       `<rect x="${f(L)}" y="${f(Tp + 18)}" width="10" height="${f(h - 36)}" fill="${col}"/>`;
-    if (title) s += `<text x="${f(L + 40)}" y="${f(Tp + 38)}" font-family="Oswald" font-weight="600" font-size="26" fill="${C.muted}" dominant-baseline="central" letter-spacing="3">${esc(title.toUpperCase())}</text>`;
+    if (title) s += `<text x="${f(L + 40)}" y="${f(Tp + 38)}" font-family="${uiFont()}" font-weight="600" font-size="26" fill="${C.muted}" dominant-baseline="central" letter-spacing="3">${esc(title.toUpperCase())}</text>`;
   } else if (TH.fx === 'doodle') {
     const box = [[L, Tp], [L + w / 2, Tp + 3], [L + w, Tp], [L + w - 3, Tp + h / 2], [L + w, Tp + h], [L + w / 2, Tp + h - 3], [L, Tp + h], [L + 3, Tp + h / 2], [L, Tp]];
     s += `<rect x="${f(L)}" y="${f(Tp)}" width="${f(w)}" height="${f(h)}" fill="#FFFDF2"/>` +
@@ -878,7 +911,7 @@ function sticker(label, t, ts, x, y, { rot = -8, size = 110, col = null, dur = 0
   const sc = (0.3 + 0.7 * E.outBack(clamp(u / 0.18))) * (1 + 0.2 * q);
   const r = rot + 4 * Math.sin(u * 18) * Math.exp(-4 * u);
   const doodle = TH.fx === 'doodle', soft = TH.fx === 'soft';
-  const font = soft ? 'Oswald' : doodle ? 'Caveat' : HEAD_FONT, wt = soft || doodle ? 700 : 400;
+  const font = soft ? uiFont() : doodle ? 'Caveat' : HEAD_FONT, wt = soft || doodle ? 700 : 400;
   const sz = doodle ? size * 1.25 : size, fill = col || (doodle ? C.accent : C.yellow);
   const chars = [...(soft ? label.toUpperCase() : label)], ws = chars.map(ch => measure(ch, sz, wt, font) + sz * 0.05);
   const total = ws.reduce((a, b) => a + b, 0);
@@ -1104,7 +1137,7 @@ function renderAt(t) {
     ui += overlayInner + headSvg + chapterBadges(t) + smallCaptions(t) + progressBar(t) + outroCard(t);
 
     if (D.watermark) {
-      const [wf, ww] = TH.cap.mode === 'bar' ? ['Oswald', 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
+      const [wf, ww] = TH.cap.mode === 'bar' ? [uiFont(), 600] : TH.cap.mode === 'hand' ? ['Caveat', 700] : [FONT, 900];
       ui += `<text x="64" y="190" font-family="${wf}" font-weight="${ww}" font-size="${TH.cap.mode === 'hand' ? 40 : 32}" fill="${C.ink}" dominant-baseline="central" stroke="#fff" stroke-width="7" paint-order="stroke" opacity="0.55">${esc(D.watermark)}</text>`;
     }
   } else {
@@ -1162,7 +1195,7 @@ async function init(data) {
     };
   });
   // each query must match a bundled face (fonts.check() is also true when nothing matches at all)
-  const faces = await Promise.all([`900 72px ${FONT}`, `800 30px ${FONT}`, `72px "${HEAD_FONT}"`, '700 40px Caveat', '700 40px Oswald']
+  const faces = await Promise.all([`900 72px ${FONT}`, `800 30px ${FONT}`, `72px "${HEAD_FONT}"`, '700 40px Caveat', '700 40px Oswald', '800 40px "Playfair Display"', '700 40px "Courier Prime"']
     .map(q => document.fonts.load(q)));
   await document.fonts.ready;
   const fontsOk = faces.every(list => list.length > 0);

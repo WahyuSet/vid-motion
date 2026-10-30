@@ -23,6 +23,9 @@ agent tidak pernah melewatinya sendiri.
 | manfaat-puasa | cicaktahu | Puasa bikin tubuh kehabisan energi? Masa sih? | mitos-fakta | video | 57.8s, 10 adegan; saklar metabolisme (gula hati → lemak/keton) & autofagi (Nobel 2016); siap ditonton pengguna → siap-upload |
 | lps-jamin | tikus | Bank tutup, uangmu ikut hilang? (LPS & syarat 3T) | cek fakta | video | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); edukasi keuangan, TBP per 1 Okt 2026–31 Jan 2027; 56.5s (3390 frame, 60 fps), suara Edge; tunggu ditonton → siap-upload |
 | langit-biru | cicaktahu | Langit biru karena memantulkan laut? | mitos-fakta | siap-upload | diminta langsung lewat chat, topik bebas (lewat gerbang ide & naskah); uji coba hybrid HyperFrames: 2 sisipan (hamburan cahaya baris 3-6, senja baris 8-9); 55.1s; ditonton dan disetujui pengguna |
+| manfaat-pisang | cicaktahu | Satu pisang menyimpan 422 mg kalium | fakta-unik | siap-upload | diminta langsung lewat chat (lewat gerbang ide & naskah); tanpa maskot, gaya realistis, kata pop pakai sticker; 57.8s; ditonton dan disetujui pengguna |
+| gunung-kawi | sejarah | Gunung Kawi sering dikaitkan dengan pesugihan. Siapa yang dimakamkan di sana? | jejak | video | channel baru sejarah (tema arsip, tanpa maskot), diminta langsung lewat chat (lewat gerbang ide & naskah); 59.5s; pesugihan disebut netral (dibantah pengelola); tunggu ditonton → siap-upload |
+| gunung-kawi-v2 | sejarah | (versi 2 dari gunung-kawi, dengan foto arsip asli) | jejak | video | 2 foto berlisensi: Rijksmuseum CC0 (Gunung Kawi ±1900) dan Commons CC BY-SA 4.0 (Keraton Gunung Kawi 2014, kredit Javanesecode); lihat assets.md; 59.5s; pilih v1 atau v2 untuk diupload |
 
 ## Usulan
 
