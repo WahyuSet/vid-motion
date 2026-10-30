@@ -1407,13 +1407,16 @@ function oldMap(x, y, w = 820, h = 620, { rot = 0, seed = 3, inner = '', rose = 
 
 // timelineRibbon(x0, x1, y, opts): historic crimson ribbon with gold trim
 function timelineRibbon(x0, x1, y, tOrOpts = 1, t0Arg = 0, labelArg = '', yearArg = '') {
-  let p = 1, label = '', year = '';
+  let p = 1, label = '', year = '', t = 0, t0 = 0, isPositional = false;
   if (typeof tOrOpts === 'object' && tOrOpts !== null) {
     p = tOrOpts.p ?? (tOrOpts.t != null && tOrOpts.t0 != null ? P(tOrOpts.t, tOrOpts.t0 - 0.2, 0.85, E.outCubic) : 1);
     label = tOrOpts.label ?? '';
     year = tOrOpts.year ?? '';
+    t = tOrOpts.t ?? 0;
+    t0 = tOrOpts.t0 ?? 0;
   } else if (typeof t0Arg === 'number' && typeof labelArg === 'string' && labelArg.length > 0) {
-    const t = tOrOpts, t0 = t0Arg;
+    isPositional = true;
+    t = tOrOpts; t0 = t0Arg;
     p = P(t, t0 - 0.2, 0.85, E.outCubic);
     label = labelArg;
     year = yearArg;
@@ -1436,10 +1439,13 @@ function timelineRibbon(x0, x1, y, tOrOpts = 1, t0Arg = 0, labelArg = '', yearAr
   if (p > 0.4 && label) {
     s += serif(label, (x0 + x1) / 2, y, 26, '#FFF5DF', 800, 'middle', `letter-spacing="4" opacity="${f(clamp((p - 0.4) * 2.8))}"`);
   }
-  if (year && p > 0.7) {
-    s += G(T(xe, y, clamp((p - 0.7) * 3.3)), 1,
-      `<circle r="36" fill="${HIST.card}" stroke="#4E110A" stroke-width="4"/>` +
-      serif(String(year), 0, 2, 24, '#4E110A', 800));
+  if (year) {
+    const q = isPositional ? pop(t, t0 + 0.1, 0.4) : { o: clamp((p - 0.7) * 3.3), s: clamp((p - 0.7) * 3.3) };
+    if (q.o && x1 - 80 < xe) {
+      s += G(T(x1 - 80, y, q.s), q.o,
+        `<circle r="42" fill="${HIST.card}" stroke="${HIST.redInk}" stroke-width="4.5"/>` +
+        serif(String(year), 0, 2, 28, HIST.redInk, 800));
+    }
   }
   return s;
 }
@@ -1457,10 +1463,10 @@ function compass(x, y, s = 1, { angle = 0 } = {}) {
     body += vol(circleD(0, 0, 92), HIST.brass[1], { depth: 8, w: 4 }) +
       `<circle r="78" fill="#F4EDDA" stroke="${C.ink}" stroke-width="3"/>`;
   }
-  body += G(`rotate(${f(angle)})`, 1,
-    `<path d="M0,-70 L12,0 L0,70 L-12,0 Z" fill="${HIST.redInk}"/>` +
+  const needle = `<path d="M0,-70 L12,0 L0,70 L-12,0 Z" fill="${HIST.redInk}"/>` +
     `<path d="M-70,0 L0,-12 L70,0 L0,12 Z" fill="${HIST.sepia}"/>` +
-    `<circle r="9" fill="${HIST.gold[1]}" stroke="${HIST.sepia}" stroke-width="2"/>`);
+    `<circle r="9" fill="${HIST.gold[1]}" stroke="${HIST.sepia}" stroke-width="2"/>`;
+  body += angle ? G(`rotate(${f(angle)})`, 1, needle) : needle;
   body += serif('N', 0, -56, 18, HIST.redInk, 800) + serif('S', 0, 56, 18, HIST.sepia, 800) +
     serif('E', 56, 2, 18, HIST.sepia, 800) + serif('W', -56, 2, 18, HIST.sepia, 800);
   return G(T(x, y, s), 1, body);
@@ -1468,7 +1474,8 @@ function compass(x, y, s = 1, { angle = 0 } = {}) {
 const nauticalCompass = compass;
 
 // spyglass(x, y, s, opts): multi-draw brass telescope
-function spyglass(x, y, s = 1, { rot = 0, ext = 1 } = {}) {
+function spyglass(x, y, s = 1, rotOrOpts = 0) {
+  const rot = typeof rotOrOpts === 'object' && rotOrOpts !== null ? (rotOrOpts.rot ?? 0) : rotOrOpts;
   const g = uid('sg'), d = rectD(-190, -22, 380, 44, 8);
   let b = '';
   if (TH.texture === 'arsip') {
@@ -1488,7 +1495,14 @@ function spyglass(x, y, s = 1, { rot = 0, ext = 1 } = {}) {
 }
 
 // tallShip(x, y, s, opts): Dutch East Indiaman 3-masted sailing ship silhouette
-function tallShip(x, y, s = 1, { rot = 0, waves = true } = {}) {
+function tallShip(x, y, s = 1, rotOrOpts = 0) {
+  let rot = 0, waves = true;
+  if (typeof rotOrOpts === 'object' && rotOrOpts !== null) {
+    rot = rotOrOpts.rot ?? 0;
+    waves = rotOrOpts.waves ?? true;
+  } else {
+    rot = rotOrOpts;
+  }
   const hull = 'M-140,20 C-110,60 110,60 150,20 C120,4 60,4 -140,20 Z';
   let g = '';
   if (TH.texture === 'arsip') {
@@ -1515,7 +1529,8 @@ function tallShip(x, y, s = 1, { rot = 0, waves = true } = {}) {
 const tallShipSilhouette = tallShip;
 
 // cannon(x, y, s, opts): cast-iron naval cannon on wooden carriage
-function cannon(x, y, s = 1, { rot = 0 } = {}) {
+function cannon(x, y, s = 1, rotOrOpts = 0) {
+  const rot = typeof rotOrOpts === 'object' && rotOrOpts !== null ? (rotOrOpts.rot ?? 0) : rotOrOpts;
   let g = '';
   if (TH.texture === 'arsip') {
     g += dropShadow(rectD(-120, -35, 240, 70, 10), 14, 18, 0.35);

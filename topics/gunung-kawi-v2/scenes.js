@@ -11,44 +11,12 @@ Object.assign(C, {
   photo: ['#D9C29A', '#B89A6C', '#6E5434'], card: '#FBF4E1', rule: '#9DB4C8', bronze: ['#D9A55A', '#9C6A2C', '#5A3A14'],
 });
 
-let K = {}, NID = 0;
-const uid = p => `${p}${NID++}`;
-const serif = (s, x, y, size, fill = C.ink2, weight = 700, anchor = 'middle', extra = '') =>
-  `<text x="${f(x)}" y="${f(y)}" font-family="Playfair Display" font-weight="${weight}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
-const typed = (s, x, y, size, fill = C.ink2, anchor = 'start', weight = 700) =>
-  `<text x="${f(x)}" y="${f(y)}" font-family="Courier Prime" font-weight="${weight}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central">${esc(s)}</text>`;
-const lg = (id, cols, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">` +
-  cols.map((c, i) => `<stop offset="${f(i / (cols.length - 1))}" stop-color="${c}"/>`).join('') + `</linearGradient>`;
-const rg = (id, cols, cx = '40%', cy = '35%', r = '75%') => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">` +
-  cols.map((c, i) => `<stop offset="${f(i / (cols.length - 1))}" stop-color="${c}"/>`).join('') + `</radialGradient>`;
-const DEFS = `<defs><filter id="b4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>` +
-  `<filter id="b10" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>` +
-  `<filter id="b22" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="22"/></filter></defs>`;
-// everything lies on the board, lit from the top left: a soft shadow down and to the right
-const drop = (d, dx = 14, dy = 18, o = 0.32) => `<path d="${d}" transform="translate(${dx} ${dy})" fill="#2A1A0A" opacity="${o}" filter="url(#b10)"/>`;
+let K = {};
+const DEFS = '';
 
 // ---------- realistic props ----------
 
-// an aged sheet with a ragged edge, centred on (0, 0)
-function raggedRect(w, h, seed) {
-  const pts = [], n = 18;
-  const edge = (x0, y0, x1, y1, k) => { for (let i = 0; i < n; i++) { const u = i / n; pts.push([lerp(x0, x1, u) + (rnd(seed + k * 50 + i) - 0.5) * 7, lerp(y0, y1, u) + (rnd(seed + k * 70 + i) - 0.5) * 7]); } };
-  edge(-w / 2, -h / 2, w / 2, -h / 2, 1); edge(w / 2, -h / 2, w / 2, h / 2, 2); edge(w / 2, h / 2, -w / 2, h / 2, 3); edge(-w / 2, h / 2, -w / 2, -h / 2, 4);
-  return 'M' + pts.map(p => p.map(f).join(',')).join(' L') + ' Z';
-}
-function sheet(x, y, w, h, rot, inner, { seed = 1, cols = C.sheet } = {}) {
-  const d = raggedRect(w, h, seed), g = uid('sh'), e = uid('se'), cl = uid('sc');
-  return G(T(x, y, 1, rot), 1, `<defs>${rg(g, cols, '45%', '40%', '80%')}<clipPath id="${cl}"><path d="${d}"/></clipPath></defs>` + drop(d) +
-    `<path d="${d}" fill="url(#${g})"/>` +
-    `<g clip-path="url(#${cl})"><path d="${d}" fill="none" stroke="#8A6630" stroke-width="40" opacity="0.22" filter="url(#b10)"/>${inner}</g>` +
-    `<path d="${d}" fill="none" stroke="#9C7A48" stroke-width="1.5" opacity="0.6"/>`);
-}
-function pushPin(x, y, col = '#B0281C') {
-  const g = uid('pp');
-  return `<defs>${rg(g, [mix(col, '#fff', 0.5), col, mix(col, '#000', 0.5)], '35%', '30%', '70%')}</defs>` +
-    `<ellipse cx="${x + 8}" cy="${y + 12}" rx="16" ry="10" fill="#000" opacity="0.3" filter="url(#b4)"/><circle cx="${x}" cy="${y}" r="16" fill="url(#${g})"/>` +
-    `<circle cx="${x - 5}" cy="${y - 6}" r="4" fill="#fff" opacity="0.8"/>`;
-}
+
 
 // ---------- real archive photos (assets.md lists source, author and license of each) ----------
 const ASSET = '../topics/gunung-kawi-v2/assets/';
@@ -71,7 +39,7 @@ function photoPrint(key, x, y, w, h, rot, t, t0, { z1 = 1.12, panX = 0 } = {}) {
   const vw = cw / z, vh = ch / z, vx = cx + (cw - vw) / 2 + panX * k, vy = cy + (ch - vh) / 2;
   const sf = uid('sp'), vg = uid('vg'), pw = w + 44, phh = h + 120, paper = raggedRect(pw, phh, 31);
   let s = `<defs>${sepiaFilter(sf, ph.sepia, ph.gain)}${rg(vg, ['#000000', '#000000', '#2A1A0A'], '50%', '50%', '75%')}</defs>`;
-  s += `<g transform="translate(0 ${f((phh - h) / 2 - 22)})">${drop(paper, 16, 22, 0.38)}<path d="${paper}" fill="#F4EDDC"/><path d="${paper}" fill="none" stroke="#B9A47C" stroke-width="1.5"/></g>`;
+  s += `<g transform="translate(0 ${f((phh - h) / 2 - 22)})">${dropShadow(paper, 16, 22, 0.38)}<path d="${paper}" fill="#F4EDDC"/><path d="${paper}" fill="none" stroke="#B9A47C" stroke-width="1.5"/></g>`;
   s += `<svg x="${f(-w / 2)}" y="${f(-h / 2)}" width="${f(w)}" height="${f(h)}" viewBox="${f(vx)} ${f(vy)} ${f(vw)} ${f(vh)}" preserveAspectRatio="xMidYMid slice">` +
     `<image href="${ASSET + ph.src}" x="0" y="0" width="${ph.w}" height="${ph.h}" filter="url(#${sf})"/></svg>`;
   s += `<rect x="${f(-w / 2)}" y="${f(-h / 2)}" width="${f(w)}" height="${f(h)}" fill="url(#${vg})" opacity="0.22"/>` +
@@ -85,7 +53,7 @@ function photoPrint(key, x, y, w, h, rot, t, t0, { z1 = 1.12, panX = 0 } = {}) {
 }
 
 // old contour map of the mountain
-function oldMap(t) {
+function kawiMap(t) {
   let m = '';
   for (let k = 0; k < 7; k++) {
     let d = '';
@@ -107,37 +75,7 @@ function oldMap(t) {
   return sheet(0, 0, 820, 900, -3, m, { seed: 3 });
 }
 
-// sepia photo in a carved frame; a silhouette stands for the person
-function silhouette(kind) {
-  // a Javanese man in a blangkon and a beskap, from the chest up
-  return `<path d="M-120,190 C-120,90 -70,60 -35,50 L-28,20 C-58,8 -62,-40 -55,-66 C-60,-70 -62,-82 -52,-90 C-40,-120 40,-120 52,-90 C62,-82 60,-70 55,-66 C62,-40 58,8 28,20 L35,50 C70,60 120,90 120,190 Z" fill="#3E2C1A" opacity="0.85"/>` +
-    `<path d="M-58,-84 C-50,-118 50,-118 58,-84 C40,-92 -40,-92 -58,-84 Z" fill="#2A1C10"/>` + (kind === 2 ? `<path d="M-30,60 L0,120 L30,60" fill="none" stroke="#6E5434" stroke-width="5" opacity="0.6"/>` : '');
-}
-function photoFrame(x, y, w, h, rot, kind, label) {
-  const fg = uid('fg'), pg = uid('pg'), cl = uid('pc');
-  const outer = rectD(-w / 2, -h / 2, w, h, 6), inner = rectD(-w / 2 + 34, -h / 2 + 34, w - 68, h - 68, 2);
-  let s = `<defs>${lg(fg, C.wood, 1, 1)}${rg(pg, C.photo, '50%', '40%', '75%')}<clipPath id="${cl}"><path d="${inner}"/></clipPath></defs>`;
-  s += drop(outer, 18, 24, 0.4) + `<path d="${outer}" fill="url(#${fg})"/>`;
-  s += `<path d="${rectD(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20, 4)}" fill="none" stroke="${C.gold[1]}" stroke-width="5" opacity="0.8"/>`;
-  s += `<path d="M${-w / 2 + 6},${-h / 2 + 6} L${w / 2 - 6},${-h / 2 + 6}" stroke="#fff" stroke-width="4" opacity="0.25"/>`;
-  s += `<path d="${inner}" fill="url(#${pg})"/><g clip-path="url(#${cl})">${G(T(0, 30, (w - 68) / 300), 1, silhouette(kind))}` +
-    `<path d="${inner}" fill="none" stroke="#3A2812" stroke-width="60" opacity="0.35" filter="url(#b22)"/>` +
-    [0, 1, 2].map(k => `<path d="M${-w / 4 + k * 70},${-h / 2} L${-w / 4 + k * 70 + 20},${h / 2}" stroke="#fff" stroke-width="1.5" opacity="0.18"/>`).join('') + `</g>`;
-  s += `<path d="${inner}" fill="none" stroke="#2A1A0A" stroke-width="3"/>`;
-  s += G(T(0, h / 2 + 46), 1, `<rect x="-${w * 0.42}" y="-22" width="${w * 0.84}" height="44" rx="4" fill="${C.gold[1]}"/><rect x="-${w * 0.42}" y="-22" width="${w * 0.84}" height="10" rx="4" fill="#fff" opacity="0.3"/>` +
-    serif(label, 0, 2, 24, '#2A1A0A', 800));
-  return G(T(x, y, 1, rot), 1, s) + pushPin(x, y - h / 2 + 14);
-}
 
-// typed index card
-function indexCard(x, y, w, h, rot, lines) {
-  const d = rectD(-w / 2, -h / 2, w, h, 6);
-  let s = drop(d, 10, 14, 0.28) + `<path d="${d}" fill="${C.card}"/>`;
-  s += `<path d="M${-w / 2},${-h / 2 + 60} L${w / 2},${-h / 2 + 60}" stroke="#C0453A" stroke-width="3"/>`;
-  for (let yy = -h / 2 + 100; yy < h / 2 - 10; yy += 42) s += `<path d="M${-w / 2},${yy} L${w / 2},${yy}" stroke="${C.rule}" stroke-width="1.5" opacity="0.7"/>`;
-  lines.forEach(([txt, size, col], i) => s += typed(txt, -w / 2 + 30, -h / 2 + 32 + i * (i ? 42 : 46) + (i ? 36 : 0), size, col || C.ink2));
-  return G(T(x, y, 1, rot), 1, s);
-}
 
 // timeline ribbon of the Java War
 function ribbon(t) {
@@ -156,17 +94,7 @@ function ribbon(t) {
   return s;
 }
 
-// a candle with a flickering flame (no randomness: two sines)
-function candle(x, y, t, s = 1) {
-  const fl = 1 + 0.08 * Math.sin(t * 17) + 0.05 * Math.sin(t * 29 + 1), g = uid('cd'), fg = uid('cf');
-  return G(T(x, y, s), 1, `<defs>${lg(g, ['#F8EFD8', '#E9D8B0', '#B99F6E'], 1, 0)}${rg(fg, ['#FFFBE0', '#FFD45A', '#F08A24'], '50%', '60%', '60%')}</defs>` +
-    `<ellipse cx="18" cy="96" rx="70" ry="22" fill="#000" opacity="0.3" filter="url(#b10)"/>` +
-    `<ellipse cx="0" cy="90" rx="62" ry="18" fill="${C.bronze[2]}"/><ellipse cx="0" cy="86" rx="62" ry="18" fill="${C.bronze[1]}"/>` +
-    `<rect x="-26" y="-60" width="52" height="146" rx="6" fill="url(#${g})"/><ellipse cx="0" cy="-60" rx="26" ry="8" fill="#F8EFD8"/>` +
-    `<path d="M-14,-58 C-16,-40 -10,-34 -12,-20" stroke="#E9D8B0" stroke-width="8" stroke-linecap="round"/>` +
-    `<circle cx="0" cy="-100" r="${f(70 * fl)}" fill="#FFC94A" opacity="0.18" filter="url(#b22)"/>` +
-    `<path d="M0,${f(-128 * fl)} C14,-104 12,-80 0,-74 C-12,-80 -14,-104 0,${f(-128 * fl)} Z" fill="url(#${fg})"/><path d="M0,-74 L0,-62" stroke="#2A1A0A" stroke-width="3"/>`);
-}
+
 
 // family-tree letter with a wax seal
 function silsilah(t) {
@@ -352,11 +280,10 @@ function cues(D) {
 }
 
 function drawWorld(t, cam) {
-  NID = 0;
   const far = cam.z < 0.6, near = (x, y, r = 900) => far || (Math.abs(cam.x - x) < r / cam.z + 300 && Math.abs(cam.y - y) < 1500 / cam.z);
   let s = DEFS;
   if (near(0, 0)) {
-    s += oldMap(t);
+    s += kawiMap(t);
     s += photoPrint('kawi', -40, -620, 720, 560, -3, t, 0);
     const q = pop(t, K.pesugihan - 0.1, 0.45), back = 1 - P(t, K.loop + 0.2, 0.6);
     if (q.o) s += G(T(300, -190, q.s), q.o * back, indexCard(0, 0, 360, 170, 6, [['"pesugihan?"', 34, C.redInk], ['kata orang', 26, C.sepia]]));
@@ -370,7 +297,7 @@ function drawWorld(t, cam) {
     s += ribbon(t);
     s += sheet(1100, 400, 520, 330, -2, typed('CATATAN', -220, -120, 26, C.sepia) + serif('wafat', -200, -40, 44, C.ink2, 700, 'start', 'font-style="italic"') +
       serif('1871', -200, 50, 110, C.ink2, 900, 'start') + typed('lereng Gunung Kawi', -200, 125, 24, C.sepia), { seed: 5 });
-    s += candle(1440, 330, t, 1.1);
+    s += candle(1440, 330, 1.1, { t });
   }
   if (near(2300, -100)) {
     s += photoFrame(2150, -440, 330, 420, 3, 2, 'R.M. Iman Soedjono');
@@ -410,10 +337,9 @@ function drawOverlay(t) {
 
 // ---------- thumbnail ----------
 function drawThumbnail() {
-  NID = 0;
   K.dimakam = -10; K.loop = 999;  // the red circle fully drawn, nothing faded
   let w = DEFS + `<rect width="1080" height="1920" fill="${C.bg}"/>`;
-  w += G('translate(420 1180) scale(1.05)', 1, oldMap(5));
+  w += G('translate(420 1180) scale(1.05)', 1, kawiMap(5));
   w += G('translate(760 860) scale(1.2)', 1, photoFrame(60, 80, 330, 420, 5, 1, 'Eyang Djoego'));
   w += photoPrint('kawi', 330, 820, 560, 435, -5, 0, 0);
   w += `<path d="M640,1090 C560,1180 470,1260 470,1330" fill="none" stroke="${C.string}" stroke-width="9"/>` + pushPin(640, 1090);
