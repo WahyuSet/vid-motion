@@ -1,0 +1,45 @@
+{
+  "channel": "sejarah",
+  "style": "paper",
+  "captions": {
+    "words": 5,
+    "line": 34
+  },
+  "tail": 1.6,
+  "scenes": [
+    {
+      "vo": "Napoleon tidak pernah ke Jawa, tapi *jejaknya* masih kamu lewati."
+    },
+    {
+      "vo": "Tahun *1806*, Napoleon mengangkat adiknya jadi raja *Belanda*."
+    },
+    {
+      "vo": "Sang adik lalu mengutus *Daendels* ke Jawa pada *1808*.",
+      "hold": 0.2
+    },
+    {
+      "vo": "Tugasnya satu: menahan serangan *Inggris*."
+    },
+    {
+      "vo": "Daendels membangun *Jalan Raya Pos*, seribu kilometer dari Anyer ke Panarukan.",
+      "hold": 0.3
+    },
+    {
+      "vo": "Jalan ini dikerjakan lewat *kerja paksa*, dan banyak pekerja tewas."
+    },
+    {
+      "vo": "Tahun *1810*, Napoleon mencaplok Belanda, membuat Jawa masuk Kekaisaran *Prancis*.",
+      "hold": 0.25
+    },
+    {
+      "vo": "Tapi tahun *1811*, armada *Inggris* mendarat dan menyerbu Jawa."
+    },
+    {
+      "vo": "Belanda menyerah lewat *Kapitulasi Tuntang*, 18 September 1811.",
+      "hold": 0.35
+    },
+    {
+      "vo": "Kini, jalurnya jadi *jalan raya* yang sering kita lewati. Pernah ke Anyer?"
+    }
+  ]
+}

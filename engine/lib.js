@@ -43,6 +43,10 @@ const G = (transform, opacity, inner) =>
   opacity <= 0.001 ? '' : `<g transform="${transform}"${opacity < 0.999 ? ` opacity="${f(opacity)}"` : ''}>${inner}</g>`;
 const txt = (s, x, y, size, fill, weight = 900, anchor = 'middle', extra = '') =>
   `<text x="${f(x)}" y="${f(y)}" font-family="${FONT}" font-weight="${weight}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
+const serif = (s, x, y, size, fill = C.ink2 || C.ink, weight = 700, anchor = 'middle', extra = '') =>
+  `<text x="${f(x)}" y="${f(y)}" font-family="Playfair Display" font-weight="${weight}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
+const typed = (s, x, y, size, fill = C.ink2 || C.ink, anchor = 'start', weight = 700, extra = '') =>
+  `<text x="${f(x)}" y="${f(y)}" font-family="Courier Prime" font-weight="${weight}" font-size="${f(size)}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="central" ${extra}>${esc(s)}</text>`;
 const stroke = (w = STROKE, col = C.ink) => `stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"`;
 // limb with an ink outline: thick ink stroke underneath a thinner coloured one
 const limb = (d, w, col) =>
@@ -1022,7 +1026,14 @@ function invertFlash(t, ts, dur = 0.07) {
 // newsprint uses halftone dots instead (flat colour, dots in the shadow, thin navy line), matching Si Tikus.
 // opts: {depth (shadow width, world units), w (outline width), shine (highlight on/off),
 //        rot (degrees the drawing is turned by, so the light stays top-left on screen)}
-let VOL_N = 0;
+let VOL_N = 0, UID_N = 0;
+const uid = (p = 'u') => `uid_${p}${UID_N++}`;
+const lg = (id, cols, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">` +
+  cols.map((c, i) => `<stop offset="${f(i / (cols.length - 1))}" stop-color="${c}"/>`).join('') + `</linearGradient>`;
+const rg = (id, cols, cx = '40%', cy = '35%', r = '75%') => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">` +
+  cols.map((c, i) => `<stop offset="${f(i / (cols.length - 1))}" stop-color="${c}"/>`).join('') + `</radialGradient>`;
+const dropShadow = (d, dx = 14, dy = 18, o = 0.32) =>
+  `<path d="${d}" transform="translate(${dx} ${dy})" fill="#2A1A0A" opacity="${o}" filter="url(#b10)"/>`;
 const circleD = (cx, cy, r) => `M${f(cx - r)},${f(cy)} a${f(r)},${f(r)} 0 1 0 ${f(2 * r)},0 a${f(r)},${f(r)} 0 1 0 ${f(-2 * r)},0 Z`;
 const rectD = (x, y, w, h, r = 0) => r ? `M${f(x + r)},${f(y)} H${f(x + w - r)} A${f(r)},${f(r)} 0 0 1 ${f(x + w)},${f(y + r)} V${f(y + h - r)} A${f(r)},${f(r)} 0 0 1 ${f(x + w - r)},${f(y + h)} H${f(x + r)} A${f(r)},${f(r)} 0 0 1 ${f(x)},${f(y + h - r)} V${f(y + r)} A${f(r)},${f(r)} 0 0 1 ${f(x + r)},${f(y)} Z`
   : `M${f(x)},${f(y)} H${f(x + w)} V${f(y + h)} H${f(x)} Z`;
@@ -1110,7 +1121,7 @@ function renderAt(t) {
       worldG.setAttribute('filter', 'url(#wGrade)');
     }
 
-    IMPACTS = []; FLASHES = []; VOL_N = 0;
+    IMPACTS = []; FLASHES = []; VOL_N = 0; UID_N = 0;
     const worldInner = drawWorld(t, cam);
     let overlayInner = typeof drawOverlay === 'function' ? drawOverlay(t, cam) : '';
     const headSvg = headlines(t);  // before the shake below, so {hype: true} headlines can add an impact
@@ -1152,7 +1163,7 @@ function renderAt(t) {
 // above the paper texture and vignette (use it for titles so they stay crisp)
 function renderThumbnail() {
   if (typeof drawThumbnail !== 'function') throw new Error('this topic has no drawThumbnail()');
-  VOL_N = 0;
+  VOL_N = 0; UID_N = 0;
   document.getElementById('v').style.filter = '';
   const r = drawThumbnail();
   document.getElementById('world').innerHTML = typeof r === 'string' ? r : r.world;

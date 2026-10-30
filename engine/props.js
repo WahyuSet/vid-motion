@@ -11,6 +11,8 @@
 // Tikus:    savingsBook, shieldBadge, hangSign, levelGauge, checkBoard, priceLabel, fuelPump, atmCard, goldBar, safeBox,
 //           shoppingBasket, oilBarrel, lpgTank, house, newspaper, chatBubble, gavel, ballotBox
 // Body:     heartOrgan, lungs, stomach, brain, bodyCell, thermometer, stethoscope, toothbrush (schematic only)
+// Sejarah:  raggedRect, sheet, pushPin, indexCard, waxSeal, silhouette, photoFrame, candle, oldMap, timelineRibbon,
+//           compass, spyglass, tallShip, cannon, quillInk, sealedLetter, oldCoin, lantern, spiceSack
 
 const tone = (col, k) => k > 0 ? mix(col, '#FFFFFF', k) : mix(col, C.ink, -k);
 const detail = (d, col, w, o = 1) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${f(w)}" stroke-linecap="round" stroke-linejoin="round"${o < 1 ? ` opacity="${f(o)}"` : ''}/>`;
@@ -886,9 +888,10 @@ function toothbrush(x, y, s = 1, { col = '#5FB3E0', rot = -10, paste = true } = 
 
 // fitSize(s, size, maxW, spacing): the font size (at most size) at which s fits maxW in the theme's body font,
 // counting letter-spacing (px per character) too
-const fitSize = (s, size, maxW, spacing = 0) => {
+const fitSize = (s, size, maxW, spacing = 0, fontOverride = null, weightOverride = null) => {
   const [font, w] = bodyFont(), str = String(s), n = [...str].length;
-  return Math.min(size, size * (maxW - spacing * n) / Math.max(1, measure(str, size, w, font)));
+  const fName = fontOverride || font, fWeight = weightOverride || w;
+  return Math.min(size, size * (maxW - spacing * n) / Math.max(1, measure(str, size, fWeight, fName)));
 };
 
 // savingsBook(x, y, s, opts): a bank savings book centred on (x, y), with a darker spine and a gold "Rp" seal
@@ -1141,3 +1144,639 @@ function ballotBox(x, y, s = 1, { label = 'KOTAK SUARA', p = 0 } = {}) {
   g += vol(rectD(-100, -170, 200, 50, 6), '#FFFFFF', { depth: 3, w: 4 }) + bodyText(String(label), 0, -145, fitSize(label, 28, 180), C.ink, 'middle');
   return G(T(x, y, s), 1, g);
 }
+
+// ---------- sejarah ----------
+
+const HIST = {
+  sheet: ['#F7EED8', '#EBD8B3', '#D6BE90'],
+  sheetLight: ['#FAF4E4', '#F0E2C4', '#DFCCA4'],
+  sepia: '#5A4126',
+  sepiaLo: '#8C6E4A',
+  ink: '#3A2A1A',
+  redInk: '#9E2A1E',
+  redWax: ['#C84236', '#9E2A1E', '#5E140E'],
+  gold: ['#F5DA8E', '#CF9F42', '#825C1E'],
+  wood: ['#8A5932', '#5E381C', '#3A2010'],
+  brass: ['#EAD186', '#B88A34', '#6A4A16'],
+  iron: ['#6B7280', '#4B5260', '#2B313D'],
+  bronze: ['#C4A265', '#8C6E38', '#54401C'],
+  photo: ['#FAF4E4', '#E8D5B0', '#C2A374'],
+  card: '#FBF5E4',
+  rule: '#A0B4C6',
+  burlap: '#B89B6C',
+};
+
+// raggedRect(w, h, seed): an aged parchment outline with torn / deckle edges centred on (0, 0)
+function raggedRect(w, h, seed = 1) {
+  const pts = [], n = 18;
+  const edge = (x0, y0, x1, y1, k) => {
+    for (let i = 0; i < n; i++) {
+      const u = i / n;
+      pts.push([
+        lerp(x0, x1, u) + (rnd(seed + k * 45 + i) - 0.5) * 8,
+        lerp(y0, y1, u) + (rnd(seed + k * 65 + i) - 0.5) * 8
+      ]);
+    }
+  };
+  edge(-w / 2, -h / 2, w / 2, -h / 2, 1);
+  edge(w / 2, -h / 2, w / 2, h / 2, 2);
+  edge(w / 2, h / 2, -w / 2, h / 2, 3);
+  edge(-w / 2, h / 2, -w / 2, -h / 2, 4);
+  return 'M' + pts.map(p => p.map(f).join(',')).join(' L') + ' Z';
+}
+
+// sheet(x, y, w, h, rot, inner, opts): aged document sheet on the table
+function sheet(x, y, w = 600, h = 680, rotOrOpts = 0, inner = '', opts = {}) {
+  let rot = 0, seed = 1, cols = HIST.sheet, content = inner;
+  if (typeof rotOrOpts === 'object' && rotOrOpts !== null) {
+    rot = rotOrOpts.rot ?? 0;
+    seed = rotOrOpts.seed ?? 1;
+    cols = rotOrOpts.cols ?? HIST.sheet;
+    content = rotOrOpts.inner ?? '';
+  } else {
+    rot = rotOrOpts;
+    seed = opts.seed ?? 1;
+    cols = opts.cols ?? HIST.sheet;
+  }
+  const d = raggedRect(w, h, seed), g = uid('sh'), cl = uid('sc');
+  if (TH.texture === 'arsip') {
+    return G(T(x, y, 1, rot), 1,
+      `<defs>${rg(g, cols, '45%', '40%', '80%')}<clipPath id="${cl}"><path d="${d}"/></clipPath></defs>` +
+      dropShadow(d, 16, 20, 0.35) +
+      `<path d="${d}" fill="url(#${g})"/>` +
+      `<g clip-path="url(#${cl})">` +
+        `<path d="${d}" fill="none" stroke="#8A6630" stroke-width="44" opacity="0.22" filter="url(#b10)"/>` +
+        content +
+      `</g>` +
+      `<path d="${d}" fill="none" stroke="#9C7A48" stroke-width="1.6" opacity="0.6"/>`);
+  }
+  return G(T(x, y, 1, rot), 1,
+    vol(d, Array.isArray(cols) ? cols[1] : cols, { depth: 10, w: 5 }) +
+    `<defs><clipPath id="${cl}"><path d="${d}"/></clipPath></defs><g clip-path="url(#${cl})">${content}</g>`);
+}
+
+// pushPin(x, y, opts): metal push pin with colored glass head and shadow
+function pushPin(x, y, colOrOpts = '#B4261A') {
+  let col = '#B4261A', s = 1;
+  if (typeof colOrOpts === 'object' && colOrOpts !== null) {
+    col = colOrOpts.col ?? '#B4261A';
+    s = colOrOpts.s ?? 1;
+  } else if (typeof colOrOpts === 'string') {
+    col = colOrOpts;
+  }
+  const g = uid('pp');
+  if (TH.texture === 'arsip') {
+    return G(T(x, y, s), 1,
+      `<defs>${rg(g, [mix(col, '#fff', 0.55), col, mix(col, '#000', 0.55)], '35%', '30%', '70%')}</defs>` +
+      `<ellipse cx="8" cy="12" rx="15" ry="9" fill="#000" opacity="0.32" filter="url(#b4)"/>` +
+      `<circle cx="0" cy="0" r="15" fill="url(#${g})"/>` +
+      `<circle cx="-5" cy="-5" r="4" fill="#fff" opacity="0.85"/>`);
+  }
+  return G(T(x, y, s), 1,
+    shadow(4, 8, 22, 0.2) +
+    vol(circleD(0, 0, 15), col, { depth: 5, w: 3 }) +
+    `<circle cx="-5" cy="-5" r="4" fill="#fff" opacity="0.8"/>`);
+}
+
+// indexCard(x, y, w, h, rot, lines): lined archive index card with red headline rule
+function indexCard(x, y, w = 400, h = 220, rotOrOpts = 0, linesList = []) {
+  let rot = 0, lines = linesList;
+  if (typeof rotOrOpts === 'object' && rotOrOpts !== null) {
+    rot = rotOrOpts.rot ?? 0;
+    lines = rotOrOpts.lines ?? [];
+  } else {
+    rot = rotOrOpts;
+  }
+  const d = rectD(-w / 2, -h / 2, w, h, 6);
+  let s = '';
+  if (TH.texture === 'arsip') {
+    s += dropShadow(d, 10, 14, 0.28) + `<path d="${d}" fill="${HIST.card}"/>`;
+  } else {
+    s += vol(d, HIST.card, { depth: 8, w: 4 });
+  }
+  s += `<path d="M${-w / 2},${-h / 2 + 54} L${w / 2},${-h / 2 + 54}" stroke="${HIST.redInk}" stroke-width="3"/>`;
+  for (let yy = -h / 2 + 96; yy < h / 2 - 12; yy += 38) {
+    s += `<path d="M${-w / 2},${yy} L${w / 2},${yy}" stroke="${HIST.rule}" stroke-width="1.5" opacity="0.75"/>`;
+  }
+  lines.forEach(([txt, size, col], i) => {
+    s += typed(String(txt), -w / 2 + 24, -h / 2 + 30 + i * (i ? 38 : 42) + (i ? 32 : 0), size, col || HIST.ink);
+  });
+  return G(T(x, y, 1, rot), 1, s);
+}
+
+// waxSeal(x, y, s, opts): embossed red wax seal
+function waxSeal(x, y, sOrLabel = 1, optsOrS = {}) {
+  let s = 1, label = 'N', cols = HIST.redWax;
+  if (typeof sOrLabel === 'string') {
+    label = sOrLabel;
+    s = typeof optsOrS === 'number' ? optsOrS : (optsOrS.s ?? 1);
+    if (typeof optsOrS === 'object' && optsOrS.cols) cols = optsOrS.cols;
+  } else {
+    s = typeof sOrLabel === 'number' ? sOrLabel : 1;
+    if (typeof optsOrS === 'object' && optsOrS !== null) {
+      label = optsOrS.label ?? 'N';
+      cols = optsOrS.cols ?? HIST.redWax;
+    }
+  }
+  const g = uid('wx');
+  let blob = '';
+  for (let i = 0; i <= 24; i++) {
+    const a = i / 24 * Math.PI * 2, r = 52 + 6 * Math.sin(a * 5) + 4 * Math.cos(a * 9);
+    blob += `${i ? 'L' : 'M'}${f(r * Math.cos(a))},${f(r * Math.sin(a))}`;
+  }
+  const d = `${blob}Z`;
+  if (TH.texture === 'arsip') {
+    return G(T(x, y, s), 1,
+      `<defs>${rg(g, cols)}</defs>` +
+      `<path d="${d}" transform="translate(6 8)" fill="#000" opacity="0.35" filter="url(#b4)"/>` +
+      `<path d="${d}" fill="url(#${g})"/>` +
+      `<circle r="36" fill="none" stroke="${cols[2]}" stroke-width="4.5" opacity="0.75"/>` +
+      `<circle r="36" fill="none" stroke="#fff" stroke-width="1.8" opacity="0.25" transform="translate(-2 -2)"/>` +
+      serif(String(label), 0, 2, fitSize(label, 34, 60, 0, 'Playfair Display', 900), cols[2], 900));
+  }
+  return G(T(x, y, s), 1,
+    vol(d, cols[1], { depth: 7, w: 4 }) +
+    `<circle r="36" fill="none" stroke="${cols[2]}" stroke-width="4" opacity="0.7"/>` +
+    serif(String(label), 0, 2, fitSize(label, 34, 60, 0, 'Playfair Display', 900), cols[2], 900));
+}
+
+// silhouette(kind): historic portrait silhouette (1: blangkon/beskap, 2: with collar ribbon)
+function silhouette(kind = 1) {
+  return `<path d="M-120,190 C-120,90 -70,60 -35,50 L-28,20 C-58,8 -62,-40 -55,-66 C-60,-70 -62,-82 -52,-90 C-40,-120 40,-120 52,-90 C62,-82 60,-70 55,-66 C62,-40 58,8 28,20 L35,50 C70,60 120,90 120,190 Z" fill="#3E2C1A" opacity="0.85"/>` +
+    `<path d="M-58,-84 C-50,-118 50,-118 58,-84 C40,-92 -40,-92 -58,-84 Z" fill="#2A1C10"/>` +
+    (kind === 2 ? `<path d="M-30,60 L0,120 L30,60" fill="none" stroke="#6E5434" stroke-width="5" opacity="0.6"/>` : '');
+}
+
+// photoFrame(x, y, w, h, opts): carved wooden frame with aged photo and brass nameplate
+function photoFrame(x, y, w = 330, h = 420, rotOrOpts = 0, kindArg = 1, labelArg = '') {
+  let rot = 0, kind = 1, label = '', innerCustom = null, pin = true;
+  if (typeof rotOrOpts === 'object' && rotOrOpts !== null) {
+    rot = rotOrOpts.rot ?? 0;
+    kind = rotOrOpts.kind ?? 1;
+    label = rotOrOpts.label ?? '';
+    innerCustom = rotOrOpts.inner ?? null;
+    pin = rotOrOpts.pin ?? true;
+  } else {
+    rot = rotOrOpts;
+    kind = kindArg;
+    label = labelArg;
+  }
+  const fg = uid('fg'), pg = uid('pg'), cl = uid('pc');
+  const outer = rectD(-w / 2, -h / 2, w, h, 6), inner = rectD(-w / 2 + 34, -h / 2 + 34, w - 68, h - 68, 2);
+  let s = '';
+  if (TH.texture === 'arsip') {
+    s += `<defs>${lg(fg, HIST.wood, 1, 1)}${rg(pg, HIST.photo, '50%', '40%', '75%')}<clipPath id="${cl}"><path d="${inner}"/></clipPath></defs>`;
+    s += dropShadow(outer, 18, 24, 0.4) + `<path d="${outer}" fill="url(#${fg})"/>`;
+    s += `<path d="${rectD(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20, 4)}" fill="none" stroke="${HIST.gold[1]}" stroke-width="5" opacity="0.8"/>`;
+    s += `<path d="M${-w / 2 + 6},${-h / 2 + 6} L${w / 2 - 6},${-h / 2 + 6}" stroke="#fff" stroke-width="4" opacity="0.25"/>`;
+    s += `<path d="${inner}" fill="url(#${pg})"/><g clip-path="url(#${cl})">${innerCustom || G(T(0, 30, (w - 68) / 300), 1, silhouette(kind))}` +
+      `<path d="${inner}" fill="none" stroke="#3A2812" stroke-width="60" opacity="0.35" filter="url(#b22)"/>` +
+      [0, 1, 2].map(k => `<path d="M${-w / 4 + k * 70},${-h / 2} L${-w / 4 + k * 70 + 20},${h / 2}" stroke="#fff" stroke-width="1.5" opacity="0.18"/>`).join('') + `</g>`;
+    s += `<path d="${inner}" fill="none" stroke="#2A1A0A" stroke-width="3"/>`;
+  } else {
+    s += `<defs><clipPath id="${cl}"><path d="${inner}"/></clipPath></defs>`;
+    s += vol(outer, HIST.wood[1], { depth: 12, w: 5 });
+    s += `<path d="${inner}" fill="${HIST.photo[1]}"/>`;
+    s += `<g clip-path="url(#${cl})">${innerCustom || G(T(0, 30, (w - 68) / 300), 1, silhouette(kind))}</g>`;
+    s += `<path d="${inner}" fill="none" stroke="${HIST.wood[2]}" stroke-width="3"/>`;
+  }
+  if (label) {
+    s += G(T(0, h / 2 + 46), 1,
+      `<rect x="-${w * 0.42}" y="-22" width="${w * 0.84}" height="44" rx="4" fill="${HIST.gold[1]}"/>` +
+      `<rect x="-${w * 0.42}" y="-22" width="${w * 0.84}" height="10" rx="4" fill="#fff" opacity="0.3"/>` +
+      serif(String(label), 0, 2, fitSize(label, 24, w * 0.76, 0, 'Playfair Display', 800), '#2A1A0A', 800));
+  }
+  return G(T(x, y, 1, rot), 1, s) + (pin ? pushPin(x, y - h / 2 + 14) : '');
+}
+
+// candle(x, y, s, opts): candle on bronze stand with flickering flame
+function candle(x, y, sOrT = 1, tOrOpts = 0, optsArg = {}) {
+  let s = 1, t = 0, lit = true;
+  if (typeof tOrOpts === 'object' && tOrOpts !== null) {
+    s = sOrT;
+    t = tOrOpts.t ?? 0;
+    lit = tOrOpts.lit ?? true;
+  } else if (typeof tOrOpts === 'number' && tOrOpts > 0.0001 && typeof sOrT === 'number' && sOrT > 3) {
+    t = sOrT;
+    s = tOrOpts;
+    lit = optsArg.lit ?? true;
+  } else {
+    s = typeof sOrT === 'number' ? sOrT : 1;
+    t = typeof tOrOpts === 'number' ? tOrOpts : 0;
+    lit = optsArg.lit ?? true;
+  }
+  const fl = lit ? (1 + 0.08 * Math.sin(t * 17) + 0.05 * Math.sin(t * 29 + 1)) : 0;
+  const g = uid('cd'), fg = uid('cf');
+  if (TH.texture === 'arsip') {
+    return G(T(x, y, s), 1,
+      `<defs>${lg(g, ['#F8EFD8', '#E9D8B0', '#B99F6E'], 1, 0)}${rg(fg, ['#FFFBE0', '#FFD45A', '#F08A24'], '50%', '60%', '60%')}</defs>` +
+      `<ellipse cx="18" cy="96" rx="70" ry="22" fill="#000" opacity="0.3" filter="url(#b10)"/>` +
+      `<ellipse cx="0" cy="90" rx="62" ry="18" fill="${HIST.bronze[2]}"/><ellipse cx="0" cy="86" rx="62" ry="18" fill="${HIST.bronze[1]}"/>` +
+      `<rect x="-26" y="-60" width="52" height="146" rx="6" fill="url(#${g})"/><ellipse cx="0" cy="-60" rx="26" ry="8" fill="#F8EFD8"/>` +
+      `<path d="M-14,-58 C-16,-40 -10,-34 -12,-20" stroke="#E9D8B0" stroke-width="8" stroke-linecap="round"/>` +
+      (lit ? `<circle cx="0" cy="-100" r="${f(70 * fl)}" fill="#FFC94A" opacity="0.18" filter="url(#b22)"/>` +
+      `<path d="M0,${f(-128 * fl)} C14,-104 12,-80 0,-74 C-12,-80 -14,-104 0,${f(-128 * fl)} Z" fill="url(#${fg})"/><path d="M0,-74 L0,-62" stroke="#2A1A0A" stroke-width="3"/>` : '<path d="M0,-74 L0,-60" stroke="#2A1A0A" stroke-width="3"/>'));
+  }
+  return G(T(x, y, s), 1,
+    shadow(0, 96, 120, 0.2) +
+    vol(rectD(-50, 76, 100, 24, 8), HIST.bronze[1], { depth: 4, w: 4 }) +
+    vol(rectD(-26, -60, 52, 140, 6), '#F8EFD8', { depth: 6, w: 4 }) +
+    (lit ? `<path d="M0,${f(-128 * fl)} C14,-104 12,-80 0,-74 C-12,-80 -14,-104 0,${f(-128 * fl)} Z" fill="#F08A24"/>` +
+    `<circle cx="0" cy="-96" r="14" fill="#FFE57A"/>` : '') +
+    `<path d="M0,-74 L0,-60" stroke="${C.ink}" stroke-width="3"/>`);
+}
+
+// oldMap(x, y, w, h, opts): antique map sheet with rhumb lines and compass rose
+function oldMap(x, y, w = 820, h = 620, { rot = 0, seed = 3, inner = '', rose = true, grid = true } = {}) {
+  let m = '';
+  if (grid) {
+    for (let a = 0; a < 8; a++) {
+      const ang = a * Math.PI / 4;
+      m += `<line x1="0" y1="0" x2="${f(w * 0.45 * Math.cos(ang))}" y2="${f(h * 0.45 * Math.sin(ang))}" stroke="${HIST.sepiaLo}" stroke-width="1.2" stroke-dasharray="8 6" opacity="0.35"/>`;
+    }
+  }
+  if (rose) {
+    m += G(T(-w * 0.35, h * 0.32, 0.8), 0.85,
+      `<circle r="46" fill="none" stroke="${HIST.sepia}" stroke-width="2"/>` +
+      `<path d="M0,-58 L10,0 L0,58 L-10,0 Z" fill="${HIST.sepia}"/>` +
+      `<path d="M-58,0 L0,-8 L58,0 L0,8 Z" fill="${HIST.sepia}" opacity="0.6"/>` +
+      serif('U', 0, -76, 22, HIST.sepia, 800));
+  }
+  m += inner;
+  return sheet(x, y, w, h, rot, m, { seed });
+}
+
+// timelineRibbon(x0, x1, y, opts): historic crimson ribbon with gold trim
+function timelineRibbon(x0, x1, y, tOrOpts = 1, t0Arg = 0, labelArg = '', yearArg = '') {
+  let p = 1, label = '', year = '', t = 0, t0 = 0, isPositional = false;
+  if (typeof tOrOpts === 'object' && tOrOpts !== null) {
+    p = tOrOpts.p ?? (tOrOpts.t != null && tOrOpts.t0 != null ? P(tOrOpts.t, tOrOpts.t0 - 0.2, 0.85, E.outCubic) : 1);
+    label = tOrOpts.label ?? '';
+    year = tOrOpts.year ?? '';
+    t = tOrOpts.t ?? 0;
+    t0 = tOrOpts.t0 ?? 0;
+  } else if (typeof t0Arg === 'number' && typeof labelArg === 'string' && labelArg.length > 0) {
+    isPositional = true;
+    t = tOrOpts; t0 = t0Arg;
+    p = P(t, t0 - 0.2, 0.85, E.outCubic);
+    label = labelArg;
+    year = yearArg;
+  } else {
+    p = typeof tOrOpts === 'number' ? tOrOpts : 1;
+    label = labelArg || '';
+    year = yearArg || '';
+  }
+  if (p <= 0.001) return '';
+  const xe = lerp(x0, x1, p), g = uid('rb');
+  let s = `<defs>${lg(g, ['#9E2A1E', '#781E15', '#4E110A'])}</defs>`;
+  if (TH.texture === 'arsip') {
+    s += `<path d="M${x0 - 25},${y - 32} L${xe},${y - 32} L${xe + 24},${y} L${xe},${y + 32} L${x0 - 25},${y + 32} L${x0 - 8},${y} Z" fill="#000" opacity="0.3" filter="url(#b10)" transform="translate(8 12)"/>` +
+      `<path d="M${x0 - 25},${y - 32} L${xe},${y - 32} L${xe + 24},${y} L${xe},${y + 32} L${x0 - 25},${y + 32} L${x0 - 8},${y} Z" fill="url(#${g})"/>` +
+      `<path d="M${x0 - 15},${y - 24} L${xe - 5},${y - 24}" stroke="${HIST.gold[0]}" stroke-width="2.5" opacity="0.6"/>` +
+      `<path d="M${x0 - 15},${y + 24} L${xe - 5},${y + 24}" stroke="${HIST.gold[0]}" stroke-width="2.5" opacity="0.6"/>`;
+  } else {
+    s += vol(`M${x0 - 25},${y - 32} L${xe},${y - 32} L${xe + 24},${y} L${xe},${y + 32} L${x0 - 25},${y + 32} L${x0 - 8},${y} Z`, '#781E15', { depth: 6, w: 4 });
+  }
+  if (p > 0.4 && label) {
+    s += serif(label, (x0 + x1) / 2, y, 26, '#FFF5DF', 800, 'middle', `letter-spacing="4" opacity="${f(clamp((p - 0.4) * 2.8))}"`);
+  }
+  if (year) {
+    const q = isPositional ? pop(t, t0 + 0.1, 0.4) : { o: clamp((p - 0.7) * 3.3), s: clamp((p - 0.7) * 3.3) };
+    if (q.o && x1 - 80 < xe) {
+      s += G(T(x1 - 80, y, q.s), q.o,
+        `<circle r="42" fill="${HIST.card}" stroke="${HIST.redInk}" stroke-width="4.5"/>` +
+        serif(String(year), 0, 2, 28, HIST.redInk, 800));
+    }
+  }
+  return s;
+}
+
+// compass(x, y, s, opts): maritime brass compass with directional rose
+function compass(x, y, s = 1, { angle = 0 } = {}) {
+  const g = uid('cp');
+  let body = '';
+  if (TH.texture === 'arsip') {
+    body += `<defs>${rg(g, HIST.brass, '40%', '35%', '75%')}</defs>` +
+      `<circle cx="10" cy="14" r="95" fill="#000" opacity="0.32" filter="url(#b10)"/>` +
+      `<circle r="92" fill="url(#${g})"/><circle r="80" fill="#F4EDDA" stroke="${HIST.sepia}" stroke-width="3"/>` +
+      `<circle r="72" fill="none" stroke="${HIST.sepiaLo}" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  } else {
+    body += vol(circleD(0, 0, 92), HIST.brass[1], { depth: 8, w: 4 }) +
+      `<circle r="78" fill="#F4EDDA" stroke="${C.ink}" stroke-width="3"/>`;
+  }
+  const needle = `<path d="M0,-70 L12,0 L0,70 L-12,0 Z" fill="${HIST.redInk}"/>` +
+    `<path d="M-70,0 L0,-12 L70,0 L0,12 Z" fill="${HIST.sepia}"/>` +
+    `<circle r="9" fill="${HIST.gold[1]}" stroke="${HIST.sepia}" stroke-width="2"/>`;
+  body += angle ? G(`rotate(${f(angle)})`, 1, needle) : needle;
+  body += serif('N', 0, -56, 18, HIST.redInk, 800) + serif('S', 0, 56, 18, HIST.sepia, 800) +
+    serif('E', 56, 2, 18, HIST.sepia, 800) + serif('W', -56, 2, 18, HIST.sepia, 800);
+  return G(T(x, y, s), 1, body);
+}
+const nauticalCompass = compass;
+
+// spyglass(x, y, s, opts): multi-draw brass telescope
+function spyglass(x, y, s = 1, rotOrOpts = 0) {
+  const rot = typeof rotOrOpts === 'object' && rotOrOpts !== null ? (rotOrOpts.rot ?? 0) : rotOrOpts;
+  const g = uid('sg'), d = rectD(-190, -22, 380, 44, 8);
+  let b = '';
+  if (TH.texture === 'arsip') {
+    b += `<defs>${lg(g, HIST.brass, 0, 1)}</defs>` +
+      dropShadow(d, 12, 16, 0.35) +
+      `<rect x="-60" y="-28" width="220" height="56" rx="6" fill="url(#${g})" stroke="${HIST.sepia}" stroke-width="3"/>` +
+      `<rect x="145" y="-34" width="28" height="68" rx="4" fill="${HIST.gold[0]}" stroke="${HIST.sepia}" stroke-width="2.5"/>` +
+      `<rect x="-140" y="-22" width="90" height="44" rx="4" fill="url(#${g})" stroke="${HIST.sepia}" stroke-width="2.5"/>` +
+      `<rect x="-195" y="-17" width="60" height="34" rx="3" fill="url(#${g})" stroke="${HIST.sepia}" stroke-width="2"/>` +
+      `<rect x="-210" y="-21" width="18" height="42" rx="3" fill="${HIST.gold[2]}"/>` +
+      `<line x1="-190" y1="-10" x2="155" y2="-10" stroke="#FFF7DA" stroke-width="3.5" opacity="0.6"/>`;
+  } else {
+    b += vol(d, HIST.brass[1], { depth: 6, w: 4 }) +
+      `<rect x="145" y="-34" width="28" height="68" rx="4" fill="${HIST.gold[0]}" stroke="${C.ink}" stroke-width="2.5"/>`;
+  }
+  return G(T(x, y, s, rot), 1, b);
+}
+
+// tallShip(x, y, s, opts): Dutch East Indiaman 3-masted sailing ship silhouette
+function tallShip(x, y, s = 1, rotOrOpts = 0) {
+  let rot = 0, waves = true;
+  if (typeof rotOrOpts === 'object' && rotOrOpts !== null) {
+    rot = rotOrOpts.rot ?? 0;
+    waves = rotOrOpts.waves ?? true;
+  } else {
+    rot = rotOrOpts;
+  }
+  const hull = 'M-140,20 C-110,60 110,60 150,20 C120,4 60,4 -140,20 Z';
+  let g = '';
+  if (TH.texture === 'arsip') {
+    g += dropShadow(hull, 12, 16, 0.35);
+    g += `<path d="${hull}" fill="#2E2318"/>`;
+    g += `<path d="M-155,14 L-110,18" stroke="#2E2318" stroke-width="4.5" stroke-linecap="round"/>`;
+  } else {
+    g += vol(hull, '#2E2318', { depth: 6, w: 4 });
+  }
+  const masts = [-60, 10, 80];
+  masts.forEach((mx, i) => {
+    const h = 130 + (i === 1 ? 25 : 0);
+    g += `<line x1="${mx}" y1="20" x2="${mx}" y2="${-h}" stroke="#2E2318" stroke-width="4"/>`;
+    for (let k = 0; k < 3; k++) {
+      const sy = -h + 20 + k * 38, sw = 45 - k * 6;
+      g += `<path d="M${mx - sw},${sy} Q${mx},${sy + 10} ${mx + sw},${sy} L${mx + sw - 4},${sy + 26} Q${mx},${sy + 36} ${mx - sw + 4},${sy + 26} Z" fill="#D6C6A2" stroke="#2E2318" stroke-width="1.8"/>`;
+    }
+  });
+  if (waves) {
+    g += `<path d="M-180,45 Q-140,30 -100,45 Q-60,30 -20,45 Q20,30 60,45 Q100,30 140,45 Q180,30 220,45" fill="none" stroke="#688092" stroke-width="5" stroke-linecap="round" opacity="0.6"/>`;
+  }
+  return G(T(x, y, s, rot), 1, g);
+}
+const tallShipSilhouette = tallShip;
+
+// cannon(x, y, s, opts): cast-iron naval cannon on wooden carriage
+function cannon(x, y, s = 1, rotOrOpts = 0) {
+  const rot = typeof rotOrOpts === 'object' && rotOrOpts !== null ? (rotOrOpts.rot ?? 0) : rotOrOpts;
+  let g = '';
+  if (TH.texture === 'arsip') {
+    g += dropShadow(rectD(-120, -35, 240, 70, 10), 14, 18, 0.35);
+  }
+  g += `<path d="M-110,-18 L110,-28 L115,-34 L125,-34 L125,34 L115,34 L110,28 L-110,18 C-125,12 -125,-12 -110,-18 Z" fill="${HIST.iron[1]}" stroke="${HIST.iron[2]}" stroke-width="3"/>`;
+  g += `<ellipse cx="125" cy="0" rx="6" ry="34" fill="#1F2937"/>`;
+  g += `<circle cx="-118" cy="0" r="12" fill="${HIST.iron[0]}"/>`;
+  g += `<polygon points="-80,10 -30,10 -15,48 -95,48" fill="${HIST.wood[1]}" stroke="${HIST.wood[2]}" stroke-width="3"/>`;
+  g += `<circle cx="-75" cy="48" r="24" fill="${HIST.wood[0]}" stroke="${HIST.wood[2]}" stroke-width="3.5"/><circle cx="-75" cy="48" r="6" fill="${HIST.iron[1]}"/>`;
+  g += `<circle cx="-25" cy="48" r="24" fill="${HIST.wood[0]}" stroke="${HIST.wood[2]}" stroke-width="3.5"/><circle cx="-25" cy="48" r="6" fill="${HIST.iron[1]}"/>`;
+  return G(T(x, y, s, rot), 1, g);
+}
+const cannonProp = cannon;
+
+// quillInk(x, y, s, opts): ink pot and goose feather quill; p 0..1 draws a cursive calligraphy trail
+function quillInk(x, y, s = 1, { p = 0, rot = 0 } = {}) {
+  const g = uid('qi'), qp = clamp(p);
+  // Ink bottle standing at (-60, 20)
+  const potD = 'M-95,65 C-95,20 -82,5 -75,0 L-75,-16 L-45,-16 L-45,0 C-38,5 -25,20 -25,65 Z';
+  let b = '';
+  if (TH.texture === 'arsip') {
+    b += dropShadow(potD, 10, 14, 0.35);
+    b += `<path d="${potD}" fill="#1A181C"/>`;
+    b += `<rect x="-78" y="-24" width="36" height="10" rx="3" fill="${HIST.brass[1]}" stroke="${HIST.sepia}" stroke-width="2"/>`;
+    b += `<path d="M-82,30 Q-60,40 -38,30" fill="none" stroke="#fff" stroke-width="3" opacity="0.25"/>`;
+    b += `<circle cx="-46" cy="-4" r="3.5" fill="#1A181C"/>`; // ink drop on neck
+  } else {
+    b += vol(potD, '#1A181C', { depth: 7, w: 4 });
+    b += vol(rectD(-78, -24, 36, 10, 2), HIST.brass[1], { depth: 3, w: 3 });
+  }
+
+  // Writing stroke if p > 0
+  if (qp > 0.02) {
+    const strokeEnd = lerp(-30, 140, qp);
+    const strokePath = `M-30,45 Q20,15 60,50 T${f(strokeEnd)},${f(45 + 10 * Math.sin(qp * 12))}`;
+    b += `<path d="${strokePath}" fill="none" stroke="${HIST.sepia}" stroke-width="4.5" stroke-linecap="round" opacity="0.85"/>`;
+    b += `<circle cx="${f(strokeEnd)}" cy="${f(45 + 10 * Math.sin(qp * 12))}" r="2" fill="${HIST.sepia}"/>`;
+  }
+
+  // Feather quill pen
+  const qx = lerp(-60, 140, qp), qy = lerp(-12, 45 + 10 * Math.sin(qp * 12), qp);
+  const qAng = lerp(-28, -42, qp);
+  const quillD = 'M0,0 C-18,-60 -35,-140 -20,-220 C-10,-240 10,-240 16,-220 C24,-140 14,-60 0,0 Z';
+  let q = G(T(qx, qy, 1, qAng), 1,
+    (TH.texture === 'arsip' ? dropShadow(quillD, 8, 12, 0.25) : '') +
+    `<path d="${quillD}" fill="#FAF5E6" stroke="${HIST.sepiaLo}" stroke-width="2"/>` +
+    `<path d="M-2,-200 L0,0" stroke="${HIST.gold[2]}" stroke-width="3"/>` +
+    `<path d="M0,0 L0,12" stroke="#1A181C" stroke-width="3" stroke-linecap="round"/>`);
+  b += q;
+  return G(T(x, y, s, rot), 1, b);
+}
+
+// sealedLetter(x, y, s, opts): folded secret parchment letter; open 0..1 cracks seal & reveals inner message
+function sealedLetter(x, y, s = 1, { open = 0, label = 'RAHASIA', rot = 0 } = {}) {
+  const q = clamp(open), w = 320, h = 210;
+  const outer = rectD(-w / 2, -h / 2, w, h, 6);
+  let b = '';
+  if (TH.texture === 'arsip') {
+    b += dropShadow(outer, 14, 18, 0.32);
+    b += `<path d="${outer}" fill="${HIST.sheet[1]}"/>`;
+  } else {
+    b += vol(outer, HIST.sheet[1], { depth: 8, w: 4 });
+  }
+
+  // Envelope side fold lines
+  b += detail(`M${-w / 2},${-h / 2} L-30,10 L${-w / 2},${h / 2}`, HIST.sepiaLo, 2, 0.7);
+  b += detail(`M${w / 2},${-h / 2} L30,10 L${w / 2},${h / 2}`, HIST.sepiaLo, 2, 0.7);
+  b += detail(`M${-w / 2},${h / 2} L0,20 L${w / 2},${h / 2}`, HIST.sepiaLo, 2, 0.7);
+
+  // If open > 0.35, show exposed paper inside
+  if (q > 0.35) {
+    const popLetter = (q - 0.35) / 0.65;
+    const ly = lerp(0, -90, popLetter);
+    b += G(T(0, ly), 1,
+      `<rect x="-130" y="-80" width="260" height="160" rx="4" fill="${HIST.sheetLight[0]}" stroke="${HIST.sepiaLo}" stroke-width="2"/>` +
+      `<line x1="-100" y1="-50" x2="100" y2="-50" stroke="${HIST.sepia}" stroke-width="2.5" stroke-dasharray="6 4"/>` +
+      `<line x1="-100" y1="-25" x2="80" y2="-25" stroke="${HIST.sepia}" stroke-width="2" stroke-dasharray="6 4"/>` +
+      `<line x1="-100" y1="0" x2="90" y2="0" stroke="${HIST.sepia}" stroke-width="2" stroke-dasharray="6 4"/>` +
+      serif(String(label), 0, -62, 16, HIST.redInk, 800));
+  }
+
+  // Top triangular flap
+  if (q <= 0.35) {
+    b += `<path d="M${-w / 2},${-h / 2} L0,20 L${w / 2},${-h / 2} Z" fill="${HIST.sheet[0]}" stroke="${HIST.sepiaLo}" stroke-width="2.5"/>`;
+    // Intact wax seal in the center
+    b += waxSeal(0, 18, 0.7, { label });
+  } else {
+    // Fold flap lifted upward
+    const flapScale = Math.cos((q - 0.35) / 0.65 * Math.PI);
+    b += G(`scale(1 ${f(flapScale)})`, 1,
+      `<path d="M${-w / 2},${-h / 2} L0,20 L${w / 2},${-h / 2} Z" fill="${HIST.sheet[0]}" stroke="${HIST.sepiaLo}" stroke-width="2.5"/>`);
+    // Cracked split seal halves
+    const splitX = lerp(0, 36, (q - 0.35) / 0.65);
+    b += G(T(-splitX, 18), 1, `<path d="M-25,-25 L0,-25 L-5,25 L-25,25 Z" fill="${HIST.redWax[1]}"/>`);
+    b += G(T(splitX, 18), 1, `<path d="M5,-25 L25,-25 L25,25 L0,25 Z" fill="${HIST.redWax[1]}"/>`);
+  }
+
+  return G(T(x, y, s, rot), 1, b);
+}
+
+// oldCoin(x, y, s, opts): ancient aged copper or bronze coin (optional square hole for gobog/VOC cash)
+function oldCoin(x, y, s = 1, { label = '1790', hole = false, col = null, rot = 0 } = {}) {
+  const coinCol = col || (hole ? HIST.bronze[1] : '#B87242');
+  const d = circleD(0, 0, 72);
+  let b = '';
+  if (TH.texture === 'arsip') {
+    b += dropShadow(d, 8, 12, 0.35);
+    b += `<circle r="72" fill="${coinCol}" stroke="${tone(coinCol, -0.4)}" stroke-width="4"/>`;
+    b += `<circle r="63" fill="none" stroke="${tone(coinCol, 0.3)}" stroke-width="2.5" stroke-dasharray="4 3"/>`;
+    b += `<circle r="56" fill="${tone(coinCol, -0.12)}"/>`;
+  } else {
+    b += vol(d, coinCol, { depth: 7, w: 4 });
+    b += `<circle r="63" fill="none" stroke="${tone(coinCol, 0.3)}" stroke-width="2" stroke-dasharray="4 3"/>`;
+  }
+
+  if (hole) {
+    // Square central hole (Javanese gobog / Chinese cash coin design)
+    b += `<rect x="-18" y="-18" width="36" height="36" rx="2" fill="${TH.texture === 'arsip' ? '#2A1F16' : C.bg}" stroke="${tone(coinCol, -0.45)}" stroke-width="3"/>`;
+    b += serif(String(label), 0, -36, fitSize(label, 17, 50), tone(coinCol, 0.5), 800);
+    b += serif('VOC', 0, 36, 17, tone(coinCol, 0.5), 800);
+    b += `<circle cx="-36" cy="0" r="5" fill="${tone(coinCol, 0.4)}"/><circle cx="36" cy="0" r="5" fill="${tone(coinCol, 0.4)}"/>`;
+  } else {
+    // Classic coin with embossed rim & centered date / monogram
+    b += `<circle r="46" fill="none" stroke="${tone(coinCol, 0.35)}" stroke-width="2"/>`;
+    b += serif(String(label), 0, 2, fitSize(label, 26, 68, 0, 'Playfair Display', 900), tone(coinCol, 0.55), 900);
+    b += `<path d="M-30,22 Q0,32 30,22" fill="none" stroke="${tone(coinCol, 0.4)}" stroke-width="2.5"/>`;
+    b += `<path d="M-30,-22 Q0,-32 30,-22" fill="none" stroke="${tone(coinCol, 0.4)}" stroke-width="2.5"/>`;
+  }
+
+  return G(T(x, y, s, rot), 1, b);
+}
+
+// lantern(x, y, s, opts): oil lantern with metal cage, glass chimney and flickering warm flame
+function lantern(x, y, s = 1, { t = 0, lit = true, swing = 0 } = {}) {
+  const fl = lit ? (1 + 0.09 * Math.sin(t * 19) + 0.06 * Math.cos(t * 27)) : 0;
+  const rotA = swing ? 8 * Math.sin(t * 2.5) : 0;
+  let b = '';
+
+  // Wire handle hanging on top
+  b += `<path d="M-55,-110 C-55,-190 55,-190 55,-110" fill="none" stroke="${HIST.iron[0]}" stroke-width="5" stroke-linecap="round"/>`;
+
+  // Top metal cowl / heat shield
+  const cowlD = 'M-60,-110 L60,-110 L45,-145 L-45,-145 Z';
+  if (TH.texture === 'arsip') {
+    b += dropShadow(rectD(-65, -110, 130, 240, 20), 12, 16, 0.32);
+    b += `<path d="${cowlD}" fill="${HIST.iron[1]}" stroke="${HIST.iron[2]}" stroke-width="3"/>`;
+    b += `<rect x="-18" y="-160" width="36" height="16" rx="4" fill="${HIST.brass[1]}" stroke="${HIST.sepia}" stroke-width="2"/>`;
+  } else {
+    b += vol(cowlD, HIST.iron[1], { depth: 5, w: 4 });
+  }
+
+  // Warm light spill behind glass
+  if (lit) {
+    b += `<circle cx="0" cy="0" r="${f(100 * fl)}" fill="#FFB833" opacity="0.22" filter="url(#b22)"/>`;
+  }
+
+  // Glass globe
+  const glassD = 'M-46,-105 C-65,-40 -65,30 -46,75 L46,75 C65,30 65,-40 46,-105 Z';
+  b += `<path d="${glassD}" fill="#FFF8E0" fill-opacity="0.45" stroke="${HIST.iron[2]}" stroke-width="2.5"/>`;
+  b += `<path d="M-40,-80 C-50,-20 -50,20 -40,60" fill="none" stroke="#fff" stroke-width="6" opacity="0.6"/>`;
+
+  // Wick flame inside
+  if (lit) {
+    b += `<ellipse cx="0" cy="40" rx="14" ry="6" fill="${HIST.brass[1]}"/>`;
+    b += `<path d="M0,${f(-22 * fl)} C12,12 10,34 0,38 C-10,34 -12,12 0,${f(-22 * fl)} Z" fill="#FFA51E"/>`;
+    b += `<circle cx="0" cy="18" r="8" fill="#FFF3A8"/>`;
+  }
+
+  // Protective wire cage ribs
+  [-30, 0, 30].forEach(rx => {
+    b += `<path d="M${rx},-105 C${f(rx * 1.35)},-30 ${f(rx * 1.35)},30 ${rx},75" fill="none" stroke="${HIST.iron[0]}" stroke-width="3.5"/>`;
+  });
+  b += `<ellipse cx="0" cy="-15" rx="55" ry="8" fill="none" stroke="${HIST.iron[0]}" stroke-width="3"/>`;
+
+  // Base oil fount
+  const baseD = 'M-52,75 L52,75 L62,115 L-62,115 Z';
+  if (TH.texture === 'arsip') {
+    b += `<path d="${baseD}" fill="${HIST.iron[1]}" stroke="${HIST.iron[2]}" stroke-width="3"/>`;
+    b += `<rect x="-70" y="115" width="140" height="16" rx="4" fill="${HIST.iron[2]}"/>`;
+  } else {
+    b += vol(baseD, HIST.iron[1], { depth: 5, w: 4 });
+    b += vol(rectD(-70, 115, 140, 16, 4), HIST.iron[2], { depth: 4, w: 3 });
+  }
+
+  return G(T(x, y, s, rotA), 1, b);
+}
+
+// spiceSack(x, y, s, opts): hessian burlap sack filled with cloves, nutmeg, or peppercorns
+function spiceSack(x, y, s = 1, { kind = 'cengkih', label = '' } = {}) {
+  const sackD = 'M-110,120 C-125,50 -105,-40 -80,-60 L80,-60 C105,-40 125,50 110,120 C70,140 -70,140 -110,120 Z';
+  let b = '';
+
+  // Sack body with texture
+  if (TH.texture === 'arsip') {
+    b += dropShadow(sackD, 14, 18, 0.35);
+    b += `<path d="${sackD}" fill="${HIST.burlap}"/>`;
+  } else {
+    b += vol(sackD, HIST.burlap, { depth: 8, w: 5 });
+  }
+
+  // Cross-hatch burlap weave details
+  for (let dy = -30; dy <= 90; dy += 30) {
+    b += detail(`M-85,${dy} Q0,${dy + 15} 85,${dy}`, '#9A7E52', 2, 0.55);
+  }
+  for (let dx = -60; dx <= 60; dx += 30) {
+    b += detail(`M${dx},-45 Q${dx + 10},30 ${dx},105`, '#9A7E52', 2, 0.45);
+  }
+
+  // Rolled burlap opening rim
+  b += `<ellipse cx="0" cy="-60" rx="86" ry="24" fill="#8A6C42" stroke="#5E4524" stroke-width="3"/>`;
+  b += `<ellipse cx="0" cy="-62" rx="78" ry="18" fill="#3D2B16"/>`;
+
+  // Mound of spices inside the open rim
+  if (kind === 'cengkih') {
+    // Cloves: dark rich brown stems and 4-pointed calyx stars
+    const clvCol = '#382012';
+    [[-45, -66], [-20, -70], [10, -68], [35, -64], [-30, -56], [0, -58], [25, -55], [-10, -64]].forEach(([cx, cy], i) => {
+      b += G(T(cx, cy, 0.9, (i * 47) % 360), 1,
+        `<rect x="-4" y="-10" width="8" height="20" rx="2" fill="${clvCol}"/>` +
+        `<circle cx="0" cy="-10" r="5" fill="#5A351D"/>` +
+        `<path d="M-6,-14 L6,-6 M6,-14 L-6,-6" stroke="#22120A" stroke-width="2"/>`);
+    });
+  } else if (kind === 'pala') {
+    // Nutmeg: rounded ovals with bright red mace / fuli web
+    const nutCol = '#6B4829';
+    [[-35, -66], [0, -68], [35, -64], [-18, -55], [18, -56]].forEach(([cx, cy], i) => {
+      b += G(T(cx, cy, 1, i * 35), 1,
+        `<ellipse cx="0" cy="0" rx="16" ry="13" fill="${nutCol}" stroke="#3D2512" stroke-width="2"/>` +
+        `<path d="M-10,-4 Q0,-12 10,-4 Q4,8 -6,6" fill="none" stroke="${HIST.redInk}" stroke-width="3.5" opacity="0.9"/>`);
+    });
+  } else {
+    // Peppercorns: cluster of textured black / grey grains
+    for (let i = 0; i < 28; i++) {
+      const px = -60 + (i % 7) * 18 + ((i * 13) % 9), py = -74 + Math.floor(i / 7) * 9 + ((i * 7) % 5);
+      const isWhite = i % 5 === 0;
+      b += `<circle cx="${px}" cy="${py}" r="${isWhite ? 4.5 : 5}" fill="${isWhite ? '#D8D4C8' : '#2A2624'}" stroke="#1A1817" stroke-width="1.2"/>`;
+    }
+  }
+
+  // Stencil mark or label on sack
+  const tag = label || (kind === 'cengkih' ? 'CENGKIH' : kind === 'pala' ? 'PALA' : 'LADA');
+  b += G(T(0, 36, 1, -4), 0.75,
+    `<rect x="-70" y="-18" width="140" height="36" rx="4" fill="none" stroke="#5E4524" stroke-width="2.5" stroke-dasharray="8 5"/>` +
+    serif(String(tag), 0, 2, fitSize(tag, 20, 120, 2, 'Playfair Display', 900), '#422F19', 900, 'middle', 'letter-spacing="2"'));
+
+  return G(T(x, y, s), 1, b);
+}
+

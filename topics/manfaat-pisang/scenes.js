@@ -12,8 +12,7 @@ Object.assign(C, {
   steel: ['#F4F6F8', '#B9C0C8', '#6E7782'], tire: '#1E1F24', road: '#4A4D55',
 });
 
-let K = {}, NID = 0;
-const uid = p => `${p}${NID++}`;
+let K = {};
 const ZONES = { A: 0, B: 1500, Cz: 3000, D: 4500, E: 6000, F: 7500, Gz: 9000, H: 10500, I: 12000, J: 13500 };
 const near = (cam, x, r = 1300) => Math.abs(cam.x - x) < r / cam.z + 400;
 
@@ -29,10 +28,6 @@ const DEFS = `<defs>
 </defs>`;
 
 // ---------- realistic pieces ----------
-const lg = (id, cols, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2}" y2="${y2}">` +
-  cols.map((c, i) => `<stop offset="${f(i / (cols.length - 1))}" stop-color="${c}"/>`).join('') + `</linearGradient>`;
-const rg = (id, cols, cx = '38%', cy = '32%', r = '75%') => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">` +
-  cols.map((c, i) => `<stop offset="${f(i / (cols.length - 1))}" stop-color="${c}"/>`).join('') + `</radialGradient>`;
 const softShadow = (x, y, rx, ry, o = 0.3) => `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="#2A1A0C" opacity="${f(o)}" filter="url(#b16)"/>`;
 
 const BANANA = 'M-205,-30 C-150,80 110,95 205,-25 L218,-38 C150,20 -120,10 -195,-48 Z';
@@ -63,7 +58,7 @@ function banana(x, y, s, { rot = 0, ripe = 1, seed = 1, shadowOn = true } = {}) 
 
 function glossyBlob(d, cols, glow = true) {
   const g = uid('gl');
-  return `<defs>${rg(g, cols)}</defs><path d="${d}" fill="url(#${g})"/>` +
+  return `<defs>${rg(g, cols, '38%', '32%')}</defs><path d="${d}" fill="url(#${g})"/>` +
     (glow ? `<path d="${d}" fill="url(#glossG)" opacity="0.5" transform="scale(0.6) translate(-40 -40)"/>` : '') +
     `<path d="${d}" fill="none" stroke="${mix(cols[cols.length - 1], '#000', 0.3)}" stroke-width="2.5" opacity="0.5"/>`;
 }
@@ -450,7 +445,6 @@ function cues(D) {
 }
 
 function drawWorld(t, cam) {
-  NID = 0;
   let s = DEFS + room(cam);
   const Z = ZONES;
   if (near(cam, Z.A)) s += zoneA(t);
@@ -493,7 +487,6 @@ function drawOverlay(t) {
 // ---------- thumbnail ----------
 function drawThumbnail() {
   const t = 1.0, cam = { x: 0, y: 0, z: 1 };
-  NID = 0;
   let w = DEFS + G('translate(540 860)', 1, room(cam));
   // warm sunburst on the wall behind the banana, for contrast
   let rays = '';
