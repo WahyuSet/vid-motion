@@ -1,0 +1,19 @@
+{
+  "channel": "cicaktahu",
+  "style": "paper",
+  "captions": {"words": 5, "line": 34},
+  "tail": 1.6,
+  "scenes": [
+    {"vo": "Satu pisang ukuran sedang menyimpan sekitar *422 miligram* kalium."},
+    {"vo": "Kalium bantu *saraf* bekerja dan otot berkontraksi."},
+    {"vo": "Kalium juga bantu jantungmu berdetak *teratur*."},
+    {"vo": "Lalu ada vitamin B6, sekitar *seperempat* kebutuhan harianmu."},
+    {"vo": "Pisang yang masih hijau punya *pati resisten*."},
+    {"vo": "Pati ini nggak dicerna usus halus, tapi difermentasi di *usus besar*, mirip serat.", "hold": 0.3},
+    {"vo": "Makin matang, patinya berubah jadi *gula*. Makanya pisang makin manis."},
+    {"vo": "Dalam studi tahun 2012, pesepeda makan pisang selama balapan *75 kilometer*."},
+    {"vo": "Hasil balapannya *setara* dengan minum minuman berkarbohidrat.", "hold": 0.3},
+    {"vo": "Punya penyakit ginjal? Tanya *dokter* dulu soal kalium, ya."},
+    {"vo": "Bonus: pisang mengeluarkan gas *etilen* yang mempercepat matangnya sendiri."}
+  ]
+}

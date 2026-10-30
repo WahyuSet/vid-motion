@@ -1,0 +1,45 @@
+{
+  "channel": "sejarah",
+  "style": "paper",
+  "captions": {
+    "words": 5,
+    "line": 34
+  },
+  "tail": 1.6,
+  "scenes": [
+    {
+      "vo": "Gunung Kawi sering dikaitkan dengan *pesugihan*."
+    },
+    {
+      "vo": "Tapi siapa sebenarnya yang *dimakamkan* di sana?"
+    },
+    {
+      "vo": "Pertama, Kiai Zakaria, alias *Eyang Djoego*."
+    },
+    {
+      "vo": "Ia disebut pengawal *Diponegoro* di Perang Jawa, 1825 sampai 1830."
+    },
+    {
+      "vo": "Ia wafat tahun *1871*, lalu dimakamkan di lereng gunung ini.",
+      "hold": 0.2
+    },
+    {
+      "vo": "Kedua, *Raden Mas Iman Soedjono*, murid sekaligus anak angkatnya."
+    },
+    {
+      "vo": "Menurut surat silsilah keraton tahun 1964, ia *buyut* Hamengkubuwono pertama."
+    },
+    {
+      "vo": "Peziarahnya beragam, dari warga Jawa sampai keturunan *Tionghoa*."
+    },
+    {
+      "vo": "Tiap 1 Suro, ada *kirab* mengenang wafatnya Eyang Djoego."
+    },
+    {
+      "vo": "Soal pesugihan, pengelola *membantah*. Peziarah datang untuk berdoa."
+    },
+    {
+      "vo": "Di balik mitosnya, ada *jejak* Perang Jawa."
+    }
+  ]
+}
